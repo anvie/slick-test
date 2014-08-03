@@ -32,7 +32,7 @@ object Build extends Build {
       runtime(logback)
   )
 
-	lazy val zufaro = Project("zufaro", file("zufaro"))
+	lazy val zufaro = Project("zufaro-web", file("web"))
 		.settings(moduleSettings: _*)
         .settings(slickTask <<= slickCodeGenTask)
 		.settings(libraryDependencies ++=

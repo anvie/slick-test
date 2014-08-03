@@ -15,7 +15,7 @@ object BuildSettings {
     //licenses              := Seq("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     scalaVersion          := "2.10.4",
     resolvers             ++= Dependencies.resolutionRepos,
-    scalacOptions         := Seq("-deprecation", "-encoding", "utf8")
+    scalacOptions         := Seq("-deprecation", "-encoding", "utf8", "-language:experimental.macros")
   )
 
   lazy val moduleSettings = basicSettings ++ seq(

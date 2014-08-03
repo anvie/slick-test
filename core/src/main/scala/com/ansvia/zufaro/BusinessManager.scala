@@ -14,8 +14,10 @@ import scala.collection.JavaConversions._
 object BusinessManager {
 
 
-    def create(name:String) = {
-
+    def create(name:String, desc:String) = {
+        Zufaro.db.withSession { implicit sess =>
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, 0.0, 0.0)
+        }
     }
 
     def getById(id:Long) = {

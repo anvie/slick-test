@@ -34,6 +34,7 @@ object Test {
 
                 val busAnu = BusinessManager.create("Anu", "anu kae", 200, 70.0, 30.0)
                 val busKae = BusinessManager.create("Kae", "anu kae", 200, 50.0, 50.0)
+                val busPulsa = BusinessManager.create("Pulsa", "pulsa", 100, 70, 30)
 
                 println("\nBusiness: ")
                 for (b <- Business){
@@ -55,6 +56,7 @@ object Test {
 
                 robin.invest(busAnu, 50.0)
                 robin.invest(busKae, 10)
+                robin.invest(busPulsa, 10)
                 gondez.invest(busAnu, 100)
                 gondez.invest(busKae, 300)
                 temon.invest(busAnu, 122)
@@ -90,11 +92,13 @@ object Test {
 
                 busAnu.addProfit(100.0, op1, UserRole.OPERATOR)
                 busKae.addProfit(50.0, op1, UserRole.OPERATOR)
+                busPulsa.addProfit(20.0, op1, UserRole.OPERATOR)
 
                 println(f"  business ${busAnu.name}%s has profit amount of Rp.${busAnu.getProfit}%.02f")
 
 
                 Investor.foreach { investor =>
+                    println("\n")
                     println(f"  ${investor.name}%s balance: Rp.${investor.getBalance}%.02f")
                     println("  mutasi:")
                     Credit.filter(_.invId === investor.id).foreach { case (credit) =>

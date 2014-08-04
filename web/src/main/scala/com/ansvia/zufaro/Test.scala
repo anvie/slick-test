@@ -2,7 +2,7 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.InvestorRole
+import com.ansvia.zufaro.model.{UserRole, InvestorRole}
 
 object Test {
 
@@ -13,7 +13,9 @@ object Test {
         com.ansvia.zufaro.Zufaro.db withSession {
             implicit session =>
 
-                (Business.ddl ++ Investor.ddl ++ Invest.ddl ++ InvestorBalance.ddl).create
+                (Business.ddl ++ Investor.ddl ++ Invest.ddl ++
+                      InvestorBalance.ddl ++ Operator.ddl ++ BusinessProfit.ddl ++
+                      Credit.ddl).create
 
                 InvestorManager.create("robin", InvestorRole.OWNER)
                 InvestorManager.create("gondez", InvestorRole.OWNER)
@@ -71,6 +73,24 @@ object Test {
 
                 investors.sortBy(_._1.name.asc).foreach { case (investor, investAmount, busName, investId) =>
                     println(f" * ${investor.name}%s invest Rp.${investAmount}%sjt in $busName ($investId%d) --- balance: ${investor.getBalance}%.02f")
+                }
+
+                println("\n")
+
+                val op1 = OperatorManager.create("op1")
+
+                busAnu.addProfit(100.0, op1, UserRole.OPERATOR)
+
+
+                println(f"  business ${busAnu.name}%s has profit amount of Rp.${busAnu.getProfit}%.02f")
+                println(f"  ${gondez.name}%s balance: Rp.${gondez.getBalance}%.02f")
+                Credit.filter(_.invId === gondez.id).foreach { case (credit) =>
+                    println(f"     + credit : ${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
+                }
+
+                println(f"  ${temon.name}%s balance: Rp.${temon.getBalance}%.02f")
+                Credit.filter(_.invId === temon.id).foreach { case (credit) =>
+                    println(f"     + credit : ${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
                 }
 
                 println("\n")

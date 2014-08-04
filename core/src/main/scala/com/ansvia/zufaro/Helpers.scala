@@ -6,5 +6,5 @@ package com.ansvia.zufaro
  * Time: 11:29 PM
  *
  */
-object Helpers extends InvestorHelpers
+object Helpers extends InvestorHelpers with BusinessHelpers
 

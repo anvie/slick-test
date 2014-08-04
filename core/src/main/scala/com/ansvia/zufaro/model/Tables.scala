@@ -43,19 +43,20 @@ trait Tables {
    *  @param id Database column ID AutoInc
    *  @param name Database column NAME 
    *  @param desc Database column DESC 
+   *  @param fund Database column FUND 
    *  @param divideSys Database column DIVIDE_SYS 
    *  @param divideInvest Database column DIVIDE_INVEST  */
-  case class BusinessRow(id: Long, name: String, desc: String, divideSys: Double, divideInvest: Double)
+  case class BusinessRow(id: Long, name: String, desc: String, fund: Double, divideSys: Double, divideInvest: Double)
   /** GetResult implicit for fetching BusinessRow objects using plain SQL queries */
   implicit def GetResultBusinessRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double]): GR[BusinessRow] = GR{
     prs => import prs._
-    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double]))
+    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double], <<[Double]))
   }
   /** Table description of table BUSINESS. Objects of this class serve as prototypes for rows in queries. */
   class Business(tag: Tag) extends Table[BusinessRow](tag, "BUSINESS") {
-    def * = (id, name, desc, divideSys, divideInvest) <> (BusinessRow.tupled, BusinessRow.unapply)
+    def * = (id, name, desc, fund, divideSys, divideInvest) <> (BusinessRow.tupled, BusinessRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, desc.?, divideSys.?, divideInvest.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, desc.?, fund.?, divideSys.?, divideInvest.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -63,6 +64,8 @@ trait Tables {
     val name: Column[String] = column[String]("NAME")
     /** Database column DESC  */
     val desc: Column[String] = column[String]("DESC")
+    /** Database column FUND  */
+    val fund: Column[Double] = column[Double]("FUND")
     /** Database column DIVIDE_SYS  */
     val divideSys: Column[Double] = column[Double]("DIVIDE_SYS")
     /** Database column DIVIDE_INVEST  */

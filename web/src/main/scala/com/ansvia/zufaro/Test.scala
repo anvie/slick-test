@@ -29,22 +29,31 @@ object Test {
                     println(s" * $id - $name ($role)")
                 }
 
-                Business += BusinessRow(0, "Anu", "anu kae", 70.0, 30.0)
-                Business += BusinessRow(0, "Kae", "anu kae", 60.0, 40.0)
+//                Business += BusinessRow(0, "Anu", "anu kae", , 70.0, 30.0)
+//                Business += BusinessRow(0, "Kae", "anu kae", 60.0, 40.0)
+
+                val busAnu = BusinessManager.create("Anu", "anu kae", 200, 70.0, 30.0)
+                val busKae = BusinessManager.create("Kae", "anu kae", 200, 50.0, 50.0)
+
+                println("\nBusiness: ")
+                for (b <- Business){
+                    println(f"  + bisnis `${b.name}` has fund: Rp.${b.fund}%.02f")
+                }
 
                 val robin = InvestorManager.getByName("robin").get
                 val gondez = InvestorManager.getByName("gondez").get
                 val temon = InvestorManager.getByName("temon").get
 
-                val busAnu = BusinessManager.getByName("Anu").get
-                val busKae = BusinessManager.getByName("Kae").get
+//                val busAnu = BusinessManager.getByName("Anu").get
+//                val busKae = BusinessManager.getByName("Kae").get
 
-                robin.addBalance(20.0)
+                robin.addBalance(100.0)
                 gondez.addBalance(500.10)
                 temon.addBalance(200.0)
 
                 println(s"${robin.name} balance: ${robin.getBalance}")
 
+                robin.invest(busAnu, 50.0)
                 robin.invest(busKae, 10)
                 gondez.invest(busAnu, 100)
                 gondez.invest(busKae, 300)
@@ -80,18 +89,26 @@ object Test {
                 val op1 = OperatorManager.create("op1")
 
                 busAnu.addProfit(100.0, op1, UserRole.OPERATOR)
-
+                busKae.addProfit(50.0, op1, UserRole.OPERATOR)
 
                 println(f"  business ${busAnu.name}%s has profit amount of Rp.${busAnu.getProfit}%.02f")
-                println(f"  ${gondez.name}%s balance: Rp.${gondez.getBalance}%.02f")
-                Credit.filter(_.invId === gondez.id).foreach { case (credit) =>
-                    println(f"     + credit : ${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
+
+
+                Investor.foreach { investor =>
+                    println(f"  ${investor.name}%s balance: Rp.${investor.getBalance}%.02f")
+                    println("  mutasi:")
+                    Credit.filter(_.invId === investor.id).foreach { case (credit) =>
+                        println(f"     + credit : Rp.${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
+                    }
                 }
 
-                println(f"  ${temon.name}%s balance: Rp.${temon.getBalance}%.02f")
-                Credit.filter(_.invId === temon.id).foreach { case (credit) =>
-                    println(f"     + credit : ${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
-                }
+
+//
+//
+//                println(f"  ${robin.name}%s balance: Rp.${robin.getBalance}%.02f")
+//                Credit.filter(_.invId === robin.id).foreach { case (credit) =>
+//                    println(f"     + credit : Rp.${credit.amount}%.02f ref: ${credit.ref}%s [${credit.ts}]")
+//                }
 
                 println("\n")
 

@@ -50,7 +50,7 @@ trait InvestorHelpers {
                 if (alreadyAmount > 0.0)
                     throw AlreadyInvestedException("Already invested: %s -> %s amount %.02f".format(investor.name, business.name, alreadyAmount))
 
-                Invest += InvestRow(0, investor.id, business.id, amount)
+                Invest += InvestRow(0L, investor.id, business.id, amount)
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
                 val curAmount = q.first()
 

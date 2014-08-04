@@ -17,10 +17,11 @@ import java.util.Date
 object BusinessManager {
 
 
-    def create(name:String, desc:String) = {
-        Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, 0.0, 0.0)
+    def create(name:String, desc:String, fund:Double, divSys:Double, divInvestor:Double) = {
+        val id = Zufaro.db.withSession { implicit sess =>
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divSys, divInvestor)
         }
+        getById(id).get
     }
 
     def getById(id:Long) = {
@@ -50,8 +51,8 @@ trait BusinessHelpers {
 
                 // kalkulasi bagi hasil
 
-                val sysProfit = p(business.divideSys) * amount
-                val invProfit = p(business.divideInvest) * amount
+//                val sysProfit = p(business.divideSys) * amount
+//                val invProfit = p(business.divideInvest) * amount
 
 
                 val ivIb = for {
@@ -61,12 +62,14 @@ trait BusinessHelpers {
 
                 ivIb.foreach { case (iv, ib) =>
 
-                    val curBal = ib.amount + invProfit
+                    val margin = (iv.amount / business.fund) * amount
+                    val dividen = margin * p(business.divideInvest)
+                    val curBal = ib.amount + dividen
 
                     InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
 
                     // tulis journal
-                    Credit += CreditRow(0L, iv.invId, invProfit, Some("bagi hasil dari bisnis " + business.name), new Timestamp(new Date().getTime))
+                    Credit += CreditRow(0L, iv.invId, dividen, Some("bagi hasil dari bisnis " + business.name), new Timestamp(new Date().getTime))
                 }
             }
         }

@@ -20,6 +20,7 @@ object Test {
             InvestorManager.create("robin", InvestorRole.OWNER)
             InvestorManager.create("gondez", InvestorRole.OWNER)
             InvestorManager.create("temon", InvestorRole.OWNER)
+            val imam = InvestorManager.create("imam", InvestorRole.OWNER)
 
             //                Investor.users.foreach { case (id, name, role) =>
             //                    println(s" * $id - $name ($role)")
@@ -33,13 +34,13 @@ object Test {
             //                Business += BusinessRow(0, "Anu", "anu kae", , 70.0, 30.0)
             //                Business += BusinessRow(0, "Kae", "anu kae", 60.0, 40.0)
 
-            val busAnu = BusinessManager.create("Anu", "anu kae", 200, 70.0, 30.0)
-            val busKae = BusinessManager.create("Kae", "anu kae", 200, 50.0, 50.0)
+            val busCucianMobil = BusinessManager.create("Cucian Mobil", "cucian mobil", 200, 70.0, 30.0)
+            val busLaundry = BusinessManager.create("Laundry", "laundry", 200, 50.0, 50.0)
             val busPulsa = BusinessManager.create("Pulsa", "pulsa", 500, 70, 30)
 
-            val busGroup = BusinessManager.createGroup("all", "all business group")
+            val busGroupAll = BusinessManager.createGroup("all", "all business group")
 
-            busGroup.addMembers(busAnu, busKae, busPulsa)
+            busGroupAll.addMembers(busCucianMobil, busLaundry, busPulsa)
 
             println("\nBusiness: ")
             for (b <- Business){
@@ -65,47 +66,59 @@ object Test {
             robin.addBalance(100.0)
             gondez.addBalance(500.10)
             temon.addBalance(200.0)
+            imam.addBalance(200.0)
 
-            println(s"${robin.name} balance: ${robin.getBalance}")
+            println("balance before invest:")
+            Investor.foreach { inv =>
+                println(f"   ${inv.name} balance: Rp.${inv.getBalance}%.02f")
+            }
 
-            robin.invest(busAnu, 50.0)
-            robin.invest(busKae, 10)
+//            println(s"${robin.name} balance: ${robin.getBalance}")
+
+            robin.invest(busCucianMobil, 50.0)
+            robin.invest(busLaundry, 10)
             robin.invest(busPulsa, 10)
-            gondez.invest(busAnu, 100)
-            gondez.invest(busKae, 300)
-            temon.invest(busAnu, 122)
+            gondez.invest(busCucianMobil, 100)
+            gondez.invest(busLaundry, 300)
+            temon.invest(busCucianMobil, 122)
+            imam.invest(busGroupAll, 100)
 
-            println(s"${robin.name} balance after invest: ${robin.getBalance}")
+
+//            println(s"${robin.name} balance after invest: ${robin.getBalance}")
 
             val investors = for {
                 ((u, v), b) <- Investor.innerJoin(Invest).innerJoin(Business).on {
                     case ((_u, _v), _b) => _u.id === _v.invId && _b.id === _v.busId
                 }
-            } yield (u, v.amount, b.name, v.id)
+            } yield (u, v.amount, b.id, b.name, v.id, v.busKind)
 
 
             println("\n--------------------------")
 
-            investors.sortBy(_._1.name.asc).foreach { case (investor, investAmount, busName, investId) =>
-                println(f" * ${investor.name}%s invest Rp.${investAmount}%sjt in $busName ($investId%d) --- balance: ${investor.getBalance}%.02f")
+            investors.sortBy(_._1.name.asc).foreach { case (investor, investAmount, busId, busName, investId, busKind) =>
+                busKind match {
+                    case BusinessKind.SINGLE =>
+                        println(f" * ${investor.name}%s invest Rp.${investAmount}%sjt in $busName ($investId%d)")
+                    case BusinessKind.GROUP =>
+                        val busNameGroup = BusinessManager.getGroupById(busId).get.name
+                        println(f" * ${investor.name}%s invest Rp.${investAmount}%sjt in $busNameGroup%s ($investId%d)")
+                }
             }
 
             // remove test
-            temon.rmInvest(busAnu)
+            temon.rmInvest(busCucianMobil)
 
-            // after update
-            println("\n-------------------------- after update")
-
-            investors.sortBy(_._1.name.asc).foreach { case (investor, investAmount, busName, investId) =>
-                println(f" * ${investor.name}%s invest Rp.${investAmount}%sjt in $busName ($investId%d) --- balance: ${investor.getBalance}%.02f")
+            println("\nbalance after invest:")
+            Investor.foreach { inv =>
+                println(f"   ${inv.name} balance: Rp.${inv.getBalance}%.02f")
             }
 
             println("\n")
 
             val op1 = OperatorManager.create("op1")
 
-            busAnu.addProfit(100.0, op1, UserRole.OPERATOR)
-            busKae.addProfit(50.0, op1, UserRole.OPERATOR)
+            busCucianMobil.addProfit(100.0, op1, UserRole.OPERATOR)
+            busLaundry.addProfit(50.0, op1, UserRole.OPERATOR)
             busPulsa.addProfit(100.0, op1, UserRole.OPERATOR)
 
             Business.foreach { bus =>

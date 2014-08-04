@@ -63,6 +63,7 @@ object BusinessManager {
 
 trait BusinessHelpers {
 
+    import BusinessGroupHelpers._
 
     implicit class businessWrapper(business:BusinessRow){
 
@@ -70,6 +71,7 @@ trait BusinessHelpers {
 
         def addProfit(amount:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""){
             Zufaro.db.withTransaction { implicit sess =>
+
                 BusinessProfit += BusinessProfitRow(0L, business.id, amount, new Timestamp(new Date().getTime), mutator.id,
                     mutatorRole, additionalInfo:String)
 
@@ -80,7 +82,7 @@ trait BusinessHelpers {
 
 
                 val ivIb = for {
-                    iv <- Invest if iv.busId === business.id
+                    iv <- Invest if iv.busId === business.id && iv.busKind === BusinessKind.SINGLE
                     ib <- InvestorBalance if ib.invId === iv.invId
                 } yield (iv, ib)
 
@@ -95,6 +97,30 @@ trait BusinessHelpers {
                     // tulis journal
                     Credit += CreditRow(0L, iv.invId, dividen, Some("bagi hasil dari bisnis " + business.name), new Timestamp(new Date().getTime))
                 }
+
+                val groupQ = for {
+                    link <- BusinessGroupLink if link.busId === business.id
+                    iv <- Invest if iv.busId === link.busGroupId && iv.busKind === BusinessKind.GROUP
+                    g <- BusinessGroup if g.id === link.busGroupId
+                    inv <- Investor if inv.id === iv.invId
+                    ib <- InvestorBalance if ib.invId === inv.id
+                } yield (iv.amount, inv.id, g, inv, ib)
+
+//                println("groupQ statement: " + groupQ.selectStatement)
+
+                groupQ.foreach { case (investAmount, investId, g, inv, ib) =>
+                    val investAmountNorm = investAmount / g.getMemberCount.toDouble
+
+                    val margin = (investAmountNorm / business.fund) * amount
+                    val dividen = margin * p(business.divideInvest)
+                    val curBal = ib.amount + dividen
+
+                    InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
+
+                    // tulis journal
+                    Credit += CreditRow(0L, investId, dividen,
+                        Some("bagi hasil dari bisnis " + business.name + " group of " + g.name), new Timestamp(new Date().getTime))
+                }
             }
         }
 
@@ -106,6 +132,10 @@ trait BusinessHelpers {
 
 
     }
+
+}
+
+trait BusinessGroupHelpers {
 
     implicit class businessGroupWrapper(businessGroup:BusinessGroupRow){
 
@@ -134,18 +164,29 @@ trait BusinessHelpers {
             }
         }
 
-        def getMembers(offset:Int, limit:Int) = {
+        def getMembers(offset:Int, limit:Int = -1) = {
             lazy val q = for {
                 link <- BusinessGroupLink if link.busGroupId === businessGroup.id
                 bus <- Business if bus.id === link.busId
             } yield bus
-            q.drop(offset).take(limit)
+            if (limit > 0)
+                q.drop(offset).take(limit)
+            else
+                q.drop(offset)
         }
+
+        def getMemberCount:Int = {
+            Zufaro.db.withSession(implicit sess =>
+                BusinessGroupLink.where(_.busGroupId === businessGroup.id).length.run)
+        }
+
+
 
     }
 }
 
-object BusinessHelper extends BusinessHelpers
+object BusinessHelpers extends BusinessHelpers
+object BusinessGroupHelpers extends BusinessGroupHelpers
 
 object BusinessKind {
     val SINGLE = 1

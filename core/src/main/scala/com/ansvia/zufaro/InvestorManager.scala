@@ -17,10 +17,12 @@ object InvestorManager {
 
 
     def create(name:String, role:Int) = {
-        Zufaro.db.withTransaction { implicit session =>
+        val userId = Zufaro.db.withTransaction { implicit session =>
             val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, role)
             InvestorBalance += InvestorBalanceRow(0L, userId, 0.0)
+            userId
         }
+        getById(userId).get
     }
 
     def getById(id:Long) = {
@@ -70,6 +72,12 @@ trait InvestorHelpers {
          */
         def invest(businessGroup:BusinessGroupRow, amount:Double) = {
             Zufaro.db.withTransaction { implicit sess:backend.SessionDef =>
+//
+//                import BusinessHelpers._
+//
+//                businessGroup.getMembers(0).foreach { bus =>
+//
+//                }
 
                 // check balance
                 checkBalance(amount)

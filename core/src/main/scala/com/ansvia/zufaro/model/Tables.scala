@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ Business.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ Project.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ Project.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc
@@ -73,6 +73,58 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table Business */
   lazy val Business = new TableQuery(tag => new Business(tag))
+  
+  /** Entity class storing rows of table BusinessGroup
+   *  @param id Database column ID AutoInc
+   *  @param name Database column NAME 
+   *  @param desc Database column DESC  */
+  case class BusinessGroupRow(id: Long, name: String, desc: String)
+  /** GetResult implicit for fetching BusinessGroupRow objects using plain SQL queries */
+  implicit def GetResultBusinessGroupRow(implicit e0: GR[Long], e1: GR[String]): GR[BusinessGroupRow] = GR{
+    prs => import prs._
+    BusinessGroupRow.tupled((<<[Long], <<[String], <<[String]))
+  }
+  /** Table description of table BUSINESS_GROUP. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessGroup(tag: Tag) extends Table[BusinessGroupRow](tag, "BUSINESS_GROUP") {
+    def * = (id, name, desc) <> (BusinessGroupRow.tupled, BusinessGroupRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, name.?, desc.?).shaped.<>({r=>import r._; _1.map(_=> BusinessGroupRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column NAME  */
+    val name: Column[String] = column[String]("NAME")
+    /** Database column DESC  */
+    val desc: Column[String] = column[String]("DESC")
+  }
+  /** Collection-like TableQuery object for table BusinessGroup */
+  lazy val BusinessGroup = new TableQuery(tag => new BusinessGroup(tag))
+  
+  /** Entity class storing rows of table BusinessGroupLink
+   *  @param id Database column ID AutoInc
+   *  @param busGroupId Database column BUS_GROUP_ID 
+   *  @param busId Database column BUS_ID  */
+  case class BusinessGroupLinkRow(id: Long, busGroupId: Long, busId: Long)
+  /** GetResult implicit for fetching BusinessGroupLinkRow objects using plain SQL queries */
+  implicit def GetResultBusinessGroupLinkRow(implicit e0: GR[Long]): GR[BusinessGroupLinkRow] = GR{
+    prs => import prs._
+    BusinessGroupLinkRow.tupled((<<[Long], <<[Long], <<[Long]))
+  }
+  /** Table description of table BUSINESS_GROUP_LINK. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessGroupLink(tag: Tag) extends Table[BusinessGroupLinkRow](tag, "BUSINESS_GROUP_LINK") {
+    def * = (id, busGroupId, busId) <> (BusinessGroupLinkRow.tupled, BusinessGroupLinkRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, busGroupId.?, busId.?).shaped.<>({r=>import r._; _1.map(_=> BusinessGroupLinkRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column BUS_GROUP_ID  */
+    val busGroupId: Column[Long] = column[Long]("BUS_GROUP_ID")
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
+  }
+  /** Collection-like TableQuery object for table BusinessGroupLink */
+  lazy val BusinessGroupLink = new TableQuery(tag => new BusinessGroupLink(tag))
   
   /** Entity class storing rows of table BusinessProfit
    *  @param id Database column ID AutoInc
@@ -177,18 +229,19 @@ trait Tables {
    *  @param id Database column ID AutoInc
    *  @param invId Database column INV_ID 
    *  @param busId Database column BUS_ID 
-   *  @param amount Database column AMOUNT  */
-  case class InvestRow(id: Long, invId: Long, busId: Long, amount: Double)
+   *  @param amount Database column AMOUNT 
+   *  @param busKind Database column BUS_KIND  */
+  case class InvestRow(id: Long, invId: Long, busId: Long, amount: Double, busKind: Int)
   /** GetResult implicit for fetching InvestRow objects using plain SQL queries */
-  implicit def GetResultInvestRow(implicit e0: GR[Long], e1: GR[Double]): GR[InvestRow] = GR{
+  implicit def GetResultInvestRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int]): GR[InvestRow] = GR{
     prs => import prs._
-    InvestRow.tupled((<<[Long], <<[Long], <<[Long], <<[Double]))
+    InvestRow.tupled((<<[Long], <<[Long], <<[Long], <<[Double], <<[Int]))
   }
   /** Table description of table INVEST. Objects of this class serve as prototypes for rows in queries. */
   class Invest(tag: Tag) extends Table[InvestRow](tag, "INVEST") {
-    def * = (id, invId, busId, amount) <> (InvestRow.tupled, InvestRow.unapply)
+    def * = (id, invId, busId, amount, busKind) <> (InvestRow.tupled, InvestRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, busId.?, amount.?).shaped.<>({r=>import r._; _1.map(_=> InvestRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, invId.?, busId.?, amount.?, busKind.?).shaped.<>({r=>import r._; _1.map(_=> InvestRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -198,6 +251,8 @@ trait Tables {
     val busId: Column[Long] = column[Long]("BUS_ID")
     /** Database column AMOUNT  */
     val amount: Column[Double] = column[Double]("AMOUNT")
+    /** Database column BUS_KIND  */
+    val busKind: Column[Int] = column[Int]("BUS_KIND")
   }
   /** Collection-like TableQuery object for table Invest */
   lazy val Invest = new TableQuery(tag => new Invest(tag))

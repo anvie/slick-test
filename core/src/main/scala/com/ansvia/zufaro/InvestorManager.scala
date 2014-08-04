@@ -1,6 +1,7 @@
 package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.H2Driver.backend
 import model.Tables._
 import com.ansvia.zufaro.model.UserRole
 import com.ansvia.zufaro.exception.{AlreadyInvestedException, ZufaroException, InsufficientBalanceException}
@@ -50,16 +51,53 @@ trait InvestorHelpers {
                 if (alreadyAmount > 0.0)
                     throw AlreadyInvestedException("Already invested: %s -> %s amount %.02f".format(investor.name, business.name, alreadyAmount))
 
-                Invest += InvestRow(0L, investor.id, business.id, amount)
+                checkBalance(amount)
+
+                Invest += InvestRow(0L, investor.id, business.id, amount, BusinessKind.SINGLE)
+
+                // debit investor balance
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
                 val curAmount = q.first()
-
-                if(curAmount < amount)
-                    throw InsufficientBalanceException(f"Insufficient balance $curAmount%f < $amount%f")
-
                 q.update(curAmount - amount)
             }
         }
+
+        /**
+         * Invest into a group of business, will div by system.
+         * @param businessGroup business group.
+         * @param amount invest amount.
+         * @return
+         */
+        def invest(businessGroup:BusinessGroupRow, amount:Double) = {
+            Zufaro.db.withTransaction { implicit sess:backend.SessionDef =>
+
+                // check balance
+                checkBalance(amount)
+
+                Invest += InvestRow(0L, investor.id, businessGroup.id, amount, BusinessKind.GROUP)
+
+                // debit investor balance
+                val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
+                val curAmount = q.first()
+                q.update(curAmount - amount)
+            }
+        }
+
+        /**
+         * Check balance will throw InsufficientBalanceException when
+         * balance is not enough for transaction.
+         * @param amount amount to check.
+         * @param sess session.
+         * @return
+         */
+        private def checkBalance(amount:Double)(implicit sess:backend.SessionDef){
+            val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
+            val curAmount = q.first()
+
+            if(curAmount < amount)
+                throw InsufficientBalanceException(f"Insufficient balance $curAmount%f < $amount%f")
+        }
+
 
         def rmInvest(business:BusinessRow) = {
             Zufaro.db.withTransaction { implicit sess =>

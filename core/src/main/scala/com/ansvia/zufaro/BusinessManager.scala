@@ -24,6 +24,15 @@ object BusinessManager {
         getById(id).get
     }
 
+    def createGroup(name:String, desc:String):BusinessGroupRow = {
+        val id = Zufaro.db.withSession { implicit sess =>
+            (BusinessGroup returning BusinessGroup.map(_.id)) += BusinessGroupRow(0L, name, desc)
+        }
+        getGroupById(id).get
+    }
+
+
+
     def getById(id:Long) = {
         Zufaro.db.withSession { implicit session =>
             Business.where(_.id === id).firstOption
@@ -36,9 +45,24 @@ object BusinessManager {
         }
     }
 
+    def getGroupById(id:Long) = {
+        Zufaro.db.withSession { implicit session =>
+            BusinessGroup.where(_.id === id).firstOption
+        }
+    }
+
+    def getGroupByName(name:String) = {
+        Zufaro.db.withSession { implicit session =>
+            BusinessGroup.where(_.name === name).firstOption
+        }
+    }
+
+
+
 }
 
 trait BusinessHelpers {
+
 
     implicit class businessWrapper(business:BusinessRow){
 
@@ -82,6 +106,49 @@ trait BusinessHelpers {
 
 
     }
+
+    implicit class businessGroupWrapper(businessGroup:BusinessGroupRow){
+
+        /**
+         * Add group member.
+         * @param business member to remove.
+         * @return
+         */
+        def addMembers(business:BusinessRow*) = {
+            Zufaro.db.withTransaction { implicit sess =>
+                business.foreach { bus =>
+                    BusinessGroupLink += BusinessGroupLinkRow(0L, businessGroup.id, bus.id)
+                }
+            }
+        }
+
+        /**
+         * Remove group member.
+         * @param business member to remove.
+         * @return
+         */
+        def rmMember(business:BusinessRow) = {
+            Zufaro.db.withSession { implicit sess =>
+                BusinessGroupLink += BusinessGroupLinkRow(0L, businessGroup.id, business.id)
+                BusinessGroupLink.where(link => link.busId === business.id && link.busGroupId === businessGroup.id).delete
+            }
+        }
+
+        def getMembers(offset:Int, limit:Int) = {
+            lazy val q = for {
+                link <- BusinessGroupLink if link.busGroupId === businessGroup.id
+                bus <- Business if bus.id === link.busId
+            } yield bus
+            q.drop(offset).take(limit)
+        }
+
+    }
 }
 
 object BusinessHelper extends BusinessHelpers
+
+object BusinessKind {
+    val SINGLE = 1
+    val GROUP = 2
+}
+

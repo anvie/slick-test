@@ -1,6 +1,8 @@
 package bootstrap.liftweb
 
 import net.liftweb._
+import net.liftweb.http.LiftRules
+import net.liftweb.sitemap.{SiteMap, Menu, Loc}
 
 /**
  * Author: robin
@@ -11,7 +13,13 @@ import net.liftweb._
 class Boot {
 
     def boot {
-        // @TODO(you): code here
+
+        LiftRules.addToPackages("com.ansvia.zufaro.web")
+
+        val sitemapEntries = Menu(Loc("Home", List("index"), "Home")) :: Nil
+
+        LiftRules.setSiteMap(SiteMap(sitemapEntries: _*))
+
     }
 
 }

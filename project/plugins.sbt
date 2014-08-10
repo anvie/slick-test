@@ -1,5 +1,3 @@
-//libraryDependencies <+= sbtVersion(v => "com.github.siasia" %% "xsbt-web-plugin" % (v + "-0.2.11"))
-
 //addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.1")
 
 resolvers ++= Seq(
@@ -7,6 +5,10 @@ resolvers ++= Seq(
 //  "less is" at "http://repo.lessis.me",
 //  "coda" at "http://repo.codahale.com"
 )
+
+//libraryDependencies <+= sbtVersion(v => "com.github.siasia" %% "xsbt-web-plugin" % (v + "-0.2.11"))
+
+addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "0.9.0")
 
 addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 

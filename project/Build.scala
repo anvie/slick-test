@@ -9,7 +9,7 @@ object Build extends Build {
 
     // root
     lazy val root = Project("root", file("."))
-          .aggregate(zufaroCore, zufaro/*, zufaroMacro*/)
+          .aggregate(zufaroCore, zufaroWeb/*, zufaroMacro*/)
           .settings(basicSettings: _*)
           .settings(noPublishing: _*)
 
@@ -37,11 +37,12 @@ object Build extends Build {
           .settings(libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _))
 
 
-    lazy val zufaro = Project("zufaro-web", file("web"))
+    lazy val zufaroWeb = Project("zufaro-web", file("web"))
           .settings(moduleSettings: _*)
+          .settings(com.earldouglas.xsbtwebplugin.WebPlugin.webSettings: _*)
           .settings(slickTask <<= slickCodeGenTask)
           .settings(libraryDependencies ++=
-          compile(/*ansviaCommons,*/ slick) ++
+          compile(/*ansviaCommons,*/ slick) ++ lift ++
                 test(specs2) ++
                 runtime(logback)
     ).dependsOn(zufaroCore)

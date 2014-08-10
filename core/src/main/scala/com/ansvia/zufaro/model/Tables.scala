@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ Project.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc
@@ -44,19 +44,19 @@ trait Tables {
    *  @param name Database column NAME 
    *  @param desc Database column DESC 
    *  @param fund Database column FUND 
-   *  @param divideSys Database column DIVIDE_SYS 
-   *  @param divideInvest Database column DIVIDE_INVEST  */
-  case class BusinessRow(id: Long, name: String, desc: String, fund: Double, divideSys: Double, divideInvest: Double)
+   *  @param divideInvest Database column DIVIDE_INVEST 
+   *  @param state Database column STATE  */
+  case class BusinessRow(id: Long, name: String, desc: String, fund: Double, divideInvest: Double, state: Int)
   /** GetResult implicit for fetching BusinessRow objects using plain SQL queries */
-  implicit def GetResultBusinessRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double]): GR[BusinessRow] = GR{
+  implicit def GetResultBusinessRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double], e3: GR[Int]): GR[BusinessRow] = GR{
     prs => import prs._
-    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double], <<[Double]))
+    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double], <<[Int]))
   }
   /** Table description of table BUSINESS. Objects of this class serve as prototypes for rows in queries. */
   class Business(tag: Tag) extends Table[BusinessRow](tag, "BUSINESS") {
-    def * = (id, name, desc, fund, divideSys, divideInvest) <> (BusinessRow.tupled, BusinessRow.unapply)
+    def * = (id, name, desc, fund, divideInvest, state) <> (BusinessRow.tupled, BusinessRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, desc.?, fund.?, divideSys.?, divideInvest.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, desc.?, fund.?, divideInvest.?, state.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -66,10 +66,10 @@ trait Tables {
     val desc: Column[String] = column[String]("DESC")
     /** Database column FUND  */
     val fund: Column[Double] = column[Double]("FUND")
-    /** Database column DIVIDE_SYS  */
-    val divideSys: Column[Double] = column[Double]("DIVIDE_SYS")
     /** Database column DIVIDE_INVEST  */
     val divideInvest: Column[Double] = column[Double]("DIVIDE_INVEST")
+    /** Database column STATE  */
+    val state: Column[Int] = column[Int]("STATE")
   }
   /** Collection-like TableQuery object for table Business */
   lazy val Business = new TableQuery(tag => new Business(tag))
@@ -335,40 +335,11 @@ trait Tables {
   /** Collection-like TableQuery object for table Operator */
   lazy val Operator = new TableQuery(tag => new Operator(tag))
   
-  /** Entity class storing rows of table Project
-   *  @param id Database column ID AutoInc
-   *  @param name Database column NAME 
-   *  @param desc Database column DESC 
-   *  @param donePercent Database column DONE_PERCENT  */
-  case class ProjectRow(id: Long, name: String, desc: String, donePercent: Double)
-  /** GetResult implicit for fetching ProjectRow objects using plain SQL queries */
-  implicit def GetResultProjectRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double]): GR[ProjectRow] = GR{
-    prs => import prs._
-    ProjectRow.tupled((<<[Long], <<[String], <<[String], <<[Double]))
-  }
-  /** Table description of table PROJECT. Objects of this class serve as prototypes for rows in queries. */
-  class Project(tag: Tag) extends Table[ProjectRow](tag, "PROJECT") {
-    def * = (id, name, desc, donePercent) <> (ProjectRow.tupled, ProjectRow.unapply)
-    /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, desc.?, donePercent.?).shaped.<>({r=>import r._; _1.map(_=> ProjectRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
-    
-    /** Database column ID AutoInc */
-    val id: Column[Long] = column[Long]("ID", O.AutoInc)
-    /** Database column NAME  */
-    val name: Column[String] = column[String]("NAME")
-    /** Database column DESC  */
-    val desc: Column[String] = column[String]("DESC")
-    /** Database column DONE_PERCENT  */
-    val donePercent: Column[Double] = column[Double]("DONE_PERCENT")
-  }
-  /** Collection-like TableQuery object for table Project */
-  lazy val Project = new TableQuery(tag => new Project(tag))
-  
   /** Entity class storing rows of table ProjectWatcher
    *  @param id Database column ID AutoInc
    *  @param invId Database column INV_ID 
-   *  @param projId Database column PROJ_ID  */
-  case class ProjectWatcherRow(id: Long, invId: Long, projId: Long)
+   *  @param busId Database column BUS_ID  */
+  case class ProjectWatcherRow(id: Long, invId: Long, busId: Long)
   /** GetResult implicit for fetching ProjectWatcherRow objects using plain SQL queries */
   implicit def GetResultProjectWatcherRow(implicit e0: GR[Long]): GR[ProjectWatcherRow] = GR{
     prs => import prs._
@@ -376,16 +347,16 @@ trait Tables {
   }
   /** Table description of table PROJECT_WATCHER. Objects of this class serve as prototypes for rows in queries. */
   class ProjectWatcher(tag: Tag) extends Table[ProjectWatcherRow](tag, "PROJECT_WATCHER") {
-    def * = (id, invId, projId) <> (ProjectWatcherRow.tupled, ProjectWatcherRow.unapply)
+    def * = (id, invId, busId) <> (ProjectWatcherRow.tupled, ProjectWatcherRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, projId.?).shaped.<>({r=>import r._; _1.map(_=> ProjectWatcherRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, invId.?, busId.?).shaped.<>({r=>import r._; _1.map(_=> ProjectWatcherRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
     /** Database column INV_ID  */
     val invId: Column[Long] = column[Long]("INV_ID")
-    /** Database column PROJ_ID  */
-    val projId: Column[Long] = column[Long]("PROJ_ID")
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
   }
   /** Collection-like TableQuery object for table ProjectWatcher */
   lazy val ProjectWatcher = new TableQuery(tag => new ProjectWatcher(tag))

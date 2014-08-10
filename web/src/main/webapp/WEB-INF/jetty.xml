@@ -1,0 +1,17 @@
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2013. Ansvia Inc.
+  ~ Author: robin
+  ~ Created: 3/13/13 1:21 PM
+  -->
+
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+    <Set name="contextPath">/</Set>
+    <Set name="war"><SystemProperty name="jetty.home" default="."/>/war</Set>
+    <Call name="setAttribute">
+        <Arg>org.eclipse.jetty.server.webapp.WebInfIncludeJarPattern</Arg>
+        <Arg>.*/.*lift[^/]*\.jar$</Arg>
+    </Call>
+</Configure>

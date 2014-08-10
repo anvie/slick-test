@@ -6,6 +6,7 @@ import scala.collection.JavaConversions._
 import scala.slick.lifted
 import java.sql.Timestamp
 import java.util.Date
+import com.ansvia.zufaro.exception.ZufaroException
 
 /**
  * Author: robin
@@ -16,10 +17,23 @@ import java.util.Date
 
 object BusinessManager {
 
+    object state {
+        val DRAFT:Int = 1
+        val PRODUCTION:Int = 2
+    }
 
-    def create(name:String, desc:String, fund:Double, divSys:Double, divInvestor:Double) = {
+    /**
+     * Create new business
+     * @param name business name.
+     * @param desc business description.
+     * @param fund
+     * @param divInvestor
+     * @param state see [[com.ansvia.zufaro.BusinessManager.state]]
+     * @return
+     */
+    def create(name:String, desc:String, fund:Double, divInvestor:Double, state:Int) = {
         val id = Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divSys, divInvestor)
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divInvestor, state)
         }
         getById(id).get
     }
@@ -64,12 +78,17 @@ object BusinessManager {
 trait BusinessHelpers {
 
     import BusinessGroupHelpers._
+    import BusinessManager.state._
 
     implicit class businessWrapper(business:BusinessRow){
 
         private def p(d:Double) = d / 100.0
 
         def addProfit(amount:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""){
+
+            if (business.state != PRODUCTION)
+                throw new ZufaroException("business not in production state, got %d".format(business.state), 709)
+
             Zufaro.db.withTransaction { implicit sess =>
 
                 BusinessProfit += BusinessProfitRow(0L, business.id, amount, new Timestamp(new Date().getTime), mutator.id,
@@ -77,8 +96,8 @@ trait BusinessHelpers {
 
                 // kalkulasi bagi hasil
 
-//                val sysProfit = p(business.divideSys) * amount
-//                val invProfit = p(business.divideInvest) * amount
+                //                val sysProfit = p(business.divideSys) * amount
+                //                val invProfit = p(business.divideInvest) * amount
 
 
                 val ivIb = for {
@@ -106,7 +125,7 @@ trait BusinessHelpers {
                     ib <- InvestorBalance if ib.invId === inv.id
                 } yield (iv.amount, inv.id, g, inv, ib)
 
-//                println("groupQ statement: " + groupQ.selectStatement)
+                //                println("groupQ statement: " + groupQ.selectStatement)
 
                 groupQ.foreach { case (investAmount, investId, g, inv, ib) =>
                     val investAmountNorm = investAmount / g.getMemberCount.toDouble

@@ -34,9 +34,9 @@ object Test {
             //                Business += BusinessRow(0, "Anu", "anu kae", , 70.0, 30.0)
             //                Business += BusinessRow(0, "Kae", "anu kae", 60.0, 40.0)
 
-            val busCucianMobil = BusinessManager.create("Cucian Mobil", "cucian mobil", 200, 70.0, 30.0)
-            val busLaundry = BusinessManager.create("Laundry", "laundry", 200, 50.0, 50.0)
-            val busPulsa = BusinessManager.create("Pulsa", "pulsa", 500, 70, 30)
+            val busCucianMobil = BusinessManager.create("Cucian Mobil", "cucian mobil", 200, 30.0, BusinessManager.state.PRODUCTION)
+            val busLaundry = BusinessManager.create("Laundry", "laundry", 200, 50.0, BusinessManager.state.PRODUCTION)
+            val busPulsa = BusinessManager.create("Pulsa", "pulsa", 500, 30, BusinessManager.state.PRODUCTION)
 
             val busGroupAll = BusinessManager.createGroup("all", "all business group")
 

@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc
@@ -38,6 +38,41 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table Admin */
   lazy val Admin = new TableQuery(tag => new Admin(tag))
+  
+  /** Entity class storing rows of table ApiClient
+   *  @param id Database column ID AutoInc
+   *  @param name Database column NAME 
+   *  @param desc Database column DESC 
+   *  @param creatorId Database column CREATOR_ID 
+   *  @param creatorRole Database column CREATOR_ROLE 
+   *  @param key Database column KEY  */
+  case class ApiClientRow(id: Long, name: String, desc: String, creatorId: Long, creatorRole: Int, key: String)
+  /** GetResult implicit for fetching ApiClientRow objects using plain SQL queries */
+  implicit def GetResultApiClientRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int]): GR[ApiClientRow] = GR{
+    prs => import prs._
+    ApiClientRow.tupled((<<[Long], <<[String], <<[String], <<[Long], <<[Int], <<[String]))
+  }
+  /** Table description of table API_CLIENT. Objects of this class serve as prototypes for rows in queries. */
+  class ApiClient(tag: Tag) extends Table[ApiClientRow](tag, "API_CLIENT") {
+    def * = (id, name, desc, creatorId, creatorRole, key) <> (ApiClientRow.tupled, ApiClientRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, name.?, desc.?, creatorId.?, creatorRole.?, key.?).shaped.<>({r=>import r._; _1.map(_=> ApiClientRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column NAME  */
+    val name: Column[String] = column[String]("NAME")
+    /** Database column DESC  */
+    val desc: Column[String] = column[String]("DESC")
+    /** Database column CREATOR_ID  */
+    val creatorId: Column[Long] = column[Long]("CREATOR_ID")
+    /** Database column CREATOR_ROLE  */
+    val creatorRole: Column[Int] = column[Int]("CREATOR_ROLE")
+    /** Database column KEY  */
+    val key: Column[String] = column[String]("KEY")
+  }
+  /** Collection-like TableQuery object for table ApiClient */
+  lazy val ApiClient = new TableQuery(tag => new ApiClient(tag))
   
   /** Entity class storing rows of table Business
    *  @param id Database column ID AutoInc

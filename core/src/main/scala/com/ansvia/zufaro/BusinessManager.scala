@@ -99,14 +99,15 @@ trait BusinessHelpers {
 
         private def p(d:Double) = d / 100.0
 
-        def addProfit(amount:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""){
+        def addProfit(amount:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfitRow = {
 
             if (business.state != PRODUCTION)
                 throw new ZufaroException("business not in production state, got %d".format(business.state), 709)
 
+            val busProfitId =
             Zufaro.db.withTransaction { implicit sess =>
 
-                BusinessProfit += BusinessProfitRow(0L, business.id, amount, new Timestamp(new Date().getTime), mutator.id,
+                val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += BusinessProfitRow(0L, business.id, amount, new Timestamp(new Date().getTime), mutator.id,
                     mutatorRole, additionalInfo:String)
 
                 // kalkulasi bagi hasil
@@ -155,7 +156,12 @@ trait BusinessHelpers {
                     Credit += CreditRow(0L, investId, dividen,
                         Some("bagi hasil dari bisnis " + business.name + " group of " + g.name), new Timestamp(new Date().getTime))
                 }
+
+                _busProfitId
             }
+
+            // returning succeeded added profit info db object
+            Zufaro.db.withSession(implicit sess => BusinessProfit.where(_.id === busProfitId).firstOption.get)
         }
 
         def getProfit:Double = {

@@ -12,10 +12,12 @@ object Test {
 
         com.ansvia.zufaro.Zufaro.db withSession { implicit session =>
 
-            (Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++
-                  Investor.ddl ++ Invest.ddl ++ InvestorBalance.ddl ++
-                  Operator.ddl ++
-                  Credit.ddl).create
+//            (Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++
+//                  Investor.ddl ++ Invest.ddl ++ InvestorBalance.ddl ++
+//                  Operator.ddl ++
+//                  Credit.ddl).create
+
+            ddl.create
 
             InvestorManager.create("robin", InvestorRole.OWNER)
             InvestorManager.create("gondez", InvestorRole.OWNER)

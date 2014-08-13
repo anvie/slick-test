@@ -3,8 +3,7 @@ package com.ansvia.zufaro
 import scala.slick.driver.H2Driver.simple._
 import scala.slick.driver.H2Driver.backend
 import model.Tables._
-import com.ansvia.zufaro.model.UserRole
-import com.ansvia.zufaro.exception.{AlreadyInvestedException, ZufaroException, InsufficientBalanceException}
+import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanceException}
 //import com.ansvia.zufaro.macros.RequireMacro
 
 /**
@@ -16,6 +15,12 @@ import com.ansvia.zufaro.exception.{AlreadyInvestedException, ZufaroException, I
 object InvestorManager {
 
 
+    /**
+     * Create new investor
+     * @param name investor name
+     * @param role see [[com.ansvia.zufaro.model.InvestorRole]]
+     * @return
+     */
     def create(name:String, role:Int) = {
         val userId = Zufaro.db.withTransaction { implicit session =>
             val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, role)
@@ -25,12 +30,22 @@ object InvestorManager {
         getById(userId).get
     }
 
+    /**
+     * Get investor by id.
+     * @param id investor id.
+     * @return
+     */
     def getById(id:Long) = {
         Zufaro.db.withSession { implicit session =>
             Investor.where(_.id === id).firstOption
         }
     }
 
+    /**
+     * Get investor by name
+     * @param name investor name.
+     * @return
+     */
     def getByName(name:String) = {
         Zufaro.db.withSession { implicit session =>
             Investor.where(_.name === name).firstOption

@@ -18,7 +18,16 @@ import com.ansvia.zufaro.exception.ZufaroException
 object BusinessManager {
 
     object state {
+
+        /**
+         * when a business is a draft,
+         * use for project where not in production yet.
+         */
         val DRAFT:Int = 1
+
+        /**
+         * when a business is in production.
+         */
         val PRODUCTION:Int = 2
     }
 
@@ -38,6 +47,12 @@ object BusinessManager {
         getById(id).get
     }
 
+    /**
+     * Create a business group (experimental)
+     * @param name business name.
+     * @param desc business description.
+     * @return
+     */
     def createGroup(name:String, desc:String):BusinessGroupRow = {
         val id = Zufaro.db.withSession { implicit sess =>
             (BusinessGroup returning BusinessGroup.map(_.id)) += BusinessGroupRow(0L, name, desc)

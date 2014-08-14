@@ -3,10 +3,16 @@ package com.ansvia.zufaro
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model.{UserRole, InvestorRole}
+import java.util.UUID
 
 object Test {
 
     import Helpers._
+
+    private def genPass = {
+        UUID.randomUUID().toString
+    }
+
 
     def main(args:Array[String]){
 
@@ -19,17 +25,17 @@ object Test {
 
             ddl.create
 
-            InvestorManager.create("robin", InvestorRole.OWNER)
-            InvestorManager.create("gondez", InvestorRole.OWNER)
-            InvestorManager.create("temon", InvestorRole.OWNER)
-            val imam = InvestorManager.create("imam", InvestorRole.OWNER)
+            InvestorManager.create("robin", InvestorRole.OWNER, genPass)
+            InvestorManager.create("gondez", InvestorRole.OWNER, genPass)
+            InvestorManager.create("temon", InvestorRole.OWNER, genPass)
+            val imam = InvestorManager.create("imam", InvestorRole.OWNER, genPass)
 
             //                Investor.users.foreach { case (id, name, role) =>
             //                    println(s" * $id - $name ($role)")
             //                }
 
             println("Investors:")
-            Investor.foreach { case InvestorRow(id, name, role) =>
+            Investor.foreach { case InvestorRow(id, name, role, genPass) =>
                 println(s" * $id - $name ($role)")
             }
 
@@ -117,7 +123,7 @@ object Test {
 
             println("\n")
 
-            val op1 = OperatorManager.create("op1")
+            val op1 = OperatorManager.create("op1", genPass)
 
             busCucianMobil.addProfit(100.0, op1, UserRole.OPERATOR)
             busLaundry.addProfit(50.0, op1, UserRole.OPERATOR)

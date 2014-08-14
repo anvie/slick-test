@@ -2,6 +2,7 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import model.Tables._
+import org.apache.commons.codec.digest.DigestUtils
 
 /**
  * Author: robin
@@ -11,9 +12,10 @@ import model.Tables._
  */
 object OperatorManager {
 
-    def create(name:String, abilities:String=""):OperatorRow = {
+    def create(name:String, password:String, abilities:String=""):OperatorRow = {
+        val passhash = PasswordUtil.hash(password)
         val opId = Zufaro.db.withSession { implicit sess =>
-            (Operator returning Operator.map(_.id)) += OperatorRow(0L, name, abilities)
+            (Operator returning Operator.map(_.id)) += OperatorRow(0L, name, abilities, passhash)
         }
         getById(opId)
     }
@@ -25,3 +27,6 @@ object OperatorManager {
     }
 
 }
+
+
+

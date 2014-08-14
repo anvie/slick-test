@@ -37,5 +37,6 @@ object Dependencies {
     val logback       = "ch.qos.logback" % "logback-classic" % "1.0.9"
     lazy val slick    = "com.typesafe.slick" %% "slick" % "2.0.2"
     lazy val h2db     = "com.h2database" % "h2" % "1.2.140"
+    lazy val apacheCodec = "commons-codec" % "commons-codec" % "1.9"
 
 }

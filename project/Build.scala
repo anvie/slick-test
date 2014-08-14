@@ -27,7 +27,8 @@ object Build extends Build {
           .settings(moduleSettings: _*)
           .settings(slickTask <<= slickCodeGenTask)
           .settings(libraryDependencies ++=
-          compile(ansviaCommons, ansviaIdGen, slick, h2db/*, "com.ansvia.zufaro" % "zufaro-macro" % "0.0.1-alpha"*/) ++
+          compile(ansviaCommons, ansviaIdGen, slick, h2db/*, "com.ansvia.zufaro" % "zufaro-macro" % "0.0.1-alpha"*/,
+                    apacheCodec) ++
                 test(specs2) ++
                 runtime(logback)
     )

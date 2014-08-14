@@ -21,9 +21,10 @@ object InvestorManager {
      * @param role see [[com.ansvia.zufaro.model.InvestorRole]]
      * @return
      */
-    def create(name:String, role:Int) = {
+    def create(name:String, role:Int, password:String) = {
+        val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
-            val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, role)
+            val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, role, passHash)
             InvestorBalance += InvestorBalanceRow(0L, userId, 0.0)
             userId
         }

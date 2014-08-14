@@ -16,7 +16,7 @@ case class WReq(req:Req, cred:Credential, client:ApiClientRow)
 
 
 
-class BusinessRestApi extends ZufaroRestHelper {
+object BusinessRestApi extends ZufaroRestHelper {
 
     import BusinessHelpers._
 

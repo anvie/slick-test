@@ -12,10 +12,11 @@ all:
 
 deploy:
 	sbt "project zufaro-web" package
-	rsync -avzrhcP --exclude=resolution-cache --exclude=streams --exclude=classes --exclude=*.war web/target/ robin@$(ZUFARO_SERVER):zufaro-web
+	rsync -avzrhcP --exclude=resolution-cache --exclude=streams --exclude=*.war web/target/webapp/ robin@$(ZUFARO_SERVER):zufaro-web
+	make restart
 
 restart:
-	ssh -c robin@$(ZUFARO_SERVER) svc -du /etc/service/zufaro-web
+	ssh robin@$(ZUFARO_SERVER) 'sudo chown -R robin:robin /home/robin/zufaro-web && sudo svc -du /etc/service/zufaro-web'
 
 clean:
 

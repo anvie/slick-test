@@ -16,6 +16,7 @@ object Auth {
 
 
     object currentAdmin extends SessionVar[Box[AdminRow]](Empty)
+    object currentOperator extends SessionVar[Box[OperatorRow]](Empty)
 
 
 
@@ -30,6 +31,7 @@ object Auth {
 
     def adminLogout(){
         currentAdmin.remove()
+        currentOperator.remove()
     }
 
     def isLoggedIn_? = {

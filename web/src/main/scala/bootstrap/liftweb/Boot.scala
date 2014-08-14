@@ -3,7 +3,7 @@ package bootstrap.liftweb
 import net.liftweb._
 import net.liftweb.http.LiftRules
 import net.liftweb.sitemap.{SiteMap, Menu, Loc}
-import com.ansvia.zufaro.web.api.BusinessRestApi
+import com.ansvia.zufaro.web.api.{AuthRestApi, BusinessRestApi}
 import com.ansvia.commons.logging.Slf4jLogger
 
 /**
@@ -28,6 +28,7 @@ class Boot extends Slf4jLogger {
          * API SETUP
          ***********************************************/
         LiftRules.dispatch.append(BusinessRestApi)
+        LiftRules.dispatch.append(AuthRestApi)
 
         debug("boot completed")
     }

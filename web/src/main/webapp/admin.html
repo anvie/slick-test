@@ -5,15 +5,14 @@
 </head>
 <body class="lift:content_id=Main">
 
-<div id="Main" data-lift="Surround?with=admin;at=content">
+<div id="Main" class="lift:AdminSnippet.surround">
 
-    <div class="lift:AuthSnippet.isAnon row">
+    <div class="lift:AuthSnippet.isAnon">
 
-        <div class="col-md-5">
-
-            <div>
+        <div style="display: table; width: 100%;">
+            <div style="display: table-cell; vertical-align: middle;">
                 <!-- LOGIN BOX -->
-                <div class="lift:AdminSnippet.login?form=POST well" style="margin-top: 100px;">
+                <div class="lift:AdminSnippet.login?form=POST well" style="margin-top: 100px; width: 300px; margin: 0 auto;">
                     <strong>ADMIN LOGIN</strong>
                     <hr />
                     <div><label for="UserName">User name:</label>
@@ -45,11 +44,9 @@
                     </div>
                 </div>
 
-
-
             </div>
-
         </div>
+
 
     </div>
 

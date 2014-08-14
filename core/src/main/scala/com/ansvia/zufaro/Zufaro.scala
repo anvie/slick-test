@@ -1,7 +1,6 @@
 package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
-import com.ansvia.zufaro.model.Tables._
 import com.ansvia.commons.logging.Slf4jLogger
 
 

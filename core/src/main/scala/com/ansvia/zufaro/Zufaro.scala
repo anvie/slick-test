@@ -2,6 +2,7 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
+import com.ansvia.commons.logging.Slf4jLogger
 
 
 /**
@@ -10,9 +11,21 @@ import com.ansvia.zufaro.model.Tables._
  * Time: 10:40 PM
  *
  */
-object Zufaro {
+object Zufaro extends Slf4jLogger {
 
-    val db = Database.forURL("jdbc:h2:mem:test1", driver = "org.h2.Driver")
+    import scala.slick.jdbc.meta._
+
+    val db = {
+        val _db = Database.forURL("jdbc:h2:data/data", driver = "org.h2.Driver")
+
+        _db.withSession { implicit sess =>
+            if (MTable.getTables.list().isEmpty){
+                info("first init db, no any tables exists, creating...")
+                model.Tables.ddl.create
+            }
+        }
+        _db
+    }
 
     def init(){
 

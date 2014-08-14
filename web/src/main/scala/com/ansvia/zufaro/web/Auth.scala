@@ -14,7 +14,10 @@ import com.ansvia.zufaro.exception.PermissionDeniedException
  */
 object Auth {
 
+
     object currentAdmin extends SessionVar[Box[AdminRow]](Empty)
+
+
 
     def adminLogin(userName:String, password:String) = {
         AdminManager.getByName(userName).map { admin =>
@@ -29,4 +32,7 @@ object Auth {
         currentAdmin.remove()
     }
 
+    def isLoggedIn_? = {
+        currentAdmin.is.isDefined
+    }
 }

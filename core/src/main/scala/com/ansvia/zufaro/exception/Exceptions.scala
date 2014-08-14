@@ -15,4 +15,6 @@ case class InsufficientBalanceException(msg:String) extends ZufaroException(msg:
 case class AlreadyInvestedException(msg:String) extends ZufaroException(msg:String, 702)
 case class PermissionDeniedException(msg:String) extends ZufaroException(msg:String, 703)
 case class InvalidParameterException(msg:String) extends ZufaroException(msg:String, 704)
+case class NotSupportedException(msg:String) extends ZufaroException(msg:String, 705)
+case class UnimplementedException(msg:String) extends ZufaroException(msg:String, 706)
 

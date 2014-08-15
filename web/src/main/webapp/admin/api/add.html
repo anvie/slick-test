@@ -25,30 +25,36 @@
     <h1>Add new API Client</h1>
 
 
-    <div class="lift:AdminApiSnippet.addNew?form=POST">
+    <div style="width: 500px;">
+        <div class="lift:AdminApiSnippet.addNew?form=POST">
 
-        <div>
-            <label for="Name">Name:</label>
-            <div><in:name></in:name></div>
-        </div>
-        <div>
-            <label for="Desc">Description:</label>
-            <div><in:description></in:description></div>
-        </div>
-        <div style="margin-top: 10px;">
-            <section>
-                <legend>Access</legend>
-                <label for="Grant">Grant:</label>
-                <div>
-                    <in:grant></in:grant> INTO <in:business></in:business>
+            <div>
+                <label for="Name">Name:</label>
+                <div><in:name></in:name></div>
+            </div>
+            <div>
+                <label for="Desc">Description:</label>
+                <div><in:description></in:description></div>
+            </div>
+            <div style="margin-top: 10px;">
+                <section>
+                    <legend>Access</legend>
+                    <label for="Grant">Grant:</label>
+                    <div>
+                        <in:grant></in:grant> INTO <in:business></in:business>
+                    </div>
+                </section>
+            </div>
+
+            <div style="margin-top: 10px;" class="clearfix">
+                <hr />
+                <div class="pull-right">
+                    <a href="javascript://" onclick="history.back();" class="btn btn-default">Cancel</a>
+                    <in:submit></in:submit>
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <div style="margin-top: 10px;" class="clearfix">
-            <div class="pull-right"><in:submit></in:submit></div>
         </div>
-
     </div>
 
 </div>

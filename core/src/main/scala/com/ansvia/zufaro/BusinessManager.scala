@@ -86,6 +86,12 @@ object BusinessManager {
         }
     }
 
+    def getBusiness(offset:Int, limit:Int):Seq[BusinessRow] = {
+        Zufaro.db.withSession { implicit sess =>
+            Business.drop(offset).take(limit).run
+        }
+    }
+
 
 
 }

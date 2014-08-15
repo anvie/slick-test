@@ -19,13 +19,16 @@
                 display: inline-block;
                 margin-left: 10px;
             }
+            input[type='number'] {
+                width: 200px !important;
+            }
         </style>
     </head_embed>
 
     <h1>Add new API Client</h1>
 
 
-    <div class="lift:AdminApiSnippet.addNew?form=POST">
+    <div class="lift:AdminBusinessSnippet.addNew?form=POST">
 
         <div>
             <label for="Name">Name:</label>
@@ -34,6 +37,14 @@
         <div>
             <label for="Desc">Description:</label>
             <div><in:description></in:description></div>
+        </div>
+        <div>
+            <label for="Fund">Fund:</label>
+            <div><in:fund></in:fund></div>
+        </div>
+        <div>
+            <label for="DivInvestor">Investor divide:</label>
+            <div><in:div-investor></in:div-investor></div>
         </div>
         <div style="margin-top: 10px;">
             <section>

@@ -60,6 +60,8 @@ class AdminSnippet extends Slf4jLogger {
             }
         }
 
+        kindVar.setIsUnset("operator")
+
         val kinds = Seq(("admin", "ADMIN"), ("operator", "OPERATOR"))
 
 

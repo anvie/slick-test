@@ -68,15 +68,15 @@ class AdminBusinessSnippet {
     }
 
 
-    private def buildListItem(bus:BusinessRow, state:String):NodeSeq = {
+    private def buildBusinessListItem(bus:BusinessRow, state:String):NodeSeq = {
         def updateList() = {
             val ns = NodeSeq.fromSeq(state match {
                 case "running" =>
-                    BusinessManager.getRunningBusinessList(0, 10).flatMap(b => buildListItem(b, state))
+                    BusinessManager.getRunningBusinessList(0, 10).flatMap(b => buildBusinessListItem(b, state))
                 case "project" =>
-                    BusinessManager.getProjectBusinessList(0, 10).flatMap(b => buildListItem(b, state))
+                    BusinessManager.getProjectBusinessList(0, 10).flatMap(b => buildBusinessListItem(b, state))
                 case "closed" =>
-                    BusinessManager.getClosedBusinessList(0, 10).flatMap(b => buildListItem(b, state))
+                    BusinessManager.getClosedBusinessList(0, 10).flatMap(b => buildBusinessListItem(b, state))
             })
             new JsCmd {
                 def toJsCmd: String = {
@@ -115,6 +115,16 @@ class AdminBusinessSnippet {
                     <li>{SHtml.a(toProjectInternal, Text("Make Project"))}</li>
             }
         }
+        def reporter() = {
+            bus.state match {
+                case BusinessManager.state.PRODUCTION =>
+                    <li class="divider"></li> ++
+                    <li><a href={"/admin/business/" + bus.id + "/report"}>Show Report</a></li>
+                case _ =>
+                    NodeSeq.Empty
+            }
+        }
+
         
 
         <tr>
@@ -125,12 +135,12 @@ class AdminBusinessSnippet {
             <td>{bus.divideInvest}</td>
             <td>
 
-
                 <div class="dropdown">
                     <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                         {stateChanger()}
+                        {reporter()}
                         <li class="divider"></li>
                         <li>{SHtml.a(deleteInternal,Text("Delete"))}</li>
                     </ul>
@@ -146,15 +156,39 @@ class AdminBusinessSnippet {
         S.attr("state").openOr("") match {
             case "running" =>
                 val business = BusinessManager.getRunningBusinessList(0, 10)
-                "#List *" #> business.map { bus => buildListItem(bus, "running") }
+                "#List *" #> business.map { bus => buildBusinessListItem(bus, "running") }
             case "project" =>
                 val business = BusinessManager.getProjectBusinessList(0, 30)
-                "#List *" #> business.map { bus => buildListItem(bus, "project") }
+                "#List *" #> business.map { bus => buildBusinessListItem(bus, "project") }
             case "closed" =>
                 val business = BusinessManager.getClosedBusinessList(0, 30)
-                "#List *" #> business.map { bus => buildListItem(bus, "closed") }
+                "#List *" #> business.map { bus => buildBusinessListItem(bus, "closed") }
         }
     }
+
+    def reportTitle:NodeSeq = {
+        <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
+    }
+
+    private def buildReportListItem(rep:BusinessProfitRow) = {
+        <tr>
+            <td>{rep.ts.toString}</td>
+            <td>Rp. {rep.omzet},-</td>
+            <td>Rp. {rep.profit},-</td>
+            <td>{rep.info}</td>
+            <td></td>
+        </tr>
+    }
+
+
+    def businessReportList:CssSel = {
+        BusinessManager.getById(S.param("busId").openOr("0").toLong)
+        .map { bus =>
+            val reports = bus.getReport(0, 30)
+            "#List " #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(r) ))
+        }.getOrElse("*" #> NodeSeq.Empty)
+    }
+
 
 }
 

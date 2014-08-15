@@ -206,9 +206,16 @@ trait BusinessHelpers {
 
         def getProfit:Double = {
             Zufaro.db.withSession( implicit sess =>
-                BusinessProfit.where(_.id === business.id).map(_.profit).sum.run.getOrElse(0.0)
+                BusinessProfit.where(_.busId === business.id).map(_.profit).sum.run.getOrElse(0.0)
             )
         }
+
+        def getReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
+            Zufaro.db.withSession { implicit sess =>
+                BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
+            }
+        }
+
 
         def makeProduction() = {
             Zufaro.db.withTransaction { implicit sess =>
@@ -227,6 +234,7 @@ trait BusinessHelpers {
                 Business.where(_.id === business.id).map(_.state).update(CLOSED)
             }
         }
+
 
 
     }

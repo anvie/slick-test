@@ -4,6 +4,8 @@ import net.liftweb._
 import http._
 import sitemap._
 import Loc._
+import util._
+import Helpers._
 import com.ansvia.zufaro.web.Auth
 import net.liftweb.util.NamedPF
 
@@ -29,6 +31,7 @@ object AdminSitemap {
         /* ------------------ BUSINESS ----------------- */
         menu("admin/business", "Business") ::
         menu("admin/business/add", "Business Add", Hidden) ::
+        menu("admin/business/report", "Business Report", Hidden) ::
         /* ------------------ USER ----------------- */
         menu("admin/user", "User") ::
         /* ------------------ API ----------------- */
@@ -44,6 +47,13 @@ object AdminSitemap {
 
 //    private val tabRe = "(running|project|closed)".r
 
-    lazy val rewrite:LiftRules.RewritePF = com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite
+    private lazy val internalRewrite:LiftRules.RewritePF = NamedPF("AdminRewrite2"){
+        case RewriteRequest(ParsePath("admin" :: "business" :: AsLong(busId) :: "report" :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "business" :: "report" :: Nil, Map("busId" -> busId.toString))
+
+    }
+    lazy val rewrite:LiftRules.RewritePF =
+        com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite orElse
+            internalRewrite
 
 }

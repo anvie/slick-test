@@ -4,6 +4,8 @@ import net.liftweb._
 import http._
 import sitemap._
 import Loc._
+import com.ansvia.zufaro.web.Auth
+import net.liftweb.util.NamedPF
 
 /**
  * Author: robin
@@ -15,17 +17,35 @@ object AdminSitemap {
 
     private val GROUP = "admin"
 
-    private lazy val _sitemap =
-        Menu(Loc("Admin", List("admin"), "Admin")) ::
-        /* ------------------ BUSINESS ----------------- */
-        Menu(Loc("Admin Business", List("admin", "business"), "Business", LocGroup(GROUP))) ::
-        Menu(Loc("Admin Business Add", List("admin", "business", "add"), "Business Add", LocGroup(GROUP), Hidden)) ::
+    lazy val AdminOnly = If(()=>Auth.currentAdmin.isDefined, "Not found")
+
+
+    private def menu(path:String, caption:String, locs:Loc.LocParam[Unit]*) = {
+        val _locs = List(AdminOnly, LocGroup(GROUP)) ++ locs
+        Menu(Loc("Admin " + caption, path.split('/').toList, caption, _locs))
+    }
+
+    private lazy val adminSubMenu = /* ------------------ BUSINESS ----------------- */
+        menu("admin/business", "Business") ::
+        menu("admin/business/add", "Business Add", Hidden) ::
         /* ------------------ USER ----------------- */
-        Menu(Loc("Admin User", List("admin", "user"), "User", LocGroup(GROUP))) ::
+        menu("admin/user", "User") ::
         /* ------------------ API ----------------- */
-        Menu(Loc("Admin Api", List("admin", "api"), "API", LocGroup(GROUP))) ::
-        Menu(Loc("Admin Api Add", List("admin", "api", "add"), "API Add", LocGroup(GROUP), Hidden)) ::
+        menu("admin/api", "API") ::
+        menu("admin/api/add", "API Add", Hidden) ::
+        Nil
+
+    private lazy val _sitemap =
+        Menu(Loc("Admin", List("admin"), "Admin"), adminSubMenu: _*) ::
         Nil
 
     lazy val sitemap = _sitemap
+
+    private val tabRe = "(running|project)".r
+
+    lazy val rewrite:LiftRules.RewritePF = NamedPF("AdminRewrite"){
+        case RewriteRequest(ParsePath("admin" :: "business" :: tabRe(tab) :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "business" :: Nil, Map("tab" -> tab))
+    }
+
 }

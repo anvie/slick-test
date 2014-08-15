@@ -46,7 +46,7 @@ class AdminBusinessSnippet {
 
                  val bus = BusinessManager.create(nameVar, descVar, fundVar, divInvestorVar, stateVar)
 
-                 S.redirectTo("/admin/business", () => S.notice(s"Success added business `${bus.name}` with id `${bus.id}`"))
+                 S.redirectTo("/admin/business/project", () => S.notice(s"Success added business `${bus.name}` with id `${bus.id}`"))
 
              }catch{
                  case e:ZufaroException =>
@@ -133,5 +133,9 @@ class AdminBusinessTab extends MtTabInterface {
     def tmplDir: String = "admin/business"
 
     override def tabNames: Array[String] = Array("running", "project")
+
+    override def preSendJs(tabName: String): JsCmd = {
+        JsRaw(s"History.pushState(null,null,'/admin/business/$tabName');").cmd
+    }
 }
 

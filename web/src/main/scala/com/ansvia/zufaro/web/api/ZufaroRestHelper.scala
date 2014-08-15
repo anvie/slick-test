@@ -37,6 +37,9 @@ trait ZufaroRestHelper extends RestHelper {
 
         val apiClient = ApiClientManager.getByKey(key)
 
+        if (apiClient.isEmpty)
+            throw PermissionDeniedException("Invalid API key")
+
         // @TODO(robin): make support credential
         func(AuthInfo(None, apiClient))
     }

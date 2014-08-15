@@ -15,7 +15,8 @@ object BusinessRestApi extends ZufaroRestHelper {
     import BusinessHelpers._
 
     serve {
-        case "api" :: "business" :: AsLong(busId) :: "report" :: Nil Post req => authorized(req) { authInfo =>
+        case "api" :: "business" :: AsLong(busId) :: "report" :: Nil Post req => authorized(req) {
+            case AuthInfo(_, Some(apiClient)) =>
 
             val omzet:Double = req.param("omzet").openOr("0.0").toDouble
             val profit:Double = req.param("profit").openOr("0.0").toDouble

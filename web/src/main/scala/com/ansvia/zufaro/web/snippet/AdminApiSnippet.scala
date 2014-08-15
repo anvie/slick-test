@@ -5,11 +5,14 @@ import util._
 import http._
 import Helpers._
 import com.ansvia.zufaro.web.lib.MtTabInterface
-import scala.xml.NodeSeq
+import scala.xml.{Text, NodeSeq}
 import net.liftweb.common.Full
 import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.{ApiClientManager, BusinessManager}
 import com.ansvia.zufaro.model.UserRole
+import com.ansvia.zufaro.model.Tables._
+import net.liftweb.http.js.JE.JsRaw
+
 
 /**
  * Author: robin
@@ -43,6 +46,10 @@ class AdminApiSnippet {
                         throw InvalidParameterException("Unknown grant type: " + x)
                 }
 
+                if (businessVar.isEmpty)
+                    throw InvalidParameterException("No grant for any business, " +
+                        "you should add first at least one business")
+
                 val accesses = BusinessManager.getById(businessVar.is.toLong)
                     .map(b => ApiClientManager.Access(grant, "bus=" + b.id)).toSeq
 
@@ -58,7 +65,7 @@ class AdminApiSnippet {
 
 
         val grants = Seq(("all", "ALL"))
-        val business = BusinessManager.getBusiness(0, 100).toSeq.map(bus => (bus.id.toString, bus.name))
+        val business = BusinessManager.getRunningBusinessList(0, 100).toSeq.map(bus => (bus.id.toString, bus.name))
 
 
         bind("in", in,
@@ -70,6 +77,40 @@ class AdminApiSnippet {
         )
     }
 
+    private def buildListItem(client:ApiClientRow) = {
+        val deleteInternal = () => {
+            JsRaw("Success").cmd
+        }
+
+        <tr>
+            <td>{client.id.toString}</td>
+            <td>{client.name}</td>
+            <td>{client.desc}</td>
+            <td>-</td>
+            <td>{client.key}</td>
+            <td>
+
+
+                <div class="dropdown">
+                    <a data-toogle="dropdown" href="#"><span class="icon icon-gear"></span></a>
+
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <li>
+                            {SHtml.a(deleteInternal,Text("Delete"))}
+                        </li>
+                    </ul>
+                </div>
+
+
+            </td>
+        </tr>
+    }
+
+
+    def clientList:CssSel = {
+        val clients = ApiClientManager.getList(0, 10)
+        "#List *" #> clients.map { client => buildListItem(client) }
+    }
 }
 
 class AdminApiTab extends MtTabInterface {

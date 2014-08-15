@@ -19,6 +19,8 @@ object BusinessManager {
 
     object state {
 
+        val ANY:Int = 0
+
         /**
          * when a business is a draft,
          * use for project where not in production yet.
@@ -86,9 +88,32 @@ object BusinessManager {
         }
     }
 
-    def getBusiness(offset:Int, limit:Int):Seq[BusinessRow] = {
+    def getList(offset:Int, limit:Int, _state:Int):Seq[BusinessRow] = {
         Zufaro.db.withSession { implicit sess =>
-            Business.drop(offset).take(limit).run
+            _state match {
+                case state.ANY =>
+                    Business.drop(offset).take(limit).run
+                case s =>
+                    Business.where(_.state === s).drop(offset).take(limit).run
+            }
+        }
+    }
+
+    def getRunningBusinessList(offset:Int, limit:Int) = {
+        getList(offset, limit, state.PRODUCTION)
+    }
+
+    def getProjectBusinessList(offset:Int, limit:Int) = {
+        getList(offset, limit, state.DRAFT)
+    }
+
+
+    def delete(business:BusinessRow){
+        Zufaro.db.withTransaction { implicit sess =>
+            Invest.where(_.busId === business.id).delete
+            ProjectWatcher.where(_.busId === business.id).delete
+            BusinessProfit.where(_.busId === business.id).delete
+            Business.where(_.id === business.id).delete
         }
     }
 

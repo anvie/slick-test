@@ -14,6 +14,7 @@ import com.ansvia.commons.logging.Slf4jLogger
  */
 object ApiClientManager extends Slf4jLogger {
 
+
     private object idgen extends TokenIdGenerator
 
     case class Access(grant:String, target:String)
@@ -60,6 +61,19 @@ object ApiClientManager extends Slf4jLogger {
 
     def generateKey() = {
         "API" + idgen.nextId() + idgen.nextId().substring(0, 5)
+    }
+
+    def getList(offset: Int, limit: Int):Seq[ApiClientRow] = {
+        Zufaro.db.withSession { implicit sess =>
+            ApiClient.drop(offset).take(limit).run
+        }
+    }
+
+    def delete(client:ApiClientRow) = {
+        Zufaro.db.withTransaction { implicit sess =>
+            ApiClientAccess.where(_.apiClientId === client.id).delete
+            ApiClient.where(_.id === client.id).delete
+        }
     }
 
 }

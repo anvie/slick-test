@@ -9,7 +9,22 @@
 
     <h1>Business</h1>
 
-    <p>This is admin business page</p>
+
+    <div class="lift:AdminBusinessTab?content_id=TabPane">
+
+        <div>
+            <ul class="nav nav-tabs" role="tablist">
+                <tab:running>Running</tab:running>
+                <tab:project>Project</tab:project>
+            </ul>
+        </div>
+
+        <div id="TabPane" class="tab-pane" style="padding: 20px;">
+            <tab:tab-pane></tab:tab-pane>
+        </div>
+
+
+    </div>
 
 </div>
 

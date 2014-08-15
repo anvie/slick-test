@@ -64,9 +64,9 @@ class AdminSnippet extends Slf4jLogger {
 
 
         bind("in", in,
-        "user-name" -> SHtml.text("", userNameVar(_), "class" -> "form-control", "id" -> "UserName", "placeholder" -> "User name"),
-        "password" -> SHtml.password("", passwordVar(_), "class" -> "form-control", "id" -> "Password", "placeholder" -> "Password"),
-        "kind" -> SHtml.select(kinds, Full("operator"), kindVar(_), "class" -> "form-control", "id" -> "Kind", "placeholder" -> "kind"),
+        "user-name" -> SHtml.text(userNameVar, userNameVar(_), "class" -> "form-control", "id" -> "UserName", "placeholder" -> "User name"),
+        "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password", "placeholder" -> "Password"),
+        "kind" -> SHtml.select(kinds, Full(kindVar.is), kindVar(_), "class" -> "form-control", "id" -> "Kind", "placeholder" -> "kind"),
         "submit" -> SHtml.submit("Login", doLogin, "class" -> "btn btn-success")
         )
     }

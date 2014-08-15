@@ -9,7 +9,22 @@
 
     <h1>API</h1>
 
-    <p>This is admin API page</p>
+
+    <div class="lift:AdminApiTab?content_id=TabPane">
+
+        <div>
+            <ul class="nav nav-tabs" role="tablist">
+                <tab:active-client>Active Client</tab:active-client>
+                <tab:suspended-client>Suspended Client</tab:suspended-client>
+            </ul>
+        </div>
+
+        <div id="TabPane" class="tab-pane" style="padding: 20px;">
+            <tab:tab-pane></tab:tab-pane>
+        </div>
+
+
+    </div>
 
 </div>
 

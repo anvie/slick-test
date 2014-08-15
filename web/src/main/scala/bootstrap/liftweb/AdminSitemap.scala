@@ -20,6 +20,7 @@ object AdminSitemap {
         Menu(Loc("Admin Business", List("admin", "business"), "Business", LocGroup(GROUP))) ::
         Menu(Loc("Admin User", List("admin", "user"), "User", LocGroup(GROUP))) ::
         Menu(Loc("Admin Api", List("admin", "api"), "API", LocGroup(GROUP))) ::
+        Menu(Loc("Admin Api Add", List("admin", "api", "add"), "API Add", LocGroup(GROUP), Hidden)) ::
         Nil
 
     lazy val sitemap = _sitemap

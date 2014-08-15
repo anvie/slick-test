@@ -137,7 +137,7 @@ trait BusinessHelpers {
 
         private def p(d:Double) = d / 100.0
 
-        def addProfit(amount:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfitRow = {
+        def addProfit(omzet:Double, profit:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfitRow = {
 
             if (business.state != PRODUCTION)
                 throw new ZufaroException("business not in production state, got %d".format(business.state), 709)
@@ -145,13 +145,15 @@ trait BusinessHelpers {
             val busProfitId =
             Zufaro.db.withTransaction { implicit sess =>
 
-                val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += BusinessProfitRow(0L, business.id, amount, new Timestamp(new Date().getTime), mutator.id,
+                val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += 
+                    BusinessProfitRow(0L, business.id, omzet, 
+                    profit, new Timestamp(new Date().getTime), mutator.id,
                     mutatorRole, additionalInfo:String)
 
                 // kalkulasi bagi hasil
 
-                //                val sysProfit = p(business.divideSys) * amount
-                //                val invProfit = p(business.divideInvest) * amount
+                //                val sysProfit = p(business.divideSys) * profit
+                //                val invProfit = p(business.divideInvest) * profit
 
 
                 val ivIb = for {
@@ -161,7 +163,7 @@ trait BusinessHelpers {
 
                 ivIb.foreach { case (iv, ib) =>
 
-                    val margin = (iv.amount / business.fund) * amount
+                    val margin = (iv.amount / business.fund) * profit
                     val dividen = margin * p(business.divideInvest)
                     val curBal = ib.amount + dividen
 
@@ -184,7 +186,7 @@ trait BusinessHelpers {
                 groupQ.foreach { case (investAmount, investId, g, inv, ib) =>
                     val investAmountNorm = investAmount / g.getMemberCount.toDouble
 
-                    val margin = (investAmountNorm / business.fund) * amount
+                    val margin = (investAmountNorm / business.fund) * profit
                     val dividen = margin * p(business.divideInvest)
                     val curBal = ib.amount + dividen
 
@@ -204,7 +206,7 @@ trait BusinessHelpers {
 
         def getProfit:Double = {
             Zufaro.db.withSession( implicit sess =>
-                BusinessProfit.where(_.id === business.id).map(_.amount).sum.run.getOrElse(0.0)
+                BusinessProfit.where(_.id === business.id).map(_.profit).sum.run.getOrElse(0.0)
             )
         }
 

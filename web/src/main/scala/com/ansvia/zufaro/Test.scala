@@ -125,9 +125,9 @@ object Test {
 
             val op1 = OperatorManager.create("op1", genPass)
 
-            busCucianMobil.addProfit(100.0, op1, UserRole.OPERATOR)
-            busLaundry.addProfit(50.0, op1, UserRole.OPERATOR)
-            busPulsa.addProfit(100.0, op1, UserRole.OPERATOR)
+            busCucianMobil.addProfit(300, 100.0, op1, UserRole.OPERATOR)
+            busLaundry.addProfit(100, 50.0, op1, UserRole.OPERATOR)
+            busPulsa.addProfit(250, 100.0, op1, UserRole.OPERATOR)
 
             Business.foreach { bus =>
                 if (bus.getProfit > 0)

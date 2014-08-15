@@ -199,29 +199,32 @@ trait Tables {
   /** Entity class storing rows of table BusinessProfit
    *  @param id Database column ID AutoInc
    *  @param busId Database column BUS_ID 
-   *  @param amount Database column AMOUNT 
+   *  @param omzet Database column OMZET 
+   *  @param profit Database column PROFIT 
    *  @param ts Database column TS 
    *  @param mutatorId Database column MUTATOR_ID 
    *  @param mutatorRole Database column MUTATOR_ROLE 
    *  @param info Database column INFO  */
-  case class BusinessProfitRow(id: Long, busId: Long, amount: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String)
+  case class BusinessProfitRow(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String)
   /** GetResult implicit for fetching BusinessProfitRow objects using plain SQL queries */
   implicit def GetResultBusinessProfitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String]): GR[BusinessProfitRow] = GR{
     prs => import prs._
-    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String]))
+    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String]))
   }
   /** Table description of table BUSINESS_PROFIT. Objects of this class serve as prototypes for rows in queries. */
   class BusinessProfit(tag: Tag) extends Table[BusinessProfitRow](tag, "BUSINESS_PROFIT") {
-    def * = (id, busId, amount, ts, mutatorId, mutatorRole, info) <> (BusinessProfitRow.tupled, BusinessProfitRow.unapply)
+    def * = (id, busId, omzet, profit, ts, mutatorId, mutatorRole, info) <> (BusinessProfitRow.tupled, BusinessProfitRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, amount.?, ts.?, mutatorId.?, mutatorRole.?, info.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
     /** Database column BUS_ID  */
     val busId: Column[Long] = column[Long]("BUS_ID")
-    /** Database column AMOUNT  */
-    val amount: Column[Double] = column[Double]("AMOUNT")
+    /** Database column OMZET  */
+    val omzet: Column[Double] = column[Double]("OMZET")
+    /** Database column PROFIT  */
+    val profit: Column[Double] = column[Double]("PROFIT")
     /** Database column TS  */
     val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
     /** Database column MUTATOR_ID  */

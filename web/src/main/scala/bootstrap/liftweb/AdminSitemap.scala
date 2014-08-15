@@ -1,7 +1,9 @@
 package bootstrap.liftweb
 
 import net.liftweb._
+import http._
 import sitemap._
+import Loc._
 
 /**
  * Author: robin
@@ -11,8 +13,14 @@ import sitemap._
  */
 object AdminSitemap {
 
-    lazy val sitemap =
+    private val GROUP = "admin"
+
+    private lazy val _sitemap =
         Menu(Loc("Admin", List("admin"), "Admin")) ::
-        Menu(Loc("Admin Business", List("admin", "business"), "Admin Business")) ::
+        Menu(Loc("Admin Business", List("admin", "business"), "Business", LocGroup(GROUP))) ::
+        Menu(Loc("Admin User", List("admin", "user"), "User", LocGroup(GROUP))) ::
+        Menu(Loc("Admin Api", List("admin", "api"), "API", LocGroup(GROUP))) ::
         Nil
+
+    lazy val sitemap = _sitemap
 }

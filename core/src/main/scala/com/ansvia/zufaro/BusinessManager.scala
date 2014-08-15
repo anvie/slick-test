@@ -31,6 +31,8 @@ object BusinessManager {
          * when a business is in production.
          */
         val PRODUCTION:Int = 2
+
+        val CLOSED:Int = 3
     }
 
     /**
@@ -107,6 +109,10 @@ object BusinessManager {
         getList(offset, limit, state.DRAFT)
     }
 
+    def getClosedBusinessList(offset:Int, limit:Int) = {
+        getList(offset, limit, state.CLOSED)
+    }
+
 
     def delete(business:BusinessRow){
         Zufaro.db.withTransaction { implicit sess =>
@@ -125,6 +131,7 @@ trait BusinessHelpers {
 
     import BusinessGroupHelpers._
     import BusinessManager.state._
+
 
     implicit class businessWrapper(business:BusinessRow){
 
@@ -199,6 +206,24 @@ trait BusinessHelpers {
             Zufaro.db.withSession( implicit sess =>
                 BusinessProfit.where(_.id === business.id).map(_.amount).sum.run.getOrElse(0.0)
             )
+        }
+
+        def makeProduction() = {
+            Zufaro.db.withTransaction { implicit sess =>
+                Business.where(_.id === business.id).map(_.state).update(PRODUCTION)
+            }
+        }
+
+        def makeDraft() = {
+            Zufaro.db.withTransaction { implicit sess =>
+                Business.where(_.id === business.id).map(_.state).update(DRAFT)
+            }
+        }
+
+        def close() = {
+            Zufaro.db.withTransaction { implicit sess =>
+                Business.where(_.id === business.id).map(_.state).update(CLOSED)
+            }
         }
 
 

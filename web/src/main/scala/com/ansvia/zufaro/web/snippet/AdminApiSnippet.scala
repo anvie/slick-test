@@ -55,7 +55,7 @@ class AdminApiSnippet {
 
                 val apiClient = ApiClientManager.create(nameVar, descVar, 0L, UserRole.ADMIN, accesses)
 
-                S.notice(s"API client created ${apiClient.name} with id ${apiClient.id}")
+                S.redirectTo("admin/api", ()=> S.notice(s"API client created ${apiClient.name} with id ${apiClient.id}"))
 
             }catch{
                 case e:ZufaroException =>

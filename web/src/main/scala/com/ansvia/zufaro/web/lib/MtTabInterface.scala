@@ -14,6 +14,7 @@ import net.liftweb.http.js._
 import JsCmds._
 import net.liftweb.http.js.JE.Str
 import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.util.NamedPF
 
 
 abstract class MtTabInterface extends DispatchSnippet {
@@ -145,5 +146,10 @@ abstract class MtTabInterface extends DispatchSnippet {
     def dispatch = {
         case _ => render
     }
+
+
+    protected lazy val tabRe = ("(" + tabNames.mkString("|") + ")").r
+
+
 }
 

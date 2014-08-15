@@ -13,80 +13,109 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
 
 /**
-  * Author: robin
-  * Date: 8/15/14
-  * Time: 5:15 PM
-  *
-  */
+ * Author: robin
+ * Date: 8/15/14
+ * Time: 5:15 PM
+ *
+ */
 class AdminBusinessSnippet {
 
-     private object nameVar extends RequestVar("")
-     private object descVar extends RequestVar("")
-     private object fundVar extends RequestVar(0.0)
-     private object divInvestorVar extends RequestVar(0.0)
-     private object stateVar extends RequestVar(BusinessManager.state.DRAFT)
+    import com.ansvia.zufaro.BusinessHelpers._
 
-     def addNew(in:NodeSeq):NodeSeq = {
+    private object nameVar extends RequestVar("")
+    private object descVar extends RequestVar("")
+    private object fundVar extends RequestVar(0.0)
+    private object divInvestorVar extends RequestVar(0.0)
+    private object stateVar extends RequestVar(BusinessManager.state.DRAFT)
 
-         def doAddNew() = {
-             try {
+    def addNew(in:NodeSeq):NodeSeq = {
 
-                 if (nameVar.isEmpty)
-                     throw InvalidParameterException("No name")
-                 if (descVar.isEmpty)
-                     throw InvalidParameterException("No description")
+        def doAddNew() = {
+            try {
 
-                 stateVar.is match {
-                     case BusinessManager.state.DRAFT =>
-                     case BusinessManager.state.PRODUCTION =>
-                     case x =>
-                         throw InvalidParameterException("Unknown business state " + x)
-                 }
+                if (nameVar.isEmpty)
+                    throw InvalidParameterException("No name")
+                if (descVar.isEmpty)
+                    throw InvalidParameterException("No description")
+
+                stateVar.is match {
+                    case BusinessManager.state.DRAFT =>
+                    case BusinessManager.state.PRODUCTION =>
+                    case x =>
+                        throw InvalidParameterException("Unknown business state " + x)
+                }
 
 
-                 val bus = BusinessManager.create(nameVar, descVar, fundVar, divInvestorVar, stateVar)
+                val bus = BusinessManager.create(nameVar, descVar, fundVar, divInvestorVar, stateVar)
 
-                 S.redirectTo("/admin/business/project", () => S.notice(s"Success added business `${bus.name}` with id `${bus.id}`"))
+                S.redirectTo("/admin/business/project", () => S.notice(s"Success added business `${bus.name}` with id `${bus.id}`"))
 
-             }catch{
-                 case e:ZufaroException =>
-                     S.error(e.getMessage)
-             }
-         }
+            }catch{
+                case e:ZufaroException =>
+                    S.error(e.getMessage)
+            }
+        }
 
-         stateVar.setIsUnset(BusinessManager.state.DRAFT)
+        stateVar.setIsUnset(BusinessManager.state.DRAFT)
 
-         bind("in", in,
-         "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
-         "description" -> SHtml.textarea(descVar, descVar(_), "class" -> "form-control", "id" -> "Desc"),
-         "fund" -> SHtml.number(fundVar, fundVar(_), 0.0, 9999999.0, 1.0, "class" -> "form-control", "id" -> "Fund"),
-         "div-investor" -> SHtml.number(divInvestorVar, divInvestorVar(_), 0.0, 100.0, 1.0, "class" -> "form-control", "id" -> "DivInvestor"),
-         "submit" -> SHtml.submit("Add", doAddNew, "class" -> "btn btn-success")
-         )
-     }
+        bind("in", in,
+            "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
+            "description" -> SHtml.textarea(descVar, descVar(_), "class" -> "form-control", "id" -> "Desc"),
+            "fund" -> SHtml.number(fundVar, fundVar(_), 0.0, 9999999.0, 1.0, "class" -> "form-control", "id" -> "Fund"),
+            "div-investor" -> SHtml.number(divInvestorVar, divInvestorVar(_), 0.0, 100.0, 1.0, "class" -> "form-control", "id" -> "DivInvestor"),
+            "submit" -> SHtml.submit("Add", doAddNew, "class" -> "btn btn-success")
+        )
+    }
 
 
     private def buildListItem(bus:BusinessRow, state:String):NodeSeq = {
-        val deleteInternal = () => {
-
-            BusinessManager.delete(bus)
-
+        def updateList() = {
             val ns = NodeSeq.fromSeq(state match {
                 case "running" =>
                     BusinessManager.getRunningBusinessList(0, 10).flatMap(b => buildListItem(b, state))
                 case "project" =>
                     BusinessManager.getProjectBusinessList(0, 10).flatMap(b => buildListItem(b, state))
+                case "closed" =>
+                    BusinessManager.getClosedBusinessList(0, 10).flatMap(b => buildListItem(b, state))
             })
-            val updater = new JsCmd {
+            new JsCmd {
                 def toJsCmd: String = {
                     fixHtmlFunc("inline", ns){ nss =>
                         """$("#List").html(%s);""".format(nss)
                     }
                 }
             }
-
-            updater & JsRaw("alert('Success');").cmd
         }
+        
+        val deleteInternal = () => {
+            BusinessManager.delete(bus)
+            updateList() & JsRaw("alert('Success');").cmd
+        }
+        val runInternal = () => {
+            bus.makeProduction()
+            updateList() & JsRaw(s"alert('${bus.name} is now production');").cmd
+        }
+        val closeInternal = () => {
+            bus.close()
+            updateList() & JsRaw(s"alert('${bus.name} is now closed');").cmd
+        }
+        val toProjectInternal = () => {
+            bus.makeDraft()
+            updateList() & JsRaw(s"alert('${bus.name} is now marked as project');").cmd
+        }
+        def stateChanger() = {
+            bus.state match {
+                case BusinessManager.state.DRAFT =>
+                    <li>{SHtml.a(runInternal, Text("Run"))}</li> ++
+                    <li>{SHtml.a(closeInternal, Text("Close"))}</li>
+                case BusinessManager.state.PRODUCTION =>
+                    <li>{SHtml.a(toProjectInternal, Text("Make Project"))}</li> ++
+                    <li>{SHtml.a(closeInternal, Text("Close"))}</li>
+                case BusinessManager.state.CLOSED =>
+                    <li>{SHtml.a(toProjectInternal, Text("Make Project"))}</li>
+            }
+        }
+        
 
         <tr>
             <td>{bus.id.toString}</td>
@@ -101,9 +130,9 @@ class AdminBusinessSnippet {
                     <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        <li>
-                            {SHtml.a(deleteInternal,Text("Delete"))}
-                        </li>
+                        {stateChanger()}
+                        <li class="divider"></li>
+                        <li>{SHtml.a(deleteInternal,Text("Delete"))}</li>
                     </ul>
                 </div>
 
@@ -117,25 +146,33 @@ class AdminBusinessSnippet {
         S.attr("state").openOr("") match {
             case "running" =>
                 val business = BusinessManager.getRunningBusinessList(0, 10)
-                "#List *" #> business.map { client => buildListItem(client, "running") }
+                "#List *" #> business.map { bus => buildListItem(bus, "running") }
             case "project" =>
                 val business = BusinessManager.getProjectBusinessList(0, 30)
-                "#List *" #> business.map { client => buildListItem(client, "project") }
+                "#List *" #> business.map { bus => buildListItem(bus, "project") }
+            case "closed" =>
+                val business = BusinessManager.getClosedBusinessList(0, 30)
+                "#List *" #> business.map { bus => buildListItem(bus, "closed") }
         }
-    }    
+    }
 
- }
+}
 
 
-class AdminBusinessTab extends MtTabInterface {
+object AdminBusinessTab extends MtTabInterface {
     def defaultSelected: String = "running"
 
     def tmplDir: String = "admin/business"
 
-    override def tabNames: Array[String] = Array("running", "project")
+    override def tabNames: Array[String] = Array("running", "project", "closed")
 
     override def preSendJs(tabName: String): JsCmd = {
         JsRaw(s"History.pushState(null,null,'/admin/business/$tabName');").cmd
+    }
+
+    lazy val rewrite:LiftRules.RewritePF = NamedPF(s"${getClass.getSimpleName}Rewrite"){
+        case RewriteRequest(ParsePath("admin" :: "business" :: tabRe(tab) :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "business" :: Nil, Map("tab" -> tab))
     }
 }
 

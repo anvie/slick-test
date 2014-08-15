@@ -25,7 +25,8 @@ object AdminSitemap {
         Menu(Loc("Admin " + caption, path.split('/').toList, caption, _locs))
     }
 
-    private lazy val adminSubMenu = /* ------------------ BUSINESS ----------------- */
+    private lazy val adminSubMenu =
+        /* ------------------ BUSINESS ----------------- */
         menu("admin/business", "Business") ::
         menu("admin/business/add", "Business Add", Hidden) ::
         /* ------------------ USER ----------------- */
@@ -41,11 +42,8 @@ object AdminSitemap {
 
     lazy val sitemap = _sitemap
 
-    private val tabRe = "(running|project)".r
+//    private val tabRe = "(running|project|closed)".r
 
-    lazy val rewrite:LiftRules.RewritePF = NamedPF("AdminRewrite"){
-        case RewriteRequest(ParsePath("admin" :: "business" :: tabRe(tab) :: Nil, _, _, _), _, _) =>
-            RewriteResponse("admin" :: "business" :: Nil, Map("tab" -> tab))
-    }
+    lazy val rewrite:LiftRules.RewritePF = com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite
 
 }

@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc
@@ -48,18 +48,19 @@ trait Tables {
    *  @param desc Database column DESC 
    *  @param creatorId Database column CREATOR_ID 
    *  @param creatorRole Database column CREATOR_ROLE 
-   *  @param key Database column KEY  */
-  case class ApiClientRow(id: Long, name: String, desc: String, creatorId: Long, creatorRole: Int, key: String)
+   *  @param key Database column KEY 
+   *  @param suspended Database column SUSPENDED  */
+  case class ApiClientRow(id: Long, name: String, desc: String, creatorId: Long, creatorRole: Int, key: String, suspended: Boolean)
   /** GetResult implicit for fetching ApiClientRow objects using plain SQL queries */
-  implicit def GetResultApiClientRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int]): GR[ApiClientRow] = GR{
+  implicit def GetResultApiClientRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int], e3: GR[Boolean]): GR[ApiClientRow] = GR{
     prs => import prs._
-    ApiClientRow.tupled((<<[Long], <<[String], <<[String], <<[Long], <<[Int], <<[String]))
+    ApiClientRow.tupled((<<[Long], <<[String], <<[String], <<[Long], <<[Int], <<[String], <<[Boolean]))
   }
   /** Table description of table API_CLIENT. Objects of this class serve as prototypes for rows in queries. */
   class ApiClient(tag: Tag) extends Table[ApiClientRow](tag, "API_CLIENT") {
-    def * = (id, name, desc, creatorId, creatorRole, key) <> (ApiClientRow.tupled, ApiClientRow.unapply)
+    def * = (id, name, desc, creatorId, creatorRole, key, suspended) <> (ApiClientRow.tupled, ApiClientRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, desc.?, creatorId.?, creatorRole.?, key.?).shaped.<>({r=>import r._; _1.map(_=> ApiClientRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, desc.?, creatorId.?, creatorRole.?, key.?, suspended.?).shaped.<>({r=>import r._; _1.map(_=> ApiClientRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -73,9 +74,40 @@ trait Tables {
     val creatorRole: Column[Int] = column[Int]("CREATOR_ROLE")
     /** Database column KEY  */
     val key: Column[String] = column[String]("KEY")
+    /** Database column SUSPENDED  */
+    val suspended: Column[Boolean] = column[Boolean]("SUSPENDED")
   }
   /** Collection-like TableQuery object for table ApiClient */
   lazy val ApiClient = new TableQuery(tag => new ApiClient(tag))
+  
+  /** Entity class storing rows of table ApiClientAccess
+   *  @param id Database column ID AutoInc
+   *  @param apiClientId Database column API_CLIENT_ID 
+   *  @param grant Database column GRANT 
+   *  @param target Database column TARGET  */
+  case class ApiClientAccessRow(id: Long, apiClientId: Long, grant: String, target: String)
+  /** GetResult implicit for fetching ApiClientAccessRow objects using plain SQL queries */
+  implicit def GetResultApiClientAccessRow(implicit e0: GR[Long], e1: GR[String]): GR[ApiClientAccessRow] = GR{
+    prs => import prs._
+    ApiClientAccessRow.tupled((<<[Long], <<[Long], <<[String], <<[String]))
+  }
+  /** Table description of table API_CLIENT_ACCESS. Objects of this class serve as prototypes for rows in queries. */
+  class ApiClientAccess(tag: Tag) extends Table[ApiClientAccessRow](tag, "API_CLIENT_ACCESS") {
+    def * = (id, apiClientId, grant, target) <> (ApiClientAccessRow.tupled, ApiClientAccessRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, apiClientId.?, grant.?, target.?).shaped.<>({r=>import r._; _1.map(_=> ApiClientAccessRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column API_CLIENT_ID  */
+    val apiClientId: Column[Long] = column[Long]("API_CLIENT_ID")
+    /** Database column GRANT  */
+    val grant: Column[String] = column[String]("GRANT")
+    /** Database column TARGET  */
+    val target: Column[String] = column[String]("TARGET")
+  }
+  /** Collection-like TableQuery object for table ApiClientAccess */
+  lazy val ApiClientAccess = new TableQuery(tag => new ApiClientAccess(tag))
   
   /** Entity class storing rows of table Business
    *  @param id Database column ID AutoInc

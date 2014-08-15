@@ -11,11 +11,6 @@ import com.ansvia.zufaro.model.MutatorRole
 import com.ansvia.zufaro.model.Tables._
 
 
-
-case class WReq(req:Req, cred:Credential, client:ApiClientRow)
-
-
-
 object BusinessRestApi extends ZufaroRestHelper {
 
     import BusinessHelpers._

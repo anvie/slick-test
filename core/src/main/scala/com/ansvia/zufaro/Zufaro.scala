@@ -14,8 +14,10 @@ object Zufaro extends Slf4jLogger {
 
     import scala.slick.jdbc.meta._
 
-    val db = {
-        val _db = Database.forURL("jdbc:h2:data/data", driver = "org.h2.Driver")
+    var jdbcUrl:String = "jdbc:h2:data/data"
+
+    lazy val db = {
+        val _db = Database.forURL(jdbcUrl, driver = "org.h2.Driver")
 
         _db.withSession { implicit sess =>
             if (MTable.getTables.list().isEmpty){

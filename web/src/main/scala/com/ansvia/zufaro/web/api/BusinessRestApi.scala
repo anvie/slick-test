@@ -7,7 +7,7 @@ import json._
 import JsonDSL._
 import com.ansvia.zufaro.{BusinessHelpers, BusinessManager}
 import com.ansvia.zufaro.model.MutatorRole
-import com.ansvia.zufaro.exception.InvalidParameterException
+import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException}
 
 
 object BusinessRestApi extends ZufaroRestHelper {
@@ -38,6 +38,11 @@ object BusinessRestApi extends ZufaroRestHelper {
 
             val rv =
                 BusinessManager.getById(busId).map { bus =>
+
+                    // check is api client has grant to add-profit into this business
+                    if (!bus.isGranted(apiClient, "add-profit"))
+                        throw PermissionDeniedException("Unauthorized operation")
+
                     val busProfit = bus.addProfit(omzet, profit, mutator, mutationRole, info)
 
                     success(

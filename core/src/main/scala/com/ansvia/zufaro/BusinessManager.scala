@@ -35,6 +35,12 @@ object BusinessManager {
         val CLOSED:Int = 3
     }
 
+    object sharePeriod {
+        val WEEKLY = 1
+        val MONTHLY = 2
+        val YEAR = 3
+    }
+
     /**
      * Create new business
      * @param name business name.
@@ -44,9 +50,11 @@ object BusinessManager {
      * @param state see [[com.ansvia.zufaro.BusinessManager.state]]
      * @return
      */
-    def create(name:String, desc:String, fund:Double, divInvestor:Double, state:Int) = {
+    def create(name:String, desc:String, fund:Double, divInvestor:Double, state:Int,
+               shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
         val id = Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divInvestor, state)
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divInvestor, state,
+                shareTime, _sharePeriod)
         }
         getById(id).get
     }
@@ -148,7 +156,7 @@ trait BusinessHelpers {
                 val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += 
                     BusinessProfitRow(0L, business.id, omzet, 
                     profit, new Timestamp(new Date().getTime), mutator.id,
-                    mutatorRole, additionalInfo:String)
+                    mutatorRole, additionalInfo)
 
                 // kalkulasi bagi hasil
 
@@ -164,7 +172,7 @@ trait BusinessHelpers {
                 ivIb.foreach { case (iv, ib) =>
 
                     val margin = (iv.amount / business.fund) * profit
-                    val dividen = margin * p(business.divideInvest)
+                    val dividen = margin * p(business.share)
                     val curBal = ib.amount + dividen
 
                     InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
@@ -187,7 +195,7 @@ trait BusinessHelpers {
                     val investAmountNorm = investAmount / g.getMemberCount.toDouble
 
                     val margin = (investAmountNorm / business.fund) * profit
-                    val dividen = margin * p(business.divideInvest)
+                    val dividen = margin * p(business.share)
                     val curBal = ib.amount + dividen
 
                     InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
@@ -216,6 +224,18 @@ trait BusinessHelpers {
             }
         }
 
+        def isGranted(client:ApiClientRow, access:String):Boolean = {
+            Zufaro.db.withSession { implicit sess =>
+                val target = s"bus=${business.id}"
+                (ApiClientAccess.where(ac => ac.apiClientId === client.id &&
+                    ac.grant === access &&
+                    ac.target === target).length.run > 0) |
+                (ApiClientAccess.where(ac => ac.apiClientId === client.id &&
+                    ac.target === target &&
+                    ac.grant === "all").length.run > 0)
+
+            }
+        }
 
         def makeProduction() = {
             Zufaro.db.withTransaction { implicit sess =>

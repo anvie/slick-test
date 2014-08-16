@@ -25,7 +25,7 @@ abstract class ZufaroTest extends Specification with Slf4jLogger {
             f.listFiles(new FilenameFilter {
                 def accept(dir: File, name: String): Boolean = name.startsWith("zufaro-data")
             }).foreach { _f =>
-                println(s"deleting ${_f.getName} ...")
+                println(s"deleting /tmp/${_f.getName} ...")
                 _f.delete()
             }
         }

@@ -114,19 +114,21 @@ trait Tables {
    *  @param name Database column NAME 
    *  @param desc Database column DESC 
    *  @param fund Database column FUND 
-   *  @param divideInvest Database column DIVIDE_INVEST 
-   *  @param state Database column STATE  */
-  case class BusinessRow(id: Long, name: String, desc: String, fund: Double, divideInvest: Double, state: Int)
+   *  @param share Database column SHARE 
+   *  @param state Database column STATE 
+   *  @param shareTime Database column SHARE_TIME 
+   *  @param sharePeriod Database column SHARE_PERIOD  */
+  case class BusinessRow(id: Long, name: String, desc: String, fund: Double, share: Double, state: Int, shareTime: Int, sharePeriod: Int)
   /** GetResult implicit for fetching BusinessRow objects using plain SQL queries */
   implicit def GetResultBusinessRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double], e3: GR[Int]): GR[BusinessRow] = GR{
     prs => import prs._
-    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double], <<[Int]))
+    BusinessRow.tupled((<<[Long], <<[String], <<[String], <<[Double], <<[Double], <<[Int], <<[Int], <<[Int]))
   }
   /** Table description of table BUSINESS. Objects of this class serve as prototypes for rows in queries. */
   class Business(tag: Tag) extends Table[BusinessRow](tag, "BUSINESS") {
-    def * = (id, name, desc, fund, divideInvest, state) <> (BusinessRow.tupled, BusinessRow.unapply)
+    def * = (id, name, desc, fund, share, state, shareTime, sharePeriod) <> (BusinessRow.tupled, BusinessRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, desc.?, fund.?, divideInvest.?, state.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, desc.?, fund.?, share.?, state.?, shareTime.?, sharePeriod.?).shaped.<>({r=>import r._; _1.map(_=> BusinessRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -136,10 +138,14 @@ trait Tables {
     val desc: Column[String] = column[String]("DESC")
     /** Database column FUND  */
     val fund: Column[Double] = column[Double]("FUND")
-    /** Database column DIVIDE_INVEST  */
-    val divideInvest: Column[Double] = column[Double]("DIVIDE_INVEST")
+    /** Database column SHARE  */
+    val share: Column[Double] = column[Double]("SHARE")
     /** Database column STATE  */
     val state: Column[Int] = column[Int]("STATE")
+    /** Database column SHARE_TIME  */
+    val shareTime: Column[Int] = column[Int]("SHARE_TIME")
+    /** Database column SHARE_PERIOD  */
+    val sharePeriod: Column[Int] = column[Int]("SHARE_PERIOD")
   }
   /** Collection-like TableQuery object for table Business */
   lazy val Business = new TableQuery(tag => new Business(tag))

@@ -42,5 +42,30 @@ class ApiClientSpec extends ZufaroTest {
             ApiClientManager.getById(client.id, true) must not beNone
 
         }
+        "verify grant access specific" in {
+            val bus = BusinessManager.create(genRandomString, genRandomString, 100, 30, BusinessManager.state.PRODUCTION)
+            val access = Seq(ApiClientManager.Access("add-profit", "bus=" + bus.id),
+                ApiClientManager.Access("edit-info", "bus=" + bus.id))
+            val name = genRandomString
+            val desc = genRandomString
+            val client = ApiClientManager.create(name, desc, 0L, UserRole.ADMIN, access)
+
+            import BusinessHelpers._
+            bus.isGranted(client, "add-profit") must beTrue
+            bus.isGranted(client, "edit-info") must beTrue
+            bus.isGranted(client, "drop") must beFalse
+        }
+        "verify grant access all" in {
+            val bus = BusinessManager.create(genRandomString, genRandomString, 100, 30, BusinessManager.state.PRODUCTION)
+            val access = Seq(ApiClientManager.Access("all", "bus=" + bus.id))
+            val name = genRandomString
+            val desc = genRandomString
+            val client = ApiClientManager.create(name, desc, 0L, UserRole.ADMIN, access)
+
+            import BusinessHelpers._
+            bus.isGranted(client, "add-profit") must beTrue
+            bus.isGranted(client, "edit-info") must beTrue
+            bus.isGranted(client, "drop") must beTrue
+        }
     }
 }

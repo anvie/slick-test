@@ -64,6 +64,22 @@ object InvestorManager {
         }
     }
 
+    /**
+     * Delete and purge deleted investor related data.
+     * CAUTION: this operation cannot be undone.
+     * @param investor investor to delete from db.
+     * @return
+     */
+    def delete(investor:InvestorRow) = {
+        Zufaro.db.withTransaction { implicit sess =>
+            Invest.where(_.invId === investor.id).delete
+            Credit.where(_.invId === investor.id).delete
+            Debit.where(_.invId === investor.id).delete
+            InvestorBalance.where(_.invId === investor.id).delete
+            Investor.where(_.id === investor.id).delete
+        }
+    }
+
 
 }
 
@@ -162,6 +178,8 @@ trait InvestorHelpers {
                 rv.drop(offset).take(limit).run
             }
         }
+
+
 
     }
 }

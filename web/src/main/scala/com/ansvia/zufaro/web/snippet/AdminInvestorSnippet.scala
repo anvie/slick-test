@@ -11,7 +11,7 @@ import net.liftweb._
 import util._
 import http._
 import Helpers._
-import scala.xml.{Text, NodeSeq}
+import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.InvestorManager
 import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
@@ -20,6 +20,8 @@ import net.liftweb.http.js.JsCmd
 import com.ansvia.zufaro.exception.{ZufaroException, InvalidParameterException}
 import net.liftweb.common.Full
 import com.ansvia.zufaro.model.InvestorRole
+import com.ansvia.zufaro.web.util.JsUtils
+import net.liftweb.http.js.JsCmds.SetHtml
 
 
 class AdminInvestorSnippet {
@@ -75,11 +77,28 @@ class AdminInvestorSnippet {
 
 
 
-    private def buildInvestorListItem(inv:InvestorRow) = {
+    private def buildInvestorListItem(inv:InvestorRow):Node = {
 
+        def updater() = {
+            val investors = InvestorManager.getList(0, 50)
+            val ns = NodeSeq.fromSeq(investors.map(buildInvestorListItem))
+            new JsCmd {
+                def toJsCmd: String = {
+                    fixHtmlFunc("inline", ns){ nss =>
+                        SetHtml("List", ns)
+                    }
+                }
+            }
+        }
 
-        def deleteInternal = () => {
+        val deleter = {
+            JsUtils.ajaxConfirm("Are you sure to delete this investor? " +
+                "This operation cannot be undone", Text("delete"), "Delete this investor"){
 
+                InvestorManager.delete(inv)
+
+                updater()
+            }
         }
 
 
@@ -108,7 +127,7 @@ class AdminInvestorSnippet {
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                         <li></li>
                         <li class="divider"></li>
-                        <li>{SHtml.a(deleteInternal, Text("Delete"))}</li>
+                        <li>{deleter}</li>
                     </ul>
                 </div>
 

@@ -140,97 +140,13 @@ class AdminInvestorSnippet {
 
     def investorList:CssSel = {
         val investors = InvestorManager.getList(0, 50)
-        "#List " #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
+        "#List *" #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 
     private def invO = {
         val id = S.param("invId").openOr("0").toLong
         InvestorManager.getById(id)
     }
-
-    def depositPageTitle:NodeSeq = {
-        try {
-            <div>Account:
-                <strong>{invO.map(_.name).getOrElse("unknown")}</strong>
-            </div>
-        }
-        catch {
-            case e:NumberFormatException =>
-                S.redirectTo("/admin/investor", () => S.error("Not found"))
-        }
-    }
-
-    def balanceInfo:CssSel = {
-        val inv = invO.get
-        "#Amount *" #> f"Rp.${inv.getBalance}%.02f,-"
-    }
-
-
-    def balanceOp(in:NodeSeq):NodeSeq = {
-
-        val invId = S.param("invId").openOr("0").toLong
-
-        def creditBalance = () => {
-
-            val ns = S.runTemplate("admin" :: "investor" :: "_chunk_dialog-credit-balance" :: Nil)
-                .openOr(NodeSeq.Empty)
-
-            val ns2 = ("#Dialog [class]" #> s"lift:AdminInvestorSnippet.creditBalanceDialog?invId=$invId").apply(ns)
-
-            JsUtils.modalDialog(ns2)
-        }
-
-
-        bind("in", in,
-        "credit" -> SHtml.a(creditBalance, Text("Credit"), "class" -> "btn btn-default")
-        )
-    }
-
-
-    def creditBalanceDialog(in:NodeSeq):NodeSeq = {
-        val invId = S.attr("invId").openOr("0").toLong
-        var amount:Double = 0.0
-        var info = ""
-
-        def creditBalanceInternal() = {
-            try {
-                if (amount == 0.0)
-                    throw InvalidParameterException("No balance")
-
-                val inv = InvestorManager.getById(invId).getOrElse {
-                    throw NotExistsException(s"No investor with id $invId")
-                }
-                val (initId, initRole) = {
-                    Auth.currentAdmin.map {
-                        admin =>
-                            (admin.id, UserRole.ADMIN)
-                    }.getOrElse {
-                        Auth.currentOperator.map {
-                            op =>
-                                (op.id, UserRole.OPERATOR)
-                        }.openOrThrowException("Not authorized")
-                    }
-                }
-                inv.addBalance(amount, Some(info), Initiator(initId, initRole))
-
-                JsUtils.hideAllModal & SetHtml("Amount", Text(f"Rp.${inv.getBalance}%.02f,-"))
-            }
-            catch {
-                case e:ZufaroException =>
-                    JsUtils.showError(e.getMessage)
-            }
-        }
-
-        SHtml.ajaxForm(bind("in", in,
-        "balance" -> SHtml.number(amount, (x:Double) => amount = x, 0.0, 100000.0, 1.0, "class" -> "form-control"),
-        "info" -> SHtml.textarea(info, info = _, "class" -> "form-control"),
-        "submit" -> S.formGroup(1000){
-            SHtml.hidden(creditBalanceInternal) ++
-            SHtml.submit("Send", creditBalanceInternal, "class" -> "btn btn-success")
-        }
-        ))
-    }
-
 
 
 }

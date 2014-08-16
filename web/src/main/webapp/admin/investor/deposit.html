@@ -16,21 +16,23 @@
 
     <hr />
 
-    <div class="lift:AdminInvestorSnippet.depositPageTitle">Account: Robin</div>
+    <div class="lift:AdminInvestorDepositSnippet.depositPageTitle">Account: Robin</div>
 
     <div>
 
-        <div id="Balance" class="lift:AdminInvestorSnippet.balanceInfo">
+        <div id="Balance" class="lift:AdminInvestorDepositSnippet.balanceInfo">
             <span>Balance:</span> <strong id="Amount">Rp.0,-</strong>
 
-            <div class="lift:AdminInvestorSnippet.balanceOp">
+            <div class="lift:AdminInvestorDepositSnippet.balanceOp">
                 <hr />
 
                 <in:credit></in:credit>
+                <in:debit></in:debit>
 
             </div>
         </div>
 
+        <hr />
 
         <div id="Mutation">
 
@@ -39,11 +41,11 @@
             <table class="lift:AdminInvestorDepositSnippet.mutationList table table-striped table-bordered">
                 <thead>
                 <tr>
-                    <th>Code</th>
+                    <th style="width: 50px;">Code</th>
                     <th>Info</th>
-                    <th>Debit</th>
                     <th>Credit</th>
-                    <th>Current</th>
+                    <th>Debit</th>
+                    <th>Time</th>
                 </tr>
                 </thead>
                 <tbody id="MutationList">
@@ -52,7 +54,7 @@
                     <td>ditambah anu</td>
                     <td>Rp.100.0,-</td>
                     <td>Rp.50.0,-</td>
-                    <td>Rp.50.0,-</td>
+                    <td>123</td>
                 </tr>
                 </tbody>
             </table>

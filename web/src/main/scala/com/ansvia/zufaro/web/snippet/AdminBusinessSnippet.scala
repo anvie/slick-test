@@ -186,7 +186,7 @@ class AdminBusinessSnippet {
         BusinessManager.getById(S.param("busId").openOr("0").toLong)
         .map { bus =>
             val reports = bus.getReport(0, 30)
-            "#List " #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(r) ))
+            "#List *" #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(r) ))
         }.getOrElse("*" #> NodeSeq.Empty)
     }
 

@@ -203,7 +203,7 @@ trait Tables {
   lazy val BusinessGroupLink = new TableQuery(tag => new BusinessGroupLink(tag))
   
   /** Entity class storing rows of table BusinessProfit
-   *  @param id Database column ID AutoInc
+   *  @param id Database column ID AutoInc, PrimaryKey
    *  @param busId Database column BUS_ID 
    *  @param omzet Database column OMZET 
    *  @param profit Database column PROFIT 
@@ -212,21 +212,21 @@ trait Tables {
    *  @param mutatorRole Database column MUTATOR_ROLE 
    *  @param info Database column INFO 
    *  @param shared Database column SHARED Default(false)
-   *  @param sharedAt Database column SHARED_AT Default(None) */
-  case class BusinessProfitRow(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String, shared: Boolean = false, sharedAt: Option[java.sql.Timestamp] = None)
+   *  @param sharedAt Database column SHARED_AT  */
+  case class BusinessProfitRow(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String, shared: Boolean = false, sharedAt: java.sql.Timestamp)
   /** GetResult implicit for fetching BusinessProfitRow objects using plain SQL queries */
-  implicit def GetResultBusinessProfitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String], e5: GR[Boolean], e6: GR[Option[java.sql.Timestamp]]): GR[BusinessProfitRow] = GR{
+  implicit def GetResultBusinessProfitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String], e5: GR[Boolean]): GR[BusinessProfitRow] = GR{
     prs => import prs._
-    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String], <<[Boolean], <<?[java.sql.Timestamp]))
+    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String], <<[Boolean], <<[java.sql.Timestamp]))
   }
   /** Table description of table BUSINESS_PROFIT. Objects of this class serve as prototypes for rows in queries. */
   class BusinessProfit(tag: Tag) extends Table[BusinessProfitRow](tag, "BUSINESS_PROFIT") {
     def * = (id, busId, omzet, profit, ts, mutatorId, mutatorRole, info, shared, sharedAt) <> (BusinessProfitRow.tupled, BusinessProfitRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?, shared.?, sharedAt).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?, shared.?, sharedAt.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
-    /** Database column ID AutoInc */
-    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column BUS_ID  */
     val busId: Column[Long] = column[Long]("BUS_ID")
     /** Database column OMZET  */
@@ -243,8 +243,8 @@ trait Tables {
     val info: Column[String] = column[String]("INFO")
     /** Database column SHARED Default(false) */
     val shared: Column[Boolean] = column[Boolean]("SHARED", O.Default(false))
-    /** Database column SHARED_AT Default(None) */
-    val sharedAt: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("SHARED_AT", O.Default(None))
+    /** Database column SHARED_AT  */
+    val sharedAt: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("SHARED_AT")
   }
   /** Collection-like TableQuery object for table BusinessProfit */
   lazy val BusinessProfit = new TableQuery(tag => new BusinessProfit(tag))
@@ -255,18 +255,18 @@ trait Tables {
    *  @param busId Database column BUS_ID 
    *  @param amount Database column AMOUNT 
    *  @param busKind Database column BUS_KIND 
-   *  @param ts Database column TS Default(None) */
-  case class InvestRow(id: Long, invId: Long, busId: Long, amount: Double, busKind: Int, ts: Option[java.sql.Timestamp] = None)
+   *  @param ts Database column TS  */
+  case class InvestRow(id: Long, invId: Long, busId: Long, amount: Double, busKind: Int, ts: java.sql.Timestamp)
   /** GetResult implicit for fetching InvestRow objects using plain SQL queries */
-  implicit def GetResultInvestRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int], e3: GR[Option[java.sql.Timestamp]]): GR[InvestRow] = GR{
+  implicit def GetResultInvestRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int], e3: GR[java.sql.Timestamp]): GR[InvestRow] = GR{
     prs => import prs._
-    InvestRow.tupled((<<[Long], <<[Long], <<[Long], <<[Double], <<[Int], <<?[java.sql.Timestamp]))
+    InvestRow.tupled((<<[Long], <<[Long], <<[Long], <<[Double], <<[Int], <<[java.sql.Timestamp]))
   }
   /** Table description of table INVEST. Objects of this class serve as prototypes for rows in queries. */
   class Invest(tag: Tag) extends Table[InvestRow](tag, "INVEST") {
     def * = (id, invId, busId, amount, busKind, ts) <> (InvestRow.tupled, InvestRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, busId.?, amount.?, busKind.?, ts).shaped.<>({r=>import r._; _1.map(_=> InvestRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, invId.?, busId.?, amount.?, busKind.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> InvestRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -278,8 +278,8 @@ trait Tables {
     val amount: Column[Double] = column[Double]("AMOUNT")
     /** Database column BUS_KIND  */
     val busKind: Column[Int] = column[Int]("BUS_KIND")
-    /** Database column TS Default(None) */
-    val ts: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("TS", O.Default(None))
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
   }
   /** Collection-like TableQuery object for table Invest */
   lazy val Invest = new TableQuery(tag => new Invest(tag))
@@ -349,18 +349,18 @@ trait Tables {
    *  @param amount Database column AMOUNT 
    *  @param ref Database column REF 
    *  @param initiator Database column INITIATOR Default(None)
-   *  @param ts Database column TS Default(None) */
-  case class MutationRow(id: Long, invId: Long, kind: Int, amount: Double, ref: Option[String], initiator: Option[String] = None, ts: Option[java.sql.Timestamp] = None)
+   *  @param ts Database column TS  */
+  case class MutationRow(id: Long, invId: Long, kind: Int, amount: Double, ref: Option[String], initiator: Option[String] = None, ts: java.sql.Timestamp)
   /** GetResult implicit for fetching MutationRow objects using plain SQL queries */
-  implicit def GetResultMutationRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[Option[String]], e4: GR[Option[java.sql.Timestamp]]): GR[MutationRow] = GR{
+  implicit def GetResultMutationRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[Option[String]], e4: GR[java.sql.Timestamp]): GR[MutationRow] = GR{
     prs => import prs._
-    MutationRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<?[String], <<?[String], <<?[java.sql.Timestamp]))
+    MutationRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<?[String], <<?[String], <<[java.sql.Timestamp]))
   }
   /** Table description of table MUTATION. Objects of this class serve as prototypes for rows in queries. */
   class Mutation(tag: Tag) extends Table[MutationRow](tag, "MUTATION") {
     def * = (id, invId, kind, amount, ref, initiator, ts) <> (MutationRow.tupled, MutationRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, kind.?, amount.?, ref, initiator, ts).shaped.<>({r=>import r._; _1.map(_=> MutationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, invId.?, kind.?, amount.?, ref, initiator, ts.?).shaped.<>({r=>import r._; _1.map(_=> MutationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -374,8 +374,8 @@ trait Tables {
     val ref: Column[Option[String]] = column[Option[String]]("REF")
     /** Database column INITIATOR Default(None) */
     val initiator: Column[Option[String]] = column[Option[String]]("INITIATOR", O.Default(None))
-    /** Database column TS Default(None) */
-    val ts: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("TS", O.Default(None))
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
   }
   /** Collection-like TableQuery object for table Mutation */
   lazy val Mutation = new TableQuery(tag => new Mutation(tag))
@@ -415,18 +415,18 @@ trait Tables {
    *  @param amount Database column AMOUNT 
    *  @param shareMethod Database column SHARE_METHOD Default(2)
    *  @param initiator Database column INITIATOR Default(None)
-   *  @param ts Database column TS Default(None) */
-  case class ProfitShareJournalRow(busId: Long, invId: Long, amount: Double, shareMethod: Int = 2, initiator: Option[String] = None, ts: Option[java.sql.Timestamp] = None)
+   *  @param ts Database column TS  */
+  case class ProfitShareJournalRow(busId: Long, invId: Long, amount: Double, shareMethod: Int = 2, initiator: Option[String] = None, ts: java.sql.Timestamp)
   /** GetResult implicit for fetching ProfitShareJournalRow objects using plain SQL queries */
-  implicit def GetResultProfitShareJournalRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int], e3: GR[Option[String]], e4: GR[Option[java.sql.Timestamp]]): GR[ProfitShareJournalRow] = GR{
+  implicit def GetResultProfitShareJournalRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int], e3: GR[Option[String]], e4: GR[java.sql.Timestamp]): GR[ProfitShareJournalRow] = GR{
     prs => import prs._
-    ProfitShareJournalRow.tupled((<<[Long], <<[Long], <<[Double], <<[Int], <<?[String], <<?[java.sql.Timestamp]))
+    ProfitShareJournalRow.tupled((<<[Long], <<[Long], <<[Double], <<[Int], <<?[String], <<[java.sql.Timestamp]))
   }
   /** Table description of table PROFIT_SHARE_JOURNAL. Objects of this class serve as prototypes for rows in queries. */
   class ProfitShareJournal(tag: Tag) extends Table[ProfitShareJournalRow](tag, "PROFIT_SHARE_JOURNAL") {
     def * = (busId, invId, amount, shareMethod, initiator, ts) <> (ProfitShareJournalRow.tupled, ProfitShareJournalRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (busId.?, invId.?, amount.?, shareMethod.?, initiator, ts).shaped.<>({r=>import r._; _1.map(_=> ProfitShareJournalRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (busId.?, invId.?, amount.?, shareMethod.?, initiator, ts.?).shaped.<>({r=>import r._; _1.map(_=> ProfitShareJournalRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column BUS_ID  */
     val busId: Column[Long] = column[Long]("BUS_ID")
@@ -438,8 +438,8 @@ trait Tables {
     val shareMethod: Column[Int] = column[Int]("SHARE_METHOD", O.Default(2))
     /** Database column INITIATOR Default(None) */
     val initiator: Column[Option[String]] = column[Option[String]]("INITIATOR", O.Default(None))
-    /** Database column TS Default(None) */
-    val ts: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("TS", O.Default(None))
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
   }
   /** Collection-like TableQuery object for table ProfitShareJournal */
   lazy val ProfitShareJournal = new TableQuery(tag => new ProfitShareJournal(tag))

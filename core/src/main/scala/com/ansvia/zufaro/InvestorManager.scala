@@ -86,6 +86,8 @@ object InvestorManager {
 
 trait InvestorHelpers {
 
+    import TimestampHelpers._
+
     implicit class investorWrapper(investor:InvestorRow){
         def invest(business:BusinessRow, amount:Double) = {
             Zufaro.db.withTransaction { implicit sess =>
@@ -99,7 +101,7 @@ trait InvestorHelpers {
 
                 checkBalance(amount)
 
-                Invest += InvestRow(0L, investor.id, business.id, amount, BusinessKind.SINGLE)
+                Invest += InvestRow(0L, investor.id, business.id, amount, BusinessKind.SINGLE, now())
 
                 // debit investor balance
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
@@ -126,7 +128,7 @@ trait InvestorHelpers {
                 // check balance
                 checkBalance(amount)
 
-                Invest += InvestRow(0L, investor.id, businessGroup.id, amount, BusinessKind.GROUP)
+                Invest += InvestRow(0L, investor.id, businessGroup.id, amount, BusinessKind.GROUP, now())
 
                 // debit investor balance
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
@@ -163,9 +165,18 @@ trait InvestorHelpers {
                 q.update(q.first() + by)
 
                 // write journal
-                Mutation += MutationRow(0L, investor.id, MutationKind.CREDIT, by,
-                    ref, Some(initiator.toString))
+                if (by > -0.1){
+                    Mutation += MutationRow(0L, investor.id, MutationKind.CREDIT, by,
+                        ref, Some(initiator.toString), now())
+                }else{
+                    Mutation += MutationRow(0L, investor.id, MutationKind.DEBIT, -by,
+                        ref, Some(initiator.toString), now())
+                }
             }
+        }
+
+        def subBalance(by:Double, ref:Option[String]=None, initiator:Initiator=NoInitiator) = {
+            addBalance(-by, ref, initiator)
         }
 
 
@@ -189,7 +200,7 @@ trait InvestorHelpers {
                 val rv = for {
                     m <- Mutation if m.invId === investor.id
                 } yield m
-                rv.drop(offset).take(limit).run
+                rv.drop(offset).take(limit).sortBy(_.ts.desc).run
             }
         }
 

@@ -2,6 +2,8 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.commons.logging.Slf4jLogger
+import java.sql.Timestamp
+import java.util.Date
 
 
 /**
@@ -32,5 +34,9 @@ object Zufaro extends Slf4jLogger {
 
     }
 
+}
+
+object TimestampHelpers {
+    def now() = new Timestamp(new Date().getTime)
 }
 

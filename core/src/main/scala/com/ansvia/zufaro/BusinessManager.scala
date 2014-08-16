@@ -144,11 +144,13 @@ trait BusinessHelpers {
 
     import BusinessGroupHelpers._
     import BusinessManager.state._
-
+    import TimestampHelpers._
 
     implicit class businessWrapper(business:BusinessRow) extends Slf4jLogger {
 
         private def p(d:Double) = d / 100.0
+
+
 
         def addProfit(omzet:Double, profit:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfitRow = {
 
@@ -160,8 +162,8 @@ trait BusinessHelpers {
 
                 val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += 
                     BusinessProfitRow(0L, business.id, omzet, 
-                    profit, new Timestamp(new Date().getTime), mutator.id,
-                    mutatorRole, additionalInfo)
+                    profit, now(), mutator.id,
+                    mutatorRole, additionalInfo, shared=false, sharedAt=now())
 
                 debug(f"profit added for business id `${business.id}`, omzet $omzet%.02f, " +
                     f"profit $profit%.02f, ref id: ${_busProfitId}")
@@ -198,7 +200,7 @@ trait BusinessHelpers {
                 bps.foreach { case (id, profit) =>
                     doShareProcess(profit, shareMethod)
                     BusinessProfit.where(_.id === id).map(d => (d.shared, d.sharedAt))
-                        .update((true, Some(new Timestamp(new Date().getTime))))
+                        .update((true, now()))
                 }
             }
         }
@@ -223,12 +225,12 @@ trait BusinessHelpers {
 
                 // tulis business journal
                 ProfitShareJournal += ProfitShareJournalRow(business.id, iv.invId, share, shareMethod.method,
-                    Some(shareMethod.initiatorStr), Some(new Timestamp(new Date().getTime)))
+                    Some(shareMethod.initiatorStr), now())
 
                 // tulis personal journal
                 Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
                     share, Some("bagi hasil dari bisnis " + business.name),
-                    None /*new Timestamp(new Date().getTime)*/)
+                    None, now())
 
                 debug(f"profit shared from `${business.name} (${business.id})` " +
                     f"amount of $share%.02f to investor id `${iv.invId}`")

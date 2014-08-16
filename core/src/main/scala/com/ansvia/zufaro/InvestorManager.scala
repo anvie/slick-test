@@ -14,6 +14,11 @@ import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanc
  */
 object InvestorManager {
 
+    object status {
+        val INACTIVE = 0
+        val ACTIVE = 1
+        val SUSPENDED = 2
+    }
 
     /**
      * Create new investor
@@ -50,6 +55,12 @@ object InvestorManager {
     def getByName(name:String) = {
         Zufaro.db.withSession { implicit session =>
             Investor.where(_.name === name).firstOption
+        }
+    }
+
+    def getList(offset:Int, limit:Int):Seq[InvestorRow] = {
+        Zufaro.db.withSession { implicit sess =>
+            Investor.where(_.status === status.ACTIVE).drop(offset).take(limit).run
         }
     }
 
@@ -141,6 +152,17 @@ trait InvestorHelpers {
             Zufaro.db.withSession( implicit sess => InvestorBalance.where(_.invId === investor.id)
                   .firstOption.map(_.amount).getOrElse(0.0) )
         }
+
+        def getBusiness(offset:Int, limit:Int):Seq[BusinessRow] = {
+            Zufaro.db.withSession { implicit sess =>
+                val rv = for {
+                    i <- Invest if i.invId === investor.id
+                    bus <- Business if bus.id === i.busId
+                } yield bus
+                rv.drop(offset).take(limit).run
+            }
+        }
+
     }
 }
 

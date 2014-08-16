@@ -32,8 +32,11 @@ object AdminSitemap {
         menu("admin/business", "Business") ::
         menu("admin/business/add", "Business Add", Hidden) ::
         menu("admin/business/report", "Business Report", Hidden) ::
-        /* ------------------ USER ----------------- */
-        menu("admin/user", "User") ::
+        /* ------------------ Investor ----------------- */
+        menu("admin/investor", "Investor") ::
+        /* ------------------ Admin ----------------- */
+        menu("admin/admin", "Admin", AdminOnly) ::
+        menu("admin/operator", "Operator", AdminOnly) ::
         /* ------------------ API ----------------- */
         menu("admin/api", "API") ::
         menu("admin/api/add", "API Add", Hidden) ::
@@ -54,6 +57,7 @@ object AdminSitemap {
     }
     lazy val rewrite:LiftRules.RewritePF =
         com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite orElse
+        com.ansvia.zufaro.web.snippet.AdminInvestorTab.rewrite orElse
             internalRewrite
 
 }

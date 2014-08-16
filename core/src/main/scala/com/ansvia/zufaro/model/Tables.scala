@@ -346,18 +346,19 @@ trait Tables {
    *  @param id Database column ID AutoInc
    *  @param name Database column NAME 
    *  @param role Database column ROLE 
-   *  @param passhash Database column PASSHASH  */
-  case class InvestorRow(id: Long, name: String, role: Int, passhash: String)
+   *  @param passhash Database column PASSHASH 
+   *  @param status Database column STATUS Default(1) */
+  case class InvestorRow(id: Long, name: String, role: Int, passhash: String, status: Int = 1)
   /** GetResult implicit for fetching InvestorRow objects using plain SQL queries */
   implicit def GetResultInvestorRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int]): GR[InvestorRow] = GR{
     prs => import prs._
-    InvestorRow.tupled((<<[Long], <<[String], <<[Int], <<[String]))
+    InvestorRow.tupled((<<[Long], <<[String], <<[Int], <<[String], <<[Int]))
   }
   /** Table description of table INVESTOR. Objects of this class serve as prototypes for rows in queries. */
   class Investor(tag: Tag) extends Table[InvestorRow](tag, "INVESTOR") {
-    def * = (id, name, role, passhash) <> (InvestorRow.tupled, InvestorRow.unapply)
+    def * = (id, name, role, passhash, status) <> (InvestorRow.tupled, InvestorRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, role.?, passhash.?).shaped.<>({r=>import r._; _1.map(_=> InvestorRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, role.?, passhash.?, status.?).shaped.<>({r=>import r._; _1.map(_=> InvestorRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -367,6 +368,8 @@ trait Tables {
     val role: Column[Int] = column[Int]("ROLE")
     /** Database column PASSHASH  */
     val passhash: Column[String] = column[String]("PASSHASH")
+    /** Database column STATUS Default(1) */
+    val status: Column[Int] = column[Int]("STATUS", O.Default(1))
   }
   /** Collection-like TableQuery object for table Investor */
   lazy val Investor = new TableQuery(tag => new Investor(tag))

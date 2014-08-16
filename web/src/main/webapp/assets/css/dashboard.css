@@ -70,9 +70,9 @@
  * Main content
  */
 
-.main {
-  padding: 20px;
-}
+/*.main {*/
+  /*padding: 20px;*/
+/*}*/
 @media (min-width: 768px) {
   .main {
     padding-right: 40px;

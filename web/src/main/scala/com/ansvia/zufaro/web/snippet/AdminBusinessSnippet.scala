@@ -132,7 +132,7 @@ class AdminBusinessSnippet {
             <td>{bus.name}</td>
             <td>{bus.desc}</td>
             <td>{bus.fund}</td>
-            <td>{bus.divideInvest}</td>
+            <td>{bus.share}</td>
             <td>
 
                 <div class="dropdown">
@@ -176,6 +176,7 @@ class AdminBusinessSnippet {
             <td>Rp. {rep.omzet},-</td>
             <td>Rp. {rep.profit},-</td>
             <td>{rep.info}</td>
+            <td>{rep.shared}</td>
             <td></td>
         </tr>
     }

@@ -1,12 +1,14 @@
 package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.H2Driver.backend
 import model.Tables._
 import scala.collection.JavaConversions._
 import scala.slick.lifted
 import java.sql.Timestamp
 import java.util.Date
 import com.ansvia.zufaro.exception.ZufaroException
+import com.ansvia.commons.logging.Slf4jLogger
 
 /**
  * Author: robin
@@ -143,7 +145,7 @@ trait BusinessHelpers {
     import BusinessManager.state._
 
 
-    implicit class businessWrapper(business:BusinessRow){
+    implicit class businessWrapper(business:BusinessRow) extends Slf4jLogger {
 
         private def p(d:Double) = d / 100.0
 
@@ -160,52 +162,8 @@ trait BusinessHelpers {
                     profit, new Timestamp(new Date().getTime), mutator.id,
                     mutatorRole, additionalInfo)
 
-                // kalkulasi bagi hasil
-
-                //                val sysProfit = p(business.divideSys) * profit
-                //                val invProfit = p(business.divideInvest) * profit
-
-
-                val ivIb = for {
-                    iv <- Invest if iv.busId === business.id && iv.busKind === BusinessKind.SINGLE
-                    ib <- InvestorBalance if ib.invId === iv.invId
-                } yield (iv, ib)
-
-                ivIb.foreach { case (iv, ib) =>
-
-                    val margin = (iv.amount / business.fund) * profit
-                    val dividen = margin * p(business.share)
-                    val curBal = ib.amount + dividen
-
-                    InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
-
-                    // tulis journal
-                    Credit += CreditRow(0L, iv.invId, dividen, Some("bagi hasil dari bisnis " + business.name), new Timestamp(new Date().getTime))
-                }
-
-                val groupQ = for {
-                    link <- BusinessGroupLink if link.busId === business.id
-                    iv <- Invest if iv.busId === link.busGroupId && iv.busKind === BusinessKind.GROUP
-                    g <- BusinessGroup if g.id === link.busGroupId
-                    inv <- Investor if inv.id === iv.invId
-                    ib <- InvestorBalance if ib.invId === inv.id
-                } yield (iv.amount, inv.id, g, inv, ib)
-
-                //                println("groupQ statement: " + groupQ.selectStatement)
-
-                groupQ.foreach { case (investAmount, investId, g, inv, ib) =>
-                    val investAmountNorm = investAmount / g.getMemberCount.toDouble
-
-                    val margin = (investAmountNorm / business.fund) * profit
-                    val dividen = margin * p(business.share)
-                    val curBal = ib.amount + dividen
-
-                    InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
-
-                    // tulis journal
-                    Credit += CreditRow(0L, investId, dividen,
-                        Some("bagi hasil dari bisnis " + business.name + " group of " + g.name), new Timestamp(new Date().getTime))
-                }
+                debug(f"profit added for business id `${business.id}`, omzet $omzet%.02f, " +
+                    f"profit $profit%.02f, ref id: ${_busProfitId}")
 
                 _busProfitId
             }
@@ -225,6 +183,77 @@ trait BusinessHelpers {
                 BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
             }
         }
+
+        /**
+         * Share semua ke investors dari semua un-shared profit report.
+         */
+        def doShareProcess(){
+            debug("do share process...")
+            Zufaro.db.withTransaction { implicit sess =>
+                val bps = for {
+                    bp <- BusinessProfit if bp.busId === business.id && bp.shared === false
+                } yield (bp.id, bp.profit)
+
+                bps.foreach { case (id, profit) =>
+                    doShareProcess(profit)
+                    BusinessProfit.where(_.id === id).map(d => (d.shared, d.sharedAt))
+                        .update((true, Some(new Timestamp(new Date().getTime))))
+                }
+            }
+        }
+
+
+        def doShareProcess(profit:Double)(implicit sess:backend.SessionDef){
+            // kalkulasi bagi hasil
+
+
+            val ivIb = for {
+                iv <- Invest if iv.busId === business.id && iv.busKind === BusinessKind.SINGLE
+                ib <- InvestorBalance if ib.invId === iv.invId
+            } yield (iv, ib)
+
+            ivIb.foreach { case (iv, ib) =>
+
+                val margin = (iv.amount / business.fund) * profit
+                val share = margin * p(business.share)
+                val curBal = ib.amount + share
+
+                InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
+
+                // tulis journal
+                Credit += CreditRow(0L, iv.invId, share, Some("bagi hasil dari bisnis " + business.name),
+                    new Timestamp(new Date().getTime))
+
+                debug(f"profit shared from `${business.name} (${business.id})` " +
+                    f"amount of $share%.02f to investor id `${iv.invId}`")
+            }
+
+            //// group business share not supported yet, fix this if necessary
+//            val groupQ = for {
+//                link <- BusinessGroupLink if link.busId === business.id
+//                iv <- Invest if iv.busId === link.busGroupId && iv.busKind === BusinessKind.GROUP
+//                g <- BusinessGroup if g.id === link.busGroupId
+//                inv <- Investor if inv.id === iv.invId
+//                ib <- InvestorBalance if ib.invId === inv.id
+//            } yield (iv.amount, inv.id, g, inv, ib)
+//
+//            //                println("groupQ statement: " + groupQ.selectStatement)
+//
+//            groupQ.foreach { case (investAmount, investId, g, inv, ib) =>
+//                val investAmountNorm = investAmount / g.getMemberCount.toDouble
+//
+//                val margin = (investAmountNorm / business.fund) * profit
+//                val dividen = margin * p(business.share)
+//                val curBal = ib.amount + dividen
+//
+//                InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
+//
+//                // tulis journal
+//                Credit += CreditRow(0L, investId, dividen,
+//                    Some("bagi hasil dari bisnis " + business.name + " group of " + g.name), new Timestamp(new Date().getTime))
+//            }
+        }
+
 
         /**
          * Check whether client is granted to access.

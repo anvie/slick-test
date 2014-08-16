@@ -210,18 +210,20 @@ trait Tables {
    *  @param ts Database column TS 
    *  @param mutatorId Database column MUTATOR_ID 
    *  @param mutatorRole Database column MUTATOR_ROLE 
-   *  @param info Database column INFO  */
-  case class BusinessProfitRow(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String)
+   *  @param info Database column INFO 
+   *  @param shared Database column SHARED Default(false)
+   *  @param sharedAt Database column SHARED_AT Default(None) */
+  case class BusinessProfitRow(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String, shared: Boolean = false, sharedAt: Option[java.sql.Timestamp] = None)
   /** GetResult implicit for fetching BusinessProfitRow objects using plain SQL queries */
-  implicit def GetResultBusinessProfitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String]): GR[BusinessProfitRow] = GR{
+  implicit def GetResultBusinessProfitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String], e5: GR[Boolean], e6: GR[Option[java.sql.Timestamp]]): GR[BusinessProfitRow] = GR{
     prs => import prs._
-    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String]))
+    BusinessProfitRow.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String], <<[Boolean], <<?[java.sql.Timestamp]))
   }
   /** Table description of table BUSINESS_PROFIT. Objects of this class serve as prototypes for rows in queries. */
   class BusinessProfit(tag: Tag) extends Table[BusinessProfitRow](tag, "BUSINESS_PROFIT") {
-    def * = (id, busId, omzet, profit, ts, mutatorId, mutatorRole, info) <> (BusinessProfitRow.tupled, BusinessProfitRow.unapply)
+    def * = (id, busId, omzet, profit, ts, mutatorId, mutatorRole, info, shared, sharedAt) <> (BusinessProfitRow.tupled, BusinessProfitRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?, shared.?, sharedAt).shaped.<>({r=>import r._; _1.map(_=> BusinessProfitRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc */
     val id: Column[Long] = column[Long]("ID", O.AutoInc)
@@ -239,6 +241,10 @@ trait Tables {
     val mutatorRole: Column[Int] = column[Int]("MUTATOR_ROLE")
     /** Database column INFO  */
     val info: Column[String] = column[String]("INFO")
+    /** Database column SHARED Default(false) */
+    val shared: Column[Boolean] = column[Boolean]("SHARED", O.Default(false))
+    /** Database column SHARED_AT Default(None) */
+    val sharedAt: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("SHARED_AT", O.Default(None))
   }
   /** Collection-like TableQuery object for table BusinessProfit */
   lazy val BusinessProfit = new TableQuery(tag => new BusinessProfit(tag))

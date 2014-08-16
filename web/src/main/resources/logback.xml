@@ -17,8 +17,9 @@
     </appender> -->
 
     <logger name="akka" level="INFO" />
+    <logger name="scala.slick" level="WARN" />
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
 

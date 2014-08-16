@@ -4,10 +4,28 @@ import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model.{UserRole, InvestorRole}
 import java.util.UUID
+import java.io.{FilenameFilter, File}
 
 object Test {
 
     import Helpers._
+
+
+    val dbTestFile = "/tmp/zufaro-data-test"
+
+    {   // clean up data file
+    val f = new File("/tmp")
+        if (f.exists()){
+            f.listFiles(new FilenameFilter {
+                def accept(dir: File, name: String): Boolean = name.startsWith("zufaro-data")
+            }).foreach { _f =>
+                println(s"deleting /tmp/${_f.getName} ...")
+                _f.delete()
+            }
+        }
+    }
+
+    Zufaro.jdbcUrl = s"jdbc:h2:$dbTestFile"
 
     private def genPass = {
         UUID.randomUUID().toString
@@ -22,8 +40,8 @@ object Test {
 //                  Investor.ddl ++ Invest.ddl ++ InvestorBalance.ddl ++
 //                  Operator.ddl ++
 //                  Credit.ddl).create
-
-            ddl.create
+//
+//            ddl.create
 
             InvestorManager.create("robin", InvestorRole.OWNER, genPass)
             InvestorManager.create("gondez", InvestorRole.OWNER, genPass)
@@ -129,10 +147,16 @@ object Test {
             busLaundry.addProfit(100, 50.0, op1, UserRole.OPERATOR)
             busPulsa.addProfit(250, 100.0, op1, UserRole.OPERATOR)
 
+            // walaupun sudah add profit tapi belum otomatis ke-share profit-nya ke investor
+            // harus eksekusi doShareProcess() dulu
+
             Business.foreach { bus =>
                 if (bus.getProfit > 0)
                     println(f"  business ${bus.name}%s has profit amount of Rp.${bus.getProfit}%.02f")
             }
+
+            // lakukan prosedur share ke semua investor
+            Business.foreach(_.doShareProcess())
 
 
             Investor.foreach { investor =>

@@ -45,15 +45,17 @@ object BusinessManager {
      * Create new business
      * @param name business name.
      * @param desc business description.
-     * @param fund
-     * @param divInvestor
+     * @param fund fund
+     * @param share investment share.
      * @param state see [[com.ansvia.zufaro.BusinessManager.state]]
+     * @param shareTime time to share.
+     * @param _sharePeriod share period.
      * @return
      */
-    def create(name:String, desc:String, fund:Double, divInvestor:Double, state:Int,
+    def create(name:String, desc:String, fund:Double, share:Double, state:Int,
                shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
         val id = Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, divInvestor, state,
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, share, state,
                 shareTime, _sharePeriod)
         }
         getById(id).get
@@ -224,6 +226,12 @@ trait BusinessHelpers {
             }
         }
 
+        /**
+         * Check whether client is granted to access.
+         * @param client API client.
+         * @param access access name to check.
+         * @return
+         */
         def isGranted(client:ApiClientRow, access:String):Boolean = {
             Zufaro.db.withSession { implicit sess =>
                 val target = s"bus=${business.id}"

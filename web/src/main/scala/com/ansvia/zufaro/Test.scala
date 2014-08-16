@@ -164,7 +164,7 @@ object Test {
                 println("\n")
                 println(f"  ${investor.name}%s balance: Rp.${investor.getBalance}%.02f")
                 println("  mutation:")
-                Credit.filter(_.invId === investor.id).sortBy(_.ts.desc).foreach { case (credit) =>
+                Mutation.filter(_.invId === investor.id).sortBy(_.ts.desc).foreach { case (credit) =>
                     println(f"     + credit : Rp.${credit.amount}%.02f ref: ${credit.ref.getOrElse("-")}%s [${credit.ts}]")
                 }
             }

@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Credit.ddl ++ Debit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey
@@ -249,70 +249,6 @@ trait Tables {
   /** Collection-like TableQuery object for table BusinessProfit */
   lazy val BusinessProfit = new TableQuery(tag => new BusinessProfit(tag))
   
-  /** Entity class storing rows of table Credit
-   *  @param id Database column ID AutoInc, PrimaryKey
-   *  @param invId Database column INV_ID 
-   *  @param amount Database column AMOUNT 
-   *  @param ref Database column REF 
-   *  @param initiator Database column INITIATOR Default(None)
-   *  @param ts Database column TS Default(None) */
-  case class CreditRow(id: Long, invId: Long, amount: Double, ref: Option[String], initiator: Option[String] = None, ts: Option[java.sql.Timestamp] = None)
-  /** GetResult implicit for fetching CreditRow objects using plain SQL queries */
-  implicit def GetResultCreditRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Option[String]], e3: GR[Option[java.sql.Timestamp]]): GR[CreditRow] = GR{
-    prs => import prs._
-    CreditRow.tupled((<<[Long], <<[Long], <<[Double], <<?[String], <<?[String], <<?[java.sql.Timestamp]))
-  }
-  /** Table description of table CREDIT. Objects of this class serve as prototypes for rows in queries. */
-  class Credit(tag: Tag) extends Table[CreditRow](tag, "CREDIT") {
-    def * = (id, invId, amount, ref, initiator, ts) <> (CreditRow.tupled, CreditRow.unapply)
-    /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, amount.?, ref, initiator, ts).shaped.<>({r=>import r._; _1.map(_=> CreditRow.tupled((_1.get, _2.get, _3.get, _4, _5, _6)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
-    
-    /** Database column ID AutoInc, PrimaryKey */
-    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
-    /** Database column INV_ID  */
-    val invId: Column[Long] = column[Long]("INV_ID")
-    /** Database column AMOUNT  */
-    val amount: Column[Double] = column[Double]("AMOUNT")
-    /** Database column REF  */
-    val ref: Column[Option[String]] = column[Option[String]]("REF")
-    /** Database column INITIATOR Default(None) */
-    val initiator: Column[Option[String]] = column[Option[String]]("INITIATOR", O.Default(None))
-    /** Database column TS Default(None) */
-    val ts: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("TS", O.Default(None))
-  }
-  /** Collection-like TableQuery object for table Credit */
-  lazy val Credit = new TableQuery(tag => new Credit(tag))
-  
-  /** Entity class storing rows of table Debit
-   *  @param id Database column ID AutoInc, PrimaryKey
-   *  @param invId Database column INV_ID 
-   *  @param amount Database column AMOUNT 
-   *  @param ref Database column REF  */
-  case class DebitRow(id: Long, invId: Long, amount: Double, ref: Option[String])
-  /** GetResult implicit for fetching DebitRow objects using plain SQL queries */
-  implicit def GetResultDebitRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Option[String]]): GR[DebitRow] = GR{
-    prs => import prs._
-    DebitRow.tupled((<<[Long], <<[Long], <<[Double], <<?[String]))
-  }
-  /** Table description of table DEBIT. Objects of this class serve as prototypes for rows in queries. */
-  class Debit(tag: Tag) extends Table[DebitRow](tag, "DEBIT") {
-    def * = (id, invId, amount, ref) <> (DebitRow.tupled, DebitRow.unapply)
-    /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, invId.?, amount.?, ref).shaped.<>({r=>import r._; _1.map(_=> DebitRow.tupled((_1.get, _2.get, _3.get, _4)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
-    
-    /** Database column ID AutoInc, PrimaryKey */
-    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
-    /** Database column INV_ID  */
-    val invId: Column[Long] = column[Long]("INV_ID")
-    /** Database column AMOUNT  */
-    val amount: Column[Double] = column[Double]("AMOUNT")
-    /** Database column REF  */
-    val ref: Column[Option[String]] = column[Option[String]]("REF")
-  }
-  /** Collection-like TableQuery object for table Debit */
-  lazy val Debit = new TableQuery(tag => new Debit(tag))
-  
   /** Entity class storing rows of table Invest
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param invId Database column INV_ID 
@@ -405,6 +341,44 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table InvestorBalance */
   lazy val InvestorBalance = new TableQuery(tag => new InvestorBalance(tag))
+  
+  /** Entity class storing rows of table Mutation
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param invId Database column INV_ID 
+   *  @param kind Database column KIND 
+   *  @param amount Database column AMOUNT 
+   *  @param ref Database column REF 
+   *  @param initiator Database column INITIATOR Default(None)
+   *  @param ts Database column TS Default(None) */
+  case class MutationRow(id: Long, invId: Long, kind: Int, amount: Double, ref: Option[String], initiator: Option[String] = None, ts: Option[java.sql.Timestamp] = None)
+  /** GetResult implicit for fetching MutationRow objects using plain SQL queries */
+  implicit def GetResultMutationRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[Option[String]], e4: GR[Option[java.sql.Timestamp]]): GR[MutationRow] = GR{
+    prs => import prs._
+    MutationRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<?[String], <<?[String], <<?[java.sql.Timestamp]))
+  }
+  /** Table description of table MUTATION. Objects of this class serve as prototypes for rows in queries. */
+  class Mutation(tag: Tag) extends Table[MutationRow](tag, "MUTATION") {
+    def * = (id, invId, kind, amount, ref, initiator, ts) <> (MutationRow.tupled, MutationRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, invId.?, kind.?, amount.?, ref, initiator, ts).shaped.<>({r=>import r._; _1.map(_=> MutationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column INV_ID  */
+    val invId: Column[Long] = column[Long]("INV_ID")
+    /** Database column KIND  */
+    val kind: Column[Int] = column[Int]("KIND")
+    /** Database column AMOUNT  */
+    val amount: Column[Double] = column[Double]("AMOUNT")
+    /** Database column REF  */
+    val ref: Column[Option[String]] = column[Option[String]]("REF")
+    /** Database column INITIATOR Default(None) */
+    val initiator: Column[Option[String]] = column[Option[String]]("INITIATOR", O.Default(None))
+    /** Database column TS Default(None) */
+    val ts: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("TS", O.Default(None))
+  }
+  /** Collection-like TableQuery object for table Mutation */
+  lazy val Mutation = new TableQuery(tag => new Mutation(tag))
   
   /** Entity class storing rows of table Operator
    *  @param id Database column ID AutoInc, PrimaryKey

@@ -17,4 +17,5 @@ case class PermissionDeniedException(msg:String) extends ZufaroException(msg:Str
 case class InvalidParameterException(msg:String) extends ZufaroException(msg:String, 704)
 case class NotSupportedException(msg:String) extends ZufaroException(msg:String, 705)
 case class UnimplementedException(msg:String) extends ZufaroException(msg:String, 706)
+case class NotExistsException(msg:String) extends ZufaroException(msg:String, 404)
 

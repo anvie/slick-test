@@ -9,7 +9,7 @@ import java.sql.Timestamp
 import java.util.Date
 import com.ansvia.zufaro.exception.ZufaroException
 import com.ansvia.commons.logging.Slf4jLogger
-import com.ansvia.zufaro.model.ShareMethod
+import com.ansvia.zufaro.model.{MutationKind, ShareMethod}
 
 /**
  * Author: robin
@@ -226,7 +226,8 @@ trait BusinessHelpers {
                     Some(shareMethod.initiatorStr), Some(new Timestamp(new Date().getTime)))
 
                 // tulis personal journal
-                Credit += CreditRow(0L, iv.invId, share, Some("bagi hasil dari bisnis " + business.name),
+                Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
+                    share, Some("bagi hasil dari bisnis " + business.name),
                     None /*new Timestamp(new Date().getTime)*/)
 
                 debug(f"profit shared from `${business.name} (${business.id})` " +

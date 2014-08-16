@@ -17,11 +17,12 @@ import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
-import com.ansvia.zufaro.exception.{ZufaroException, InvalidParameterException}
+import com.ansvia.zufaro.exception.{NotExistsException, ZufaroException, InvalidParameterException}
 import net.liftweb.common.Full
-import com.ansvia.zufaro.model.InvestorRole
+import com.ansvia.zufaro.model.{UserRole, Initiator, InvestorRole}
 import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
+import com.ansvia.zufaro.web.Auth
 
 
 class AdminInvestorSnippet {
@@ -44,6 +45,9 @@ class AdminInvestorSnippet {
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
                     throw InvalidParameterException("Please verify password")
+
+                if (passwordVar.is != verifyPasswordVar.is)
+                    throw InvalidParameterException("Password verification didn't match")
 
                 val role = roleVar.is match {
                     case "owner" => InvestorRole.OWNER
@@ -110,12 +114,10 @@ class AdminInvestorSnippet {
             <td>{inv.id}</td>
             <td>{inv.name}</td>
             <td>{
-
                 if (businessNs.length > 0){
                     <ul>{NodeSeq.fromSeq(businessNs)}</ul>
                 }else
                     Text("-")
-
                 }
             </td>
             <td>{inv.getBalance}</td>
@@ -162,6 +164,73 @@ class AdminInvestorSnippet {
         val inv = invO.get
         "#Amount *" #> f"Rp.${inv.getBalance}%.02f,-"
     }
+
+
+    def balanceOp(in:NodeSeq):NodeSeq = {
+
+        val invId = S.param("invId").openOr("0").toLong
+
+        def creditBalance = () => {
+
+            val ns = S.runTemplate("admin" :: "investor" :: "_chunk_dialog-credit-balance" :: Nil)
+                .openOr(NodeSeq.Empty)
+
+            val ns2 = ("#Dialog [class]" #> s"lift:AdminInvestorSnippet.creditBalanceDialog?invId=$invId").apply(ns)
+
+            JsUtils.modalDialog(ns2)
+        }
+
+
+        bind("in", in,
+        "credit" -> SHtml.a(creditBalance, Text("Credit"), "class" -> "btn btn-default")
+        )
+    }
+
+
+    def creditBalanceDialog(in:NodeSeq):NodeSeq = {
+        val invId = S.attr("invId").openOr("0").toLong
+        var amount:Double = 0.0
+        var info = ""
+
+        def creditBalanceInternal() = {
+            try {
+                if (amount == 0.0)
+                    throw InvalidParameterException("No balance")
+
+                val inv = InvestorManager.getById(invId).getOrElse {
+                    throw NotExistsException(s"No investor with id $invId")
+                }
+                val (initId, initRole) = {
+                    Auth.currentAdmin.map {
+                        admin =>
+                            (admin.id, UserRole.ADMIN)
+                    }.getOrElse {
+                        Auth.currentOperator.map {
+                            op =>
+                                (op.id, UserRole.OPERATOR)
+                        }.openOrThrowException("Not authorized")
+                    }
+                }
+                inv.addBalance(amount, Some(info), Initiator(initId, initRole))
+
+                JsUtils.hideAllModal & SetHtml("Amount", Text(f"Rp.${inv.getBalance}%.02f,-"))
+            }
+            catch {
+                case e:ZufaroException =>
+                    JsUtils.showError(e.getMessage)
+            }
+        }
+
+        SHtml.ajaxForm(bind("in", in,
+        "balance" -> SHtml.number(amount, (x:Double) => amount = x, 0.0, 100000.0, 1.0, "class" -> "form-control"),
+        "info" -> SHtml.textarea(info, info = _, "class" -> "form-control"),
+        "submit" -> S.formGroup(1000){
+            SHtml.hidden(creditBalanceInternal) ++
+            SHtml.submit("Send", creditBalanceInternal, "class" -> "btn btn-success")
+        }
+        ))
+    }
+
 
 
 }

@@ -12,10 +12,10 @@ all: assets
 assets: $(WEBAPP_ASSETS)/js/zufaro.js $(WEBAPP_ASSETS)/js/zufaro.min.js
 	tup upd
 
-$(WEBAPP_ASSETS)/js/zufaro.js:
+$(WEBAPP_ASSETS)/js/zufaro.js: $(BASE_ASSETS)/out/zufaro.js
 	cp $(BASE_ASSETS)/out/zufaro.js $@
 
-$(WEBAPP_ASSETS)/js/zufaro.min.js:
+$(WEBAPP_ASSETS)/js/zufaro.min.js: $(BASE_ASSETS)/out/zufaro.min.js
 	cp $(BASE_ASSETS)/out/zufaro.min.js $@
 
 

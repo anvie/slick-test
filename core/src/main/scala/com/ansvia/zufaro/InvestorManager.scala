@@ -4,6 +4,8 @@ import scala.slick.driver.H2Driver.simple._
 import scala.slick.driver.H2Driver.backend
 import model.Tables._
 import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanceException}
+import com.ansvia.zufaro.model.{MutationKind, NoInitiator, Initiator}
+
 //import com.ansvia.zufaro.macros.RequireMacro
 
 /**
@@ -73,8 +75,7 @@ object InvestorManager {
     def delete(investor:InvestorRow) = {
         Zufaro.db.withTransaction { implicit sess =>
             Invest.where(_.invId === investor.id).delete
-            Credit.where(_.invId === investor.id).delete
-            Debit.where(_.invId === investor.id).delete
+            Mutation.where(_.invId === investor.id).delete
             InvestorBalance.where(_.invId === investor.id).delete
             Investor.where(_.id === investor.id).delete
         }
@@ -156,10 +157,14 @@ trait InvestorHelpers {
             }
         }
 
-        def addBalance(by:Double) = {
+        def addBalance(by:Double, ref:Option[String]=None, initiator:Initiator=NoInitiator) = {
             Zufaro.db.withTransaction { implicit sess =>
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
                 q.update(q.first() + by)
+
+                // write journal
+                Mutation += MutationRow(0L, investor.id, MutationKind.CREDIT, by,
+                    ref, Some(initiator.toString))
             }
         }
 
@@ -175,6 +180,15 @@ trait InvestorHelpers {
                     i <- Invest if i.invId === investor.id
                     bus <- Business if bus.id === i.busId
                 } yield bus
+                rv.drop(offset).take(limit).run
+            }
+        }
+
+        def getDepositMutations(offset:Int, limit:Int):Seq[MutationRow] = {
+            Zufaro.db.withSession { implicit sess =>
+                val rv = for {
+                    m <- Mutation if m.invId === investor.id
+                } yield m
                 rv.drop(offset).take(limit).run
             }
         }

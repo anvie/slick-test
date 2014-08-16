@@ -19,7 +19,8 @@ class Boot extends Slf4jLogger {
         LiftRules.addToPackages("com.ansvia.zufaro.web")
 
         val sitemapEntries = (Menu(Loc("Home", List("index"), "Home")) :: Nil) ++
-            AdminSitemap.sitemap
+            AdminSitemap.sitemap ++
+            WikiSitemap.sitemap
 
         LiftRules.setSiteMap(SiteMap(sitemapEntries: _*))
 

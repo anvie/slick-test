@@ -7,7 +7,88 @@
 
 <div id="Main" data-lift="Surround?with=wiki;at=content">
 
+    <h1>Dokumentasi API</h1>
 
+    <hr />
+
+    <div style="margin-bottom: 30px;">
+        <img src="http://john.de-graaff.net/wiki/lib/exe/fetch.php/links/flexvpn-icon-connection.png"
+             alt="" style="width: 130px; height: 119px;" />
+    </div>
+
+    <!--
+    <p style="font-size: 2em;">
+        Base endpoint: <code>http://103.29.150.215/api</code>
+    </p>
+    -->
+
+    <hr />
+
+    <h3>Otorisasi</h3>
+
+    <p>
+        Setiap pemanggilan API membutuhkan parameter <code>api_key</code> yang sifatnya wajib.
+        <br />
+        Hubungi admin untuk mendapatkan <code>api_key</code>.
+    </p>
+
+    <h3>Rekap</h3>
+
+    <p>
+        Untuk melakukan laporan rekap omset dan pendapatan bisnis per bulan:
+    </p>
+
+    <p>
+        API endpoint: <code>http://[IP]/business/[ID]/report</code>
+    </p>
+
+    <p>Dimana <code>[ID]</code> adalah ID dari bisnis yang ingin dilaporkan.
+        dan <code>[IP]</code> adalah IP dari sistem ini.
+    </p>
+
+    <p>Parameter:</p>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Nama</th>
+            <th>Sifat</th>
+            <th>Keterangan</th>
+        </tr>
+        <tr>
+            <td>omzet</td>
+            <td style="width: 100px;"><span class="label label-danger">wajib</span></td>
+            <td>jumlah pendapatan kotor dalam bilangan angka.</td>
+        </tr>
+        <tr>
+            <td>profit</td>
+            <td style="width: 100px;"><span class="label label-danger">wajib</span></td>
+            <td>jumlah pendapatan bersih dalam bilangan angka.</td>
+        </tr>
+        <tr>
+            <td>info</td>
+            <td style="width: 100px;"><span class="label label-info">opsional</span></td>
+            <td>informasi tambahan apabila diperlukan.</td>
+        </tr>
+    </table>
+
+    <p>Contoh penggunaan menggunakan tool cUrl:
+
+        <pre>
+$ curl -X POST http://123.123.123.123/api/business/1/report -d "api_key=xxxxxxxx&omzet=500&profit=50"
+{
+  "error":0,
+  "result":{
+    "id":"3",
+    "business_id":1,
+    "omzet":500.0,
+    "profit":50.0,
+    "timestamp":"2014-08-16 21:49:04.463",
+    "info":""
+  }
+}
+        </pre>
+
+    </p>
 
 
 </div>

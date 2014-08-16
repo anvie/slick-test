@@ -18,8 +18,12 @@ object BusinessRestApi extends ZufaroRestHelper {
         case "api" :: "business" :: AsLong(busId) :: "report" :: Nil Post req => authorized(req) {
             case AuthInfo(_, Some(apiClient)) =>
 
-            val omzet:Double = req.param("omzet").openOr("0.0").toDouble
-            val profit:Double = req.param("profit").openOr("0.0").toDouble
+            val omzet:Double = req.param("omzet").openOr {
+                throw InvalidParameterException("No `omzet` parameter")
+            }.toLong
+            val profit:Double = req.param("profit").openOr {
+                throw InvalidParameterException("No `profit` parameter")
+            }.toLong
 
             // validate
 

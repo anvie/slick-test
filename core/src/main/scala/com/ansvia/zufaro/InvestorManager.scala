@@ -107,6 +107,10 @@ trait InvestorHelpers {
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
                 val curAmount = q.first()
                 q.update(curAmount - amount)
+
+                // write mutation journal
+                Mutation += MutationRow(0L, investor.id, MutationKind.DEBIT, amount,
+                    Some(f"for business investment: ${business.name} ${business.id}"), None, now())
             }
         }
 
@@ -136,6 +140,16 @@ trait InvestorHelpers {
                 q.update(curAmount - amount)
             }
         }
+
+        def removeInvestment(business:BusinessRow) = {
+            Zufaro.db.withTransaction { implicit sess =>
+
+                Invest.where(iv => iv.busId === business.id && iv.busKind === BusinessKind.SINGLE)
+                    .delete
+
+            }
+        }
+
 
         /**
          * Check balance will throw InsufficientBalanceException when

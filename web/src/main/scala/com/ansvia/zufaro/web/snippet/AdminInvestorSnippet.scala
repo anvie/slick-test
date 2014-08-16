@@ -127,7 +127,8 @@ class AdminInvestorSnippet {
                     <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        <li><a href={s"/admin/investor/${inv.id}/deposit"}>Deposit</a></li>
+                        <li><a href={s"/admin/investor/${inv.id}/deposit"}>Account</a></li>
+                        <li><a href={s"/admin/investor/${inv.id}/business"}>Investment</a></li>
                         <li class="divider"></li>
                         <li>{deleter}</li>
                     </ul>
@@ -143,10 +144,10 @@ class AdminInvestorSnippet {
         "#List *" #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 
-    private def invO = {
-        val id = S.param("invId").openOr("0").toLong
-        InvestorManager.getById(id)
-    }
+//    private def invO = {
+//        val id = S.param("invId").openOr("0").toLong
+//        InvestorManager.getById(id)
+//    }
 
 
 }

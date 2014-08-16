@@ -36,6 +36,7 @@ object AdminSitemap {
         menu("admin/investor", "Investor") ::
         menu("admin/investor/add", "Investor Add", Hidden) ::
         menu("admin/investor/deposit", "Investor Deposit", Hidden) ::
+        menu("admin/investor/business", "Investor Business", Hidden) ::
         /* ------------------ Admin ----------------- */
         menu("admin/admin", "Admin", AdminOnly) ::
         menu("admin/operator", "Operator", AdminOnly) ::
@@ -58,6 +59,9 @@ object AdminSitemap {
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "deposit" :: Nil, _, _, _), _, _) =>
             RewriteResponse("admin" :: "investor" :: "deposit" :: Nil, Map("invId" -> invId.toString))
+
+        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "business" :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "investor" :: "business" :: Nil, Map("invId" -> invId.toString))
 
     }
     lazy val rewrite:LiftRules.RewritePF =

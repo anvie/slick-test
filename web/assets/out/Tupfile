@@ -5,7 +5,9 @@ BUILDTOOLS=$(BASE_ASSETS)/buildtools
 CLOSURE_COMPILER=java -jar $(BUILDTOOLS)/closure-compiler.jar
 
 ZUFARO_JSESS = \
-    AjaxHelpers.js
+    $(BASE_ASSETS)/lib/js/bootbox.js \
+    AjaxHelpers.js \
+    Util.js
 
 
 : foreach $(BASE_ASSETS)/coffee/*.coffee |> coffee --bare -o ./ -c %f |> %B.js

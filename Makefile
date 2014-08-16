@@ -10,6 +10,7 @@ WEBAPP_ASSETS=$(ROOT)/web/src/main/webapp/assets
 all: assets
 
 assets: $(WEBAPP_ASSETS)/js/zufaro.js $(WEBAPP_ASSETS)/js/zufaro.min.js
+	tup upd
 
 $(WEBAPP_ASSETS)/js/zufaro.js:
 	cp $(BASE_ASSETS)/out/zufaro.js $@

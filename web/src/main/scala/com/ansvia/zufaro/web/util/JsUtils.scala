@@ -433,12 +433,6 @@ object JsUtils {
 
     val history = History
 
-
-    object fixStream extends JsCmd {
-        def toJsCmd: String = "dg.Util.fixStream();"
-    }
-
-
     object Log {
 
         def info(msg:String) =

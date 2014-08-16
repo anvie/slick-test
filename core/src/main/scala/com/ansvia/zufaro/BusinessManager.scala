@@ -227,7 +227,7 @@ trait BusinessHelpers {
 
                 // tulis personal journal
                 Credit += CreditRow(0L, iv.invId, share, Some("bagi hasil dari bisnis " + business.name),
-                    new Timestamp(new Date().getTime))
+                    None /*new Timestamp(new Date().getTime)*/)
 
                 debug(f"profit shared from `${business.name} (${business.id})` " +
                     f"amount of $share%.02f to investor id `${iv.invId}`")

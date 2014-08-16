@@ -55,7 +55,7 @@ object BusinessRestApi extends ZufaroRestHelper {
                     )
 
                 }.getOrElse {
-                    fail("Cannot report profit", 901)
+                    fail(s"Unknown business with id $busId", 901)
                 }
             rv
         }

@@ -53,7 +53,7 @@ class AdminInvestorSnippet {
 
                 val inv = InvestorManager.create(nameVar, role, passwordVar)
 
-                S.redirectTo("/admin/investor/active", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
+                S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
             }
             catch {
                 case e:ZufaroException =>
@@ -125,7 +125,7 @@ class AdminInvestorSnippet {
                     <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        <li></li>
+                        <li><a href={s"/admin/investor/${inv.id}/deposit"}>Deposit</a></li>
                         <li class="divider"></li>
                         <li>{deleter}</li>
                     </ul>
@@ -141,16 +141,38 @@ class AdminInvestorSnippet {
         "#List " #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 
+    private def invO = {
+        val id = S.param("invId").openOr("0").toLong
+        InvestorManager.getById(id)
+    }
+
+    def depositPageTitle:NodeSeq = {
+        try {
+            <div>Account:
+                <strong>{invO.map(_.name).getOrElse("unknown")}</strong>
+            </div>
+        }
+        catch {
+            case e:NumberFormatException =>
+                S.redirectTo("/admin/investor", () => S.error("Not found"))
+        }
+    }
+
+    def balanceInfo:CssSel = {
+        val inv = invO.get
+        "#Amount *" #> f"Rp.${inv.getBalance}%.02f,-"
+    }
+
 
 }
 
 
 object AdminInvestorTab extends MtTabInterface {
-    def defaultSelected: String = "running"
+    def defaultSelected: String = "active-investor"
 
     def tmplDir: String = "admin/investor"
 
-    override def tabNames: Array[String] = Array("active", "suspended")
+    override def tabNames: Array[String] = Array("active-investor", "suspended-investor")
 
     override def preSendJs(tabName: String): JsCmd = {
         JsRaw(s"History.pushState(null,null,'/admin/investor/$tabName');").cmd

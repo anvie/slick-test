@@ -1,0 +1,82 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+    <!--<title class="lift:MetaTitleSnippet.pageTitle"></title>-->
+    <!--<meta class="lift:MetaTitleSnippet.pageMeta" />-->
+
+    <link href="/assets/img/favicon.png?h=1DFC6AF7" rel="shortcut icon" />
+
+    <style class="lift:AssetsSnippet.css"></style>
+    <style class="lift:AssetsSnippet.js"></style>
+
+</head>
+<body>
+
+<header class="navbar navbar-inverse navbar-static-top bs-docs-nav" id="top" role="banner">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/" class="navbar-brand">ZUFARO</a>
+        </div>
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="/admin">Admin</a>
+                </li>
+                <!--<li>-->
+                <!--<a href="../css">CSS</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../components">Components</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../javascript">JavaScript</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../customize">Customize</a>-->
+                <!--</li>-->
+            </ul>
+            <div class="lift:NavbarSnippet.welcome nav navbar-nav navbar-right">
+                <div style="padding: 15px; color: #aaa;">logged in as
+                    <a id="WelcomeName" href="#">robin</a>,
+                    <span><a href="/logout" style="color: #aaa;">logout</a></span>
+                </div>
+                <!--<li><a href="http://expo.getbootstrap.com" onclick="ga('send', 'event', 'Navbar', 'Community links', 'Expo');">Expo</a></li>-->
+                <!--<li><a href="http://blog.getbootstrap.com" onclick="ga('send', 'event', 'Navbar', 'Community links', 'Blog');">Blog</a></li>-->
+            </div>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+    <div class="hidden-loader" style="display: none;">
+        <img alt="" class="ajax-loader" src="/images/ajax-loader.gif">
+    </div>
+
+    <lift:Msgs showAll="false">
+        <lift:error_msg class="alert alert-danger">Error:</lift:error_msg>
+        <lift:error_class>alert alert-danger</lift:error_class>
+        <lift:warning_msg>Whoops, I had a problem:</lift:warning_msg>
+        <lift:warning_class>alert alert-warn</lift:warning_class>
+        <lift:notice_msg>Notice:</lift:notice_msg>
+        <lift:notice_class>alert alert-info</lift:notice_class>
+        <lift:success_class>alert alert-success</lift:success_class>
+    </lift:Msgs>
+
+
+    <div class="content-area">
+        <div id="content">The main content will get bound here</div>
+    </div>
+
+</div>
+
+</div>
+</body>
+</html>

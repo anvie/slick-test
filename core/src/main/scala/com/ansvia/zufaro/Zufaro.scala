@@ -16,7 +16,7 @@ object Zufaro extends Slf4jLogger {
 
     import scala.slick.jdbc.meta._
 
-    var jdbcUrl:String = "jdbc:h2:data/data"
+    var jdbcUrl:String = "jdbc:h2:data/data;DB_CLOSE_DELAY=-1"
 
     lazy val db = {
         val _db = Database.forURL(jdbcUrl, driver = "org.h2.Driver")

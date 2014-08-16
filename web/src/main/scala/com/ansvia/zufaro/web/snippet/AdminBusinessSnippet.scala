@@ -4,7 +4,7 @@ import net.liftweb._
 import util._
 import http._
 import Helpers._
-import scala.xml.{Text, NodeSeq}
+import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.{Zufaro, BusinessManager}
 import com.ansvia.zufaro.web.lib.MtTabInterface
@@ -14,6 +14,8 @@ import net.liftweb.http.js.JsCmd
 import com.ansvia.zufaro.model.{UserRole, ShareMethod}
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.web.util.JsUtils
+import net.liftweb.http.js.JsCmds.SetHtml
+import java.util.Date
 
 /**
  * Author: robin
@@ -122,7 +124,7 @@ class AdminBusinessSnippet {
             bus.state match {
                 case BusinessManager.state.PRODUCTION =>
                     <li class="divider"></li> ++
-                    <li><a href={"/admin/business/" + bus.id + "/report"}>Show Report</a></li>
+                    <li><a href={"/admin/business/" + bus.id + "/report"}>Report</a></li>
                 case _ =>
                     NodeSeq.Empty
             }
@@ -173,7 +175,7 @@ class AdminBusinessSnippet {
         <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
     }
 
-    private def buildReportListItem(bus:BusinessRow, bp:BusinessProfitRow) = {
+    private def buildReportListItem(bus:BusinessRow, bp:BusinessProfitRow):Node = {
 
         def doShareProcess() = () => {
             try {
@@ -197,7 +199,7 @@ class AdminBusinessSnippet {
 
                 Zufaro.db.withTransaction(implicit sess => bus.doShareProcess(bp, shareMethod))
 
-                JsUtils.showNotice("Success")
+                JsUtils.showNotice("Success") & updateList(bus)
             }
             catch {
                 case e:ZufaroException =>
@@ -215,6 +217,12 @@ class AdminBusinessSnippet {
                 NodeSeq.Empty
         }
 
+        val sharedInfo = {
+            val sharedStr = bp.shared match { case true => "YES"; case _ => "NO" }
+            val at = new Date(bp.sharedAt.getTime)
+            f"$sharedStr at $at"
+        }
+
 
         <tr>
             <td>{bp.ts.toString}</td>
@@ -222,13 +230,19 @@ class AdminBusinessSnippet {
             <td>Rp. {bp.profit},-</td>
             <td>{bp.info}</td>
             <td>
-                <div>{bp.shared}</div>
+                <div>{sharedInfo}</div>
                 <div>{shareOp}</div>
             </td>
             <td>
 
             </td>
-        </tr>
+        </tr>:Node
+    }
+
+    private def updateList(bus:BusinessRow) = {
+        val reports = bus.getReport(0, 30)
+        val ns = NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
+        SetHtml("List", ns)
     }
 
 

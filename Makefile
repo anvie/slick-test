@@ -1,13 +1,21 @@
 
 
+ROOT=.
+BASE_ASSETS=$(ROOT)/web/assets
+WEBAPP_ASSETS=$(ROOT)/web/src/main/webapp/assets
 
 
 
 
+all: assets
 
+assets: $(WEBAPP_ASSETS)/js/zufaro.js $(WEBAPP_ASSETS)/js/zufaro.min.js
 
-all:
+$(WEBAPP_ASSETS)/js/zufaro.js:
+	cp $(BASE_ASSETS)/out/zufaro.js $@
 
+$(WEBAPP_ASSETS)/js/zufaro.min.js:
+	cp $(BASE_ASSETS)/out/zufaro.min.js $@
 
 
 deploy:
@@ -20,6 +28,7 @@ restart:
 
 clean:
 
-.PHONY: deploy clean restart
+.PHONY: deploy clean restart assets
+
 
 

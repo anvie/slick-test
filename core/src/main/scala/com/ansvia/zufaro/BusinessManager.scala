@@ -9,6 +9,7 @@ import java.sql.Timestamp
 import java.util.Date
 import com.ansvia.zufaro.exception.ZufaroException
 import com.ansvia.commons.logging.Slf4jLogger
+import com.ansvia.zufaro.model.ShareMethod
 
 /**
  * Author: robin
@@ -187,7 +188,7 @@ trait BusinessHelpers {
         /**
          * Share semua ke investors dari semua un-shared profit report.
          */
-        def doShareProcess(){
+        def doShareProcess(shareMethod:ShareMethod){
             debug("do share process...")
             Zufaro.db.withTransaction { implicit sess =>
                 val bps = for {
@@ -195,7 +196,7 @@ trait BusinessHelpers {
                 } yield (bp.id, bp.profit)
 
                 bps.foreach { case (id, profit) =>
-                    doShareProcess(profit)
+                    doShareProcess(profit, shareMethod)
                     BusinessProfit.where(_.id === id).map(d => (d.shared, d.sharedAt))
                         .update((true, Some(new Timestamp(new Date().getTime))))
                 }
@@ -203,7 +204,7 @@ trait BusinessHelpers {
         }
 
 
-        def doShareProcess(profit:Double)(implicit sess:backend.SessionDef){
+        def doShareProcess(profit:Double, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
             // kalkulasi bagi hasil
 
 
@@ -220,7 +221,11 @@ trait BusinessHelpers {
 
                 InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
 
-                // tulis journal
+                // tulis business journal
+                ProfitShareJournal += ProfitShareJournalRow(business.id, iv.invId, share, shareMethod.method,
+                    Some(shareMethod.initiatorStr), Some(new Timestamp(new Date().getTime)))
+
+                // tulis personal journal
                 Credit += CreditRow(0L, iv.invId, share, Some("bagi hasil dari bisnis " + business.name),
                     new Timestamp(new Date().getTime))
 

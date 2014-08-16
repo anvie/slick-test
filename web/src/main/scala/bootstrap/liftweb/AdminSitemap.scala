@@ -34,6 +34,7 @@ object AdminSitemap {
         menu("admin/business/report", "Business Report", Hidden) ::
         /* ------------------ Investor ----------------- */
         menu("admin/investor", "Investor") ::
+        menu("admin/investor/add", "Investor Add", Hidden) ::
         /* ------------------ Admin ----------------- */
         menu("admin/admin", "Admin", AdminOnly) ::
         menu("admin/operator", "Operator", AdminOnly) ::

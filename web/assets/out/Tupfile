@@ -1,0 +1,17 @@
+
+ROOT_DIR=../../..
+BASE_ASSETS=$(ROOT_DIR)/web/assets
+BUILDTOOLS=$(BASE_ASSETS)/buildtools
+CLOSURE_COMPILER=java -jar $(BUILDTOOLS)/closure-compiler.jar
+
+ZUFARO_JSESS = \
+    AjaxHelpers.js
+
+
+: foreach $(BASE_ASSETS)/coffee/*.coffee |> coffee --bare -o ./ -c %f |> %B.js
+
+: $(ZUFARO_JSESS) |> $(CLOSURE_COMPILER) --compilation_level WHITESPACE_ONLY --formatting PRETTY_PRINT --js_output_file %o %f |> zufaro.js
+: $(ZUFARO_JSESS) |> $(CLOSURE_COMPILER) --compilation_level SIMPLE_OPTIMIZATIONS --js_output_file %o %f |> zufaro.min.js
+
+
+

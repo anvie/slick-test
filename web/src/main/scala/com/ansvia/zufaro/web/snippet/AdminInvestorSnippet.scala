@@ -17,13 +17,71 @@ import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
+import com.ansvia.zufaro.exception.{ZufaroException, InvalidParameterException}
+import net.liftweb.common.Full
+import com.ansvia.zufaro.model.InvestorRole
 
 
 class AdminInvestorSnippet {
 
     import com.ansvia.zufaro.InvestorHelpers._
 
+    private object nameVar extends RequestVar("")
+    private object passwordVar extends RequestVar("")
+    private object verifyPasswordVar extends RequestVar("")
+    private object roleVar extends RequestVar("")
+
+    def addNew(in:NodeSeq):NodeSeq = {
+
+        def doCreateInternal() = {
+
+            try {
+                if (nameVar.isEmpty)
+                    throw InvalidParameterException("No name")
+                if (passwordVar.isEmpty)
+                    throw InvalidParameterException("Please enter password")
+                if (verifyPasswordVar.isEmpty)
+                    throw InvalidParameterException("Please verify password")
+
+                val role = roleVar.is match {
+                    case "owner" => InvestorRole.OWNER
+                    case "operator" => InvestorRole.OPERATOR
+                    case "supervisor" => InvestorRole.SUPERVISOR
+                }
+
+                val inv = InvestorManager.create(nameVar, role, passwordVar)
+
+                S.redirectTo("/admin/investor/active", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
+            }
+            catch {
+                case e:ZufaroException =>
+                    S.error(e.getMessage)
+            }
+
+        }
+
+
+        val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
+
+
+        bind("in", in,
+        "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
+        "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
+        "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
+        "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
+        "submit" -> SHtml.submit("Create", doCreateInternal, "class" -> "btn btn-success")
+        )
+    }
+
+
+
     private def buildInvestorListItem(inv:InvestorRow) = {
+
+
+        def deleteInternal = () => {
+
+        }
+
 
         val businessNs = inv.getBusiness(0, 10).map { bus =>
             <li>{bus.name} #{bus.id}</li>
@@ -42,6 +100,19 @@ class AdminInvestorSnippet {
                 }
             </td>
             <td>{inv.getBalance}</td>
+            <td>
+
+                <div class="dropdown">
+                    <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <li></li>
+                        <li class="divider"></li>
+                        <li>{SHtml.a(deleteInternal, Text("Delete"))}</li>
+                    </ul>
+                </div>
+
+            </td>
         </tr>
     }
 

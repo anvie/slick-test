@@ -7,6 +7,7 @@ package com.ansvia.zufaro.model
  *
  */
 object UserRole {
+    val SYSTEM = 0
     val ADMIN = 1
     val OPERATOR = 2
     val INVESTOR = 3
@@ -34,4 +35,5 @@ object MutatorRole {
     val ADMIN = 1
     val OPERATOR = 2
 }
+
 

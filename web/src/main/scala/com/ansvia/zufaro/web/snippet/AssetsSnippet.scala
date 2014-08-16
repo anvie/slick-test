@@ -47,7 +47,7 @@ object AssetsSnippet {
             <script id="jquery" src={asset("/assets/js/jquery.history.js")} type="text/javascript"></script>
             {/* <!--<script id="json" src={asset("/classpath/json.js")} type="text/javascript"></script>--> */ }
             {/* <script id="jsconf" type="text/javascript" src="/sys/conf"></script> */}
-            {/* <script type="text/javascript" src={asset("/assets/js/digaku2.js")}></script> */}
+            <script type="text/javascript" src={asset("/assets/js/zufaro.js")}></script>
             <script id="BootstrapJs" src={asset("/assets/js/bootstrap.js")} type="text/javascript"></script>
         </xml:group>
     }

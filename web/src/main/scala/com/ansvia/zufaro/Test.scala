@@ -2,7 +2,7 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.{UserRole, InvestorRole}
+import com.ansvia.zufaro.model.{ShareMethod, UserRole, InvestorRole}
 import java.util.UUID
 import java.io.{FilenameFilter, File}
 
@@ -53,7 +53,7 @@ object Test {
             //                }
 
             println("Investors:")
-            Investor.foreach { case InvestorRow(id, name, role, genPass) =>
+            Investor.foreach { case InvestorRow(id, name, role, genPass, _) =>
                 println(s" * $id - $name ($role)")
             }
 
@@ -156,7 +156,8 @@ object Test {
             }
 
             // lakukan prosedur share ke semua investor
-            Business.foreach(_.doShareProcess())
+            val shareMethod = ShareMethod(ShareMethod.AUTO, 0L, UserRole.SYSTEM)
+            Business.foreach(_.doShareProcess(shareMethod))
 
 
             Investor.foreach { investor =>

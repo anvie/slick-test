@@ -18,4 +18,5 @@ case class InvalidParameterException(msg:String) extends ZufaroException(msg:Str
 case class NotSupportedException(msg:String) extends ZufaroException(msg:String, 705)
 case class UnimplementedException(msg:String) extends ZufaroException(msg:String, 706)
 case class NotExistsException(msg:String) extends ZufaroException(msg:String, 404)
+case class IllegalStateException(msg:String) extends ZufaroException(msg:String, 707)
 

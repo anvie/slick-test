@@ -7,7 +7,7 @@ import scala.collection.JavaConversions._
 import scala.slick.lifted
 import java.sql.Timestamp
 import java.util.Date
-import com.ansvia.zufaro.exception.ZufaroException
+import com.ansvia.zufaro.exception.{IllegalStateException, ZufaroException}
 import com.ansvia.commons.logging.Slf4jLogger
 import com.ansvia.zufaro.model.{MutationKind, ShareMethod}
 
@@ -195,14 +195,20 @@ trait BusinessHelpers {
             Zufaro.db.withTransaction { implicit sess =>
                 val bps = for {
                     bp <- BusinessProfit if bp.busId === business.id && bp.shared === false
-                } yield (bp.id, bp.profit)
+                } yield bp
 
-                bps.foreach { case (id, profit) =>
-                    doShareProcess(profit, shareMethod)
-                    BusinessProfit.where(_.id === id).map(d => (d.shared, d.sharedAt))
-                        .update((true, now()))
+                bps.foreach { bp =>
+                    doShareProcess(bp, shareMethod)
                 }
             }
+        }
+
+        def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
+            if (BusinessProfit.where(x => x.id === bp.id && x.shared == true).length.run > 0)
+                throw IllegalStateException("Illegal operation")
+            doShareProcess(bp.profit, shareMethod)
+            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
+                .update((true, now()))
         }
 
 

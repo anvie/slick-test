@@ -5,12 +5,15 @@ import util._
 import http._
 import Helpers._
 import scala.xml.{Text, NodeSeq}
-import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
-import com.ansvia.zufaro.BusinessManager
+import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException, ZufaroException}
+import com.ansvia.zufaro.{Zufaro, BusinessManager}
 import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
+import com.ansvia.zufaro.model.{UserRole, ShareMethod}
+import com.ansvia.zufaro.web.Auth
+import com.ansvia.zufaro.web.util.JsUtils
 
 /**
  * Author: robin
@@ -170,14 +173,61 @@ class AdminBusinessSnippet {
         <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
     }
 
-    private def buildReportListItem(rep:BusinessProfitRow) = {
+    private def buildReportListItem(bus:BusinessRow, bp:BusinessProfitRow) = {
+
+        def doShareProcess() = () => {
+            try {
+                if (bp.shared)
+                    throw new ZufaroException("Illegal Operation", 921)
+
+                val (initiator, initiatorRole) = {
+                    Auth.currentAdmin.map {
+                        admin =>
+                            (admin.id, UserRole.ADMIN)
+                    }.getOrElse {
+                        Auth.currentOperator.map {
+                            op =>
+                                (op.id, UserRole.OPERATOR)
+                        }.getOrElse {
+                            throw PermissionDeniedException("Unauthorized")
+                        }
+                    }
+                }
+                val shareMethod = ShareMethod(ShareMethod.MANUAL, initiator, initiatorRole)
+
+                Zufaro.db.withTransaction(implicit sess => bus.doShareProcess(bp, shareMethod))
+
+                JsUtils.showNotice("Success")
+            }
+            catch {
+                case e:ZufaroException =>
+                    JsUtils.showError(e.getMessage)
+            }
+        }
+
+
+        val shareOp = {
+            if (!bp.shared){
+
+                SHtml.a(doShareProcess(), Text("share now"))
+
+            }else
+                NodeSeq.Empty
+        }
+
+
         <tr>
-            <td>{rep.ts.toString}</td>
-            <td>Rp. {rep.omzet},-</td>
-            <td>Rp. {rep.profit},-</td>
-            <td>{rep.info}</td>
-            <td>{rep.shared}</td>
-            <td></td>
+            <td>{bp.ts.toString}</td>
+            <td>Rp. {bp.omzet},-</td>
+            <td>Rp. {bp.profit},-</td>
+            <td>{bp.info}</td>
+            <td>
+                <div>{bp.shared}</div>
+                <div>{shareOp}</div>
+            </td>
+            <td>
+
+            </td>
         </tr>
     }
 
@@ -186,7 +236,7 @@ class AdminBusinessSnippet {
         BusinessManager.getById(S.param("busId").openOr("0").toLong)
         .map { bus =>
             val reports = bus.getReport(0, 30)
-            "#List *" #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(r) ))
+            "#List *" #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         }.getOrElse("*" #> NodeSeq.Empty)
     }
 

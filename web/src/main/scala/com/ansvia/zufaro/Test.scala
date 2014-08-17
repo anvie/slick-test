@@ -166,7 +166,7 @@ object Test {
 
             for (b <- Business){
 
-                println(f" * ${b.name} - balance: ${b.getBalance format IDR}")
+                println(f" * ${b.name} - balance: ${b.saving format IDR}")
 
                 val q = for {
                     fin <- BusinessFinance if fin.busId === b.id

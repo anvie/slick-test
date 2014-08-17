@@ -64,10 +64,10 @@ object BusinessManager {
         val id = Zufaro.db.withSession { implicit sess =>
 
             val _id = (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
-                share, state, shareTime, _sharePeriod, now())
+                share, state, shareTime, _sharePeriod, 0.0, now())
 
             // create business account balance
-            BusinessBalance += BusinessBalanceRow(0L, _id, 0.0)
+//            BusinessBalance += BusinessBalanceRow(0L, _id, 0.0)
 
             _id
         }
@@ -190,13 +190,6 @@ trait BusinessHelpers {
             )
         }
 
-        def getBalance:Double = {
-            Zufaro.db.withSession { implicit sess =>
-                BusinessBalance.where(_.busId === business.id).map(_.balance).firstOption.getOrElse(0.0)
-            }
-        }
-
-
         def getReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
             Zufaro.db.withSession { implicit sess =>
                 BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
@@ -290,7 +283,7 @@ trait BusinessHelpers {
 
             val income = bp.profit - totalShared
             if (income > 0.0){
-                val balQ = BusinessBalance.where(_.busId === business.id).map(_.balance)
+                val balQ = Business.where(_.id === business.id).map(_.saving)
                 val newBalance = balQ.firstOption.getOrElse(0.0) + income
                 balQ.update(newBalance)
                 

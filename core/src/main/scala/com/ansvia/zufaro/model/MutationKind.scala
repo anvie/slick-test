@@ -12,4 +12,10 @@ object MutationKind {
     val CREDIT = 1
     val DEBIT = 2
 
+    def str(k:Int) = k match {
+        case ACTIVITY => "ACTIVITY"
+        case CREDIT => "CREDIT"
+        case DEBIT => "DEBIT"
+    }
+
 }

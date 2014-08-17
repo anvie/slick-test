@@ -6,16 +6,25 @@ import http._
 import Helpers._
 import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException, ZufaroException}
-import com.ansvia.zufaro.{ZufaroHelpers, Zufaro, BusinessManager}
+import com.ansvia.zufaro._
 import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
-import com.ansvia.zufaro.model.{UserRole, ShareMethod}
+import com.ansvia.zufaro.model.{MutationKind, UserRole, ShareMethod}
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
 import java.util.Date
+import net.liftweb.http.ParsePath
+import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.util.Helpers
+import com.ansvia.zufaro.model.Tables.BusinessAccountMutationRow
+import com.ansvia.zufaro.exception.InvalidParameterException
+import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.RewriteRequest
+import com.ansvia.zufaro.model.Tables.BusinessProfitRow
+import com.ansvia.zufaro.model.Tables.BusinessRow
 
 /**
  * Author: robin
@@ -155,6 +164,13 @@ class AdminBusinessSnippet {
                     NodeSeq.Empty
             }
         }
+
+        val saving = state match {
+            case "running" | "closed" =>
+                <td>{bus.saving format IDR}</td>
+            case _ =>
+                NodeSeq.Empty
+        }
         
 
         <tr>
@@ -163,7 +179,7 @@ class AdminBusinessSnippet {
             <td>{bus.desc}</td>
             <td>{bus.fund format IDR}</td>
             <td>{f"${bus.share}%.01f%%"}</td>
-            <td>{bus.saving format IDR}</td>
+            {saving}
             {progress}
             <td>
 
@@ -258,14 +274,14 @@ class AdminBusinessSnippet {
     }
 
     private def updateList(bus:BusinessRow) = {
-        val reports = bus.getReport(0, 30)
+        val reports = bus.getIncomeReport(0, 30)
         val ns = NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         SetHtml("List", ns)
     }
 
     def businessReportList:CssSel = {
         busO.map { bus =>
-            val reports = bus.getReport(0, 30)
+            val reports = bus.getIncomeReport(0, 30)
             "#List *" #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         }.getOrElse("*" #> NodeSeq.Empty)
     }
@@ -333,6 +349,47 @@ class AdminBusinessSnippet {
                 q.length.run.toString
             }
         }
+    }
+
+
+    /************************************************
+     * ACCOUNT MUTATION
+     ***********************************************/
+
+    private def buildAccountMutationListItem(mut:BusinessAccountMutationRow) = {
+
+        val credit = mut.kind match {
+            case MutationKind.CREDIT => mut.amount.format(IDR)
+            case _ => "-"
+        }
+        val debit = mut.kind match {
+            case MutationKind.DEBIT => mut.amount.format(IDR)
+            case _ => "-"
+        }
+        val initiator = mut.initiator.split('=').toList match {
+            case "admin" :: AsLong(id) :: Nil =>
+                AdminManager.getById(id).map(_.name).getOrElse("-")
+            case "operator" :: AsLong(id) :: Nil =>
+                OperatorManager.getById(id).map(_.name).getOrElse("-")
+            case _ =>
+                "-"
+        }
+
+        <tr>
+            <td>{mut.id}</td>
+            <td>{mut.info}</td>
+            <td>{credit}</td>
+            <td>{debit}</td>
+            <td>{initiator}</td>
+            <td>{new Date(mut.ts.getTime)}</td>
+        </tr>
+    }
+
+
+    def accountMutationList:CssSel = {
+        val bus = busO.get
+        val reports = bus.getAccountMutationReport(0, 50)
+        "#MutationList *" #> NodeSeq.fromSeq(reports.map(buildAccountMutationListItem))
     }
 
 }

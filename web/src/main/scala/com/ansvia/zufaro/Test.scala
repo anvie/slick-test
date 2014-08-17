@@ -169,7 +169,7 @@ object Test {
                 println(f" * ${b.name} - balance: ${b.saving format IDR}")
 
                 val q = for {
-                    fin <- BusinessFinance if fin.busId === b.id
+                    fin <- BusinessAccountMutation if fin.busId === b.id
                 } yield (fin.kind, fin.amount, fin.info)
 
                 q.foreach { case (kind, amount, info) =>

@@ -17,12 +17,12 @@ object OperatorManager {
         val opId = Zufaro.db.withSession { implicit sess =>
             (Operator returning Operator.map(_.id)) += OperatorRow(0L, name, abilities, passhash)
         }
-        getById(opId)
+        getById(opId).get
     }
 
     def getById(id:Long) = {
         Zufaro.db.withSession { implicit sess =>
-            Operator.filter(_.id === id).first()
+            Operator.filter(_.id === id).firstOption
         }
     }
 

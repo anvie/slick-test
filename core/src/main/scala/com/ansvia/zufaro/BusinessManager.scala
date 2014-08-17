@@ -190,7 +190,7 @@ trait BusinessHelpers {
             )
         }
 
-        def getReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
+        def getIncomeReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
             Zufaro.db.withSession { implicit sess =>
                 BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
             }
@@ -209,6 +209,11 @@ trait BusinessHelpers {
             }
         }
 
+        def getAccountMutationReport(offset:Int, limit:Int):Seq[BusinessAccountMutationRow] = {
+            Zufaro.db.withSession { implicit sess =>
+                BusinessAccountMutation.where(_.busId === business.id).sortBy(_.ts.desc).run
+            }
+        }
 
         /**
          * Share semua ke investors dari semua un-shared profit report.
@@ -287,7 +292,7 @@ trait BusinessHelpers {
                 val newBalance = balQ.firstOption.getOrElse(0.0) + income
                 balQ.update(newBalance)
                 
-                BusinessFinance += BusinessFinanceRow(0L, business.id, MutationKind.CREDIT, income,
+                BusinessAccountMutation += BusinessAccountMutationRow(0L, business.id, MutationKind.CREDIT, income,
                     f"Profit from business `${business.name}` #${business.id}",
                     Initiator.system.toString(), now())
             }

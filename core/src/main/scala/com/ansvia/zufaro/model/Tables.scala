@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessFinance.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessAccountMutation.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey
@@ -156,7 +156,7 @@ trait Tables {
   /** Collection-like TableQuery object for table Business */
   lazy val Business = new TableQuery(tag => new Business(tag))
   
-  /** Entity class storing rows of table BusinessFinance
+  /** Entity class storing rows of table BusinessAccountMutation
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param busId Database column BUS_ID 
    *  @param kind Database column KIND 
@@ -164,17 +164,17 @@ trait Tables {
    *  @param info Database column INFO 
    *  @param initiator Database column INITIATOR 
    *  @param ts Database column TS  */
-  case class BusinessFinanceRow(id: Long, busId: Long, kind: Int, amount: Double, info: String, initiator: String, ts: java.sql.Timestamp)
-  /** GetResult implicit for fetching BusinessFinanceRow objects using plain SQL queries */
-  implicit def GetResultBusinessFinanceRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[String], e4: GR[java.sql.Timestamp]): GR[BusinessFinanceRow] = GR{
+  case class BusinessAccountMutationRow(id: Long, busId: Long, kind: Int, amount: Double, info: String, initiator: String, ts: java.sql.Timestamp)
+  /** GetResult implicit for fetching BusinessAccountMutationRow objects using plain SQL queries */
+  implicit def GetResultBusinessAccountMutationRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[String], e4: GR[java.sql.Timestamp]): GR[BusinessAccountMutationRow] = GR{
     prs => import prs._
-    BusinessFinanceRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<[String], <<[String], <<[java.sql.Timestamp]))
+    BusinessAccountMutationRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<[String], <<[String], <<[java.sql.Timestamp]))
   }
-  /** Table description of table BUSINESS_FINANCE. Objects of this class serve as prototypes for rows in queries. */
-  class BusinessFinance(tag: Tag) extends Table[BusinessFinanceRow](tag, "BUSINESS_FINANCE") {
-    def * = (id, busId, kind, amount, info, initiator, ts) <> (BusinessFinanceRow.tupled, BusinessFinanceRow.unapply)
+  /** Table description of table BUSINESS_ACCOUNT_MUTATION. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessAccountMutation(tag: Tag) extends Table[BusinessAccountMutationRow](tag, "BUSINESS_ACCOUNT_MUTATION") {
+    def * = (id, busId, kind, amount, info, initiator, ts) <> (BusinessAccountMutationRow.tupled, BusinessAccountMutationRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, kind.?, amount.?, info.?, initiator.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> BusinessFinanceRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, kind.?, amount.?, info.?, initiator.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> BusinessAccountMutationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -191,8 +191,8 @@ trait Tables {
     /** Database column TS  */
     val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
   }
-  /** Collection-like TableQuery object for table BusinessFinance */
-  lazy val BusinessFinance = new TableQuery(tag => new BusinessFinance(tag))
+  /** Collection-like TableQuery object for table BusinessAccountMutation */
+  lazy val BusinessAccountMutation = new TableQuery(tag => new BusinessAccountMutation(tag))
   
   /** Entity class storing rows of table BusinessGroup
    *  @param id Database column ID AutoInc

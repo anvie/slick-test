@@ -1,1 +1,2 @@
 alias runweb=;container:stop;container:start
+alias sql=run-main org.h2.tools.Shell -url jdbc:h2:data/data;USER=;PASSWORD=

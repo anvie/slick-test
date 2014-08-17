@@ -3,13 +3,11 @@ package com.ansvia.zufaro
 import scala.slick.driver.H2Driver.simple._
 import scala.slick.driver.H2Driver.backend
 import model.Tables._
-import scala.collection.JavaConversions._
-import scala.slick.lifted
-import java.sql.Timestamp
-import java.util.Date
 import com.ansvia.zufaro.exception.{IllegalStateException, ZufaroException}
 import com.ansvia.commons.logging.Slf4jLogger
 import com.ansvia.zufaro.model.{Initiator, MutationKind, ShareMethod}
+import java.util.Date
+import com.ansvia.zufaro.BusinessManager.ShareReport
 
 /**
  * Author: robin
@@ -46,6 +44,8 @@ object BusinessManager {
         val MONTHLY = 2
         val YEAR = 3
     }
+
+    case class ShareReport(investorId:Long, investorName:String, amount:Double, date:Date)
 
     /**
      * Create new business
@@ -145,7 +145,6 @@ object BusinessManager {
 
 trait BusinessHelpers {
 
-    import BusinessGroupHelpers._
     import BusinessManager.state._
     import TimestampHelpers._
 
@@ -189,6 +188,20 @@ trait BusinessHelpers {
                 BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
             }
         }
+        
+        def getShareReport(busProfId:Long, offset:Int, limit:Int):Seq[ShareReport] = {
+            Zufaro.db.withSession { implicit sess =>
+                val q = for {
+                    b <- ProfitShareJournal if b.busId === business.id && b.busProfId === busProfId
+                    inv <- Investor if inv.id === b.invId
+                } yield (inv.id, inv.name, b.amount, b.ts)
+            
+                q.run.map { case (investorId, investorName, amount, ts) =>
+                    ShareReport(investorId, investorName, amount, new Date(ts.getTime))
+                }
+            }
+        }
+
 
         /**
          * Share semua ke investors dari semua un-shared profit report.
@@ -206,19 +219,21 @@ trait BusinessHelpers {
             }
         }
 
+//        def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
+//            // double check
+//            if (BusinessProfit.where(x => x.id === bp.id && x.shared === true).length.run > 0)
+//                throw IllegalStateException("Illegal operation")
+//            doShareProcess(bp.profit, shareMethod)
+//            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
+//                .update((true, now()))
+//        }
+
+
         def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
-            // double check
-            if (BusinessProfit.where(x => x.id === bp.id && x.shared === true).length.run > 0)
-                throw IllegalStateException("Illegal operation")
-            doShareProcess(bp.profit, shareMethod)
-            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
-                .update((true, now()))
-        }
-
-
-        def doShareProcess(profit:Double, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
             // kalkulasi bagi hasil
 
+            if (BusinessProfit.where(x => x.id === bp.id && x.shared === true).length.run > 0)
+                throw IllegalStateException("Illegal operation")
 
             val ivIb = for {
                 iv <- Invest if iv.busId === business.id && iv.busKind === BusinessKind.SINGLE
@@ -227,14 +242,14 @@ trait BusinessHelpers {
 
             ivIb.foreach { case (iv, ib) =>
 
-                val margin = (iv.amount / business.fund) * profit
+                val margin = (iv.amount / business.fund) * bp.profit
                 val share = margin * p(business.share)
                 val curBal = ib.amount + share
 
                 InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
 
                 // tulis business journal
-                ProfitShareJournal += ProfitShareJournalRow(business.id, iv.invId, share, shareMethod.method,
+                ProfitShareJournal += ProfitShareJournalRow(business.id, bp.id, iv.invId, share, shareMethod.method,
                     Some(shareMethod.initiator.toString), now())
 
                 // tulis personal journal
@@ -245,6 +260,9 @@ trait BusinessHelpers {
                 debug(f"profit shared from `${business.name} (${business.id})` " +
                     f"amount of $share%.02f to investor id `${iv.invId}`")
             }
+
+            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
+                .update((true, now()))
 
             //// group business share not supported yet, fix this if necessary
 //            val groupQ = for {

@@ -6,7 +6,7 @@ import http._
 import Helpers._
 import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException, ZufaroException}
-import com.ansvia.zufaro.{Zufaro, BusinessManager}
+import com.ansvia.zufaro.{ZufaroHelpers, Zufaro, BusinessManager}
 import com.ansvia.zufaro.web.lib.MtTabInterface
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
@@ -26,6 +26,10 @@ import java.util.Date
 class AdminBusinessSnippet {
 
     import com.ansvia.zufaro.BusinessHelpers._
+    import ZufaroHelpers._
+
+    private def busId = S.param("busId").openOr("0").toLong
+    private def busO = BusinessManager.getById(busId)
 
     private object nameVar extends RequestVar("")
     private object descVar extends RequestVar("")
@@ -230,7 +234,7 @@ class AdminBusinessSnippet {
             bp.shared match {
                 case true =>
                     val at = new Date(bp.sharedAt.getTime)
-                    f"YES at $at"
+                    <div>{f"YES at $at"} - <a href={s"/admin/business/${bus.id}/report/${bp.id}/share-detail"}>detail</a></div>
                 case _ =>
                     "NO"
             }
@@ -257,8 +261,6 @@ class AdminBusinessSnippet {
         val ns = NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         SetHtml("List", ns)
     }
-
-    private def busO = BusinessManager.getById(S.param("busId").openOr("0").toLong)
 
     def businessReportList:CssSel = {
         busO.map { bus =>
@@ -293,6 +295,44 @@ class AdminBusinessSnippet {
         )
     }
 
+    private def busProfId = S.param("busProfId").openOr("0").toLong
+
+    def shareReportTitle:CssSel = {
+        "h1 *" #> s"Profit Share Report #$busProfId"
+    }
+
+    private def buildShareReportListItem(shareReport:BusinessManager.ShareReport) = {
+        <tr>
+            <td>{shareReport.date}</td>
+            <td>{shareReport.investorName} #{shareReport.investorId}</td>
+            <td>{shareReport.amount.format(IDR)}</td>
+            <td></td>
+        </tr>
+    }
+
+
+    def shareReportList:CssSel = {
+        val bus = busO.get
+        val reports = bus.getShareReport(busProfId, 0, 50)
+        "#List *" #> NodeSeq.fromSeq(reports.map(buildShareReportListItem))
+    }
+
+    def backToReportListButton:NodeSeq = {
+        <a href={s"/admin/business/$busId/report"}>Back to report list</a>
+    }
+
+    def sharedIntoInvestorInfo:CssSel = {
+        import scala.slick.driver.H2Driver.simple._
+        "#Count *" #> {
+            Zufaro.db.withSession { implicit sess =>
+                val q = for {
+                    b <- ProfitShareJournal if b.busId === busId && b.busProfId === busProfId
+                    inv <- Investor if inv.id === b.invId
+                } yield b.busId
+                q.length.run.toString
+            }
+        }
+    }
 
 }
 

@@ -40,3 +40,24 @@ object TimestampHelpers {
     def now() = new Timestamp(new Date().getTime)
 }
 
+object ZufaroHelpers {
+
+    val IDR = 1
+    val USD = 2
+    val SGD = 3
+
+    implicit class currencyHelper(d:Double){
+        def format(currency:Int) = {
+            currency match {
+                case IDR =>
+                    f"Rp.$d%.01f,-"
+                case USD =>
+                    f"$$ $d%.01f USD"
+                case SGD =>
+                    f"$$ $d%.01f SGD"
+            }
+        }
+
+    }
+}
+

@@ -414,25 +414,28 @@ trait Tables {
   
   /** Entity class storing rows of table ProfitShareJournal
    *  @param busId Database column BUS_ID 
+   *  @param busProfId Database column BUS_PROF_ID 
    *  @param invId Database column INV_ID 
    *  @param amount Database column AMOUNT 
    *  @param shareMethod Database column SHARE_METHOD Default(2)
    *  @param initiator Database column INITIATOR Default(None)
    *  @param ts Database column TS  */
-  case class ProfitShareJournalRow(busId: Long, invId: Long, amount: Double, shareMethod: Int = 2, initiator: Option[String] = None, ts: java.sql.Timestamp)
+  case class ProfitShareJournalRow(busId: Long, busProfId: Long, invId: Long, amount: Double, shareMethod: Int = 2, initiator: Option[String] = None, ts: java.sql.Timestamp)
   /** GetResult implicit for fetching ProfitShareJournalRow objects using plain SQL queries */
   implicit def GetResultProfitShareJournalRow(implicit e0: GR[Long], e1: GR[Double], e2: GR[Int], e3: GR[Option[String]], e4: GR[java.sql.Timestamp]): GR[ProfitShareJournalRow] = GR{
     prs => import prs._
-    ProfitShareJournalRow.tupled((<<[Long], <<[Long], <<[Double], <<[Int], <<?[String], <<[java.sql.Timestamp]))
+    ProfitShareJournalRow.tupled((<<[Long], <<[Long], <<[Long], <<[Double], <<[Int], <<?[String], <<[java.sql.Timestamp]))
   }
   /** Table description of table PROFIT_SHARE_JOURNAL. Objects of this class serve as prototypes for rows in queries. */
   class ProfitShareJournal(tag: Tag) extends Table[ProfitShareJournalRow](tag, "PROFIT_SHARE_JOURNAL") {
-    def * = (busId, invId, amount, shareMethod, initiator, ts) <> (ProfitShareJournalRow.tupled, ProfitShareJournalRow.unapply)
+    def * = (busId, busProfId, invId, amount, shareMethod, initiator, ts) <> (ProfitShareJournalRow.tupled, ProfitShareJournalRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (busId.?, invId.?, amount.?, shareMethod.?, initiator, ts.?).shaped.<>({r=>import r._; _1.map(_=> ProfitShareJournalRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (busId.?, busProfId.?, invId.?, amount.?, shareMethod.?, initiator, ts.?).shaped.<>({r=>import r._; _1.map(_=> ProfitShareJournalRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column BUS_ID  */
     val busId: Column[Long] = column[Long]("BUS_ID")
+    /** Database column BUS_PROF_ID  */
+    val busProfId: Column[Long] = column[Long]("BUS_PROF_ID")
     /** Database column INV_ID  */
     val invId: Column[Long] = column[Long]("INV_ID")
     /** Database column AMOUNT  */

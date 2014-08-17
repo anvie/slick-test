@@ -109,7 +109,7 @@ class AdminApiSnippet {
 
     def clientList:CssSel = {
         val clients = ApiClientManager.getList(0, 10)
-        "#List *" #> clients.map { client => buildListItem(client) }
+        "#List *" #> NodeSeq.fromSeq(clients.map { client => buildListItem(client) })
     }
 }
 

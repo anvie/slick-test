@@ -94,19 +94,19 @@ class AdminBusinessSnippet {
         
         val deleteInternal = () => {
             BusinessManager.delete(bus)
-            updateList() & JsRaw("alert('Success');").cmd
+            updateList() & JsUtils.showNotice("Success")
         }
         val runInternal = () => {
             bus.makeProduction()
-            updateList() & JsRaw(s"alert('${bus.name} is now production');").cmd
+            updateList() & JsUtils.showNotice(s"${bus.name} is now production")
         }
         val closeInternal = () => {
             bus.close()
-            updateList() & JsRaw(s"alert('${bus.name} is now closed');").cmd
+            updateList() & JsUtils.showNotice(s"${bus.name} is now closed")
         }
         val toProjectInternal = () => {
             bus.makeDraft()
-            updateList() & JsRaw(s"alert('${bus.name} is now marked as project');").cmd
+            updateList() & JsUtils.showNotice(s"${bus.name} is now marked as project")
         }
         def stateChanger() = {
             <li class="divider"></li> ++
@@ -157,7 +157,7 @@ class AdminBusinessSnippet {
             <td>{bus.id.toString}</td>
             <td>{bus.name}</td>
             <td>{bus.desc}</td>
-            <td>{f"${bus.fund}%.02f%%"}</td>
+            <td>{f"Rp.${bus.fund}%.02f,-"}</td>
             <td>{f"${bus.share}%.01f%%"}</td>
             {progress}
             <td>

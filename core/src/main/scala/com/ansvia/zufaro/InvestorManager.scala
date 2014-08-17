@@ -163,7 +163,7 @@ trait InvestorHelpers {
             val curAmount = q.first()
 
             if(curAmount < amount)
-                throw InsufficientBalanceException(f"Insufficient balance $curAmount%f < $amount%f")
+                throw InsufficientBalanceException(f"Insufficient balance $curAmount%.02f < $amount%.02f")
         }
 
 

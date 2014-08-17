@@ -73,7 +73,7 @@ class AdminBusinessSnippet {
     }
 
 
-    private def buildBusinessListItem(bus:BusinessRow, state:String):NodeSeq = {
+    private def buildBusinessListItem(bus:BusinessRow, state:String):Node = {
         def updateList() = {
             val ns = NodeSeq.fromSeq(state match {
                 case "running" =>
@@ -175,7 +175,7 @@ class AdminBusinessSnippet {
 
 
             </td>
-        </tr>
+        </tr>:Node
     }
 
 
@@ -183,13 +183,13 @@ class AdminBusinessSnippet {
         S.attr("state").openOr("") match {
             case "running" =>
                 val business = BusinessManager.getRunningBusinessList(0, 10)
-                "#List *" #> business.map { bus => buildBusinessListItem(bus, "running") }
+                "#List *" #> NodeSeq.fromSeq(business.map { bus => buildBusinessListItem(bus, "running") })
             case "project" =>
                 val business = BusinessManager.getProjectBusinessList(0, 30)
-                "#List *" #> business.map { bus => buildBusinessListItem(bus, "project") }
+                "#List *" #> NodeSeq.fromSeq(business.map { bus => buildBusinessListItem(bus, "project") })
             case "closed" =>
                 val business = BusinessManager.getClosedBusinessList(0, 30)
-                "#List *" #> business.map { bus => buildBusinessListItem(bus, "closed") }
+                "#List *" #> NodeSeq.fromSeq(business.map { bus => buildBusinessListItem(bus, "closed") })
         }
     }
 
@@ -227,9 +227,13 @@ class AdminBusinessSnippet {
         }
 
         val sharedInfo = {
-            val sharedStr = bp.shared match { case true => "YES"; case _ => "NO" }
-            val at = new Date(bp.sharedAt.getTime)
-            f"$sharedStr at $at"
+            bp.shared match {
+                case true =>
+                    val at = new Date(bp.sharedAt.getTime)
+                    f"YES at $at"
+                case _ =>
+                    "NO"
+            }
         }
 
 
@@ -254,13 +258,39 @@ class AdminBusinessSnippet {
         SetHtml("List", ns)
     }
 
+    private def busO = BusinessManager.getById(S.param("busId").openOr("0").toLong)
 
     def businessReportList:CssSel = {
-        BusinessManager.getById(S.param("busId").openOr("0").toLong)
-        .map { bus =>
+        busO.map { bus =>
             val reports = bus.getReport(0, 30)
             "#List *" #> NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         }.getOrElse("*" #> NodeSeq.Empty)
+    }
+
+    def ops(in:NodeSeq):NodeSeq = {
+        val _busO = this.busO
+        lazy val doShareProcess = JsUtils.ajaxConfirm("Are you sure to process shares to investor?",
+            Text("Process share now"), "Process share", Map("class" -> "btn btn-danger")){
+
+            val bus = _busO.get
+
+            bus.doShareProcess(ShareMethod(ShareMethod.MANUAL, Auth.getInitiator))
+
+            updateList(bus) & JsUtils.showNotice("Success")
+        }
+        lazy val doShareProcessAll = JsUtils.ajaxConfirm("Are you sure to process all business shares to investor?",
+            Text("Process share all now"), "Process share", Map("class" -> "btn btn-danger")){
+
+            BusinessManager.getRunningBusinessList(0, 50).foreach { _bus =>
+                _bus.doShareProcess(ShareMethod(ShareMethod.MANUAL, Auth.getInitiator))
+            }
+
+            JsUtils.showNotice("All business shares processed")
+        }
+        bind("in", in,
+        "do-share-process" -> doShareProcess,
+        "do-share-process-all" -> doShareProcessAll
+        )
     }
 
 

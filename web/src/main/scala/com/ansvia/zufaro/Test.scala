@@ -2,10 +2,9 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.{ShareMethod, UserRole, InvestorRole}
+import com.ansvia.zufaro.model.{Initiator, ShareMethod, UserRole, InvestorRole}
 import java.util.UUID
 import java.io.{FilenameFilter, File}
-import com.ansvia.zufaro.web.Auth
 
 object Test {
 
@@ -157,7 +156,7 @@ object Test {
             }
 
             // lakukan prosedur share ke semua investor
-            val shareMethod = ShareMethod(ShareMethod.AUTO, Auth.getInitiator)
+            val shareMethod = ShareMethod(ShareMethod.AUTO, Initiator(0L, 0))
             Business.foreach(_.doShareProcess(shareMethod))
 
 

@@ -76,7 +76,8 @@ class AdminInvestorBusinessSnippet {
                 inv.invest(business, investAmountVar)
 
                 JsUtils.hideAllModal &
-                JsUtils.showNotice("Success")
+                JsUtils.showNotice("Success") &
+                updateList(inv)
             }
             catch {
                 case e:ZufaroException =>
@@ -159,5 +160,11 @@ class AdminInvestorBusinessSnippet {
         val business = invO.get.getBusiness(0, 30)
         "#List *" #> NodeSeq.fromSeq(business.map(b => buildListItem(invO.get, b)))
     }
-    
+
+
+    def updateList(inv:InvestorRow) = {
+        val business = inv.getBusiness(0, 30)
+        SetHtml("List", NodeSeq.fromSeq(business.map(b => buildListItem(inv, b))))
+    }
+
 }

@@ -185,18 +185,19 @@ trait Tables {
    *  @param kind Database column KIND 
    *  @param amount Database column AMOUNT 
    *  @param info Database column INFO 
+   *  @param initiator Database column INITIATOR 
    *  @param ts Database column TS  */
-  case class BusinessFinanceRow(id: Long, busId: Long, kind: Int, amount: Double, info: String, ts: java.sql.Timestamp)
+  case class BusinessFinanceRow(id: Long, busId: Long, kind: Int, amount: Double, info: String, initiator: String, ts: java.sql.Timestamp)
   /** GetResult implicit for fetching BusinessFinanceRow objects using plain SQL queries */
   implicit def GetResultBusinessFinanceRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[String], e4: GR[java.sql.Timestamp]): GR[BusinessFinanceRow] = GR{
     prs => import prs._
-    BusinessFinanceRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<[String], <<[java.sql.Timestamp]))
+    BusinessFinanceRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<[String], <<[String], <<[java.sql.Timestamp]))
   }
   /** Table description of table BUSINESS_FINANCE. Objects of this class serve as prototypes for rows in queries. */
   class BusinessFinance(tag: Tag) extends Table[BusinessFinanceRow](tag, "BUSINESS_FINANCE") {
-    def * = (id, busId, kind, amount, info, ts) <> (BusinessFinanceRow.tupled, BusinessFinanceRow.unapply)
+    def * = (id, busId, kind, amount, info, initiator, ts) <> (BusinessFinanceRow.tupled, BusinessFinanceRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, kind.?, amount.?, info.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> BusinessFinanceRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, kind.?, amount.?, info.?, initiator.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> BusinessFinanceRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -208,6 +209,8 @@ trait Tables {
     val amount: Column[Double] = column[Double]("AMOUNT")
     /** Database column INFO  */
     val info: Column[String] = column[String]("INFO")
+    /** Database column INITIATOR  */
+    val initiator: Column[String] = column[String]("INITIATOR")
     /** Database column TS  */
     val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
   }

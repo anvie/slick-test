@@ -174,10 +174,10 @@ object Test {
 
                 q.foreach { case (kind, amount, info) =>
                     val mutationKind = kind match {
-                        case MutationKind.CREDIT => "CREDIT"
-                        case MutationKind.DEBIT => "DEBIT"
+                        case MutationKind.CREDIT => "credit"
+                        case MutationKind.DEBIT => "debit"
                     }
-                    println(s"    - $mutationKind ${amount format IDR} - $info")
+                    println(s"    - $mutationKind: ${amount format IDR} - $info")
                 }
 
                 println("")

@@ -5,7 +5,7 @@ import scala.slick.driver.H2Driver.backend
 import model.Tables._
 import com.ansvia.zufaro.exception.{IllegalStateException, ZufaroException}
 import com.ansvia.commons.logging.Slf4jLogger
-import com.ansvia.zufaro.model.{Initiator, MutationKind, ShareMethod}
+import com.ansvia.zufaro.model.{NoInitiator, Initiator, MutationKind, ShareMethod}
 import java.util.Date
 import com.ansvia.zufaro.BusinessManager.ShareReport
 
@@ -60,7 +60,9 @@ object BusinessManager {
      */
     def create(name:String, desc:String, fund:Double, share:Double, state:Int,
                shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
+
         val id = Zufaro.db.withSession { implicit sess =>
+
             val _id = (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
                 share, state, shareTime, _sharePeriod, now())
 
@@ -286,14 +288,16 @@ trait BusinessHelpers {
              * BUSINESS ACCOUNT MUTATION
              ***********************************************/
 
-            val netto = bp.profit - totalShared
-            if (netto > 0.0){
+            val income = bp.profit - totalShared
+            if (income > 0.0){
                 val balQ = BusinessBalance.where(_.busId === business.id).map(_.balance)
-                val newBalance = balQ.firstOption.getOrElse(0.0) + netto
+                val newBalance = balQ.firstOption.getOrElse(0.0) + income
                 balQ.update(newBalance)
+                
+                BusinessFinance += BusinessFinanceRow(0L, business.id, MutationKind.CREDIT, income,
+                    f"Profit from business `${business.name}` #${business.id}",
+                    Initiator.system.toString(), now())
             }
-            BusinessFinance += BusinessFinanceRow(0L, business.id, MutationKind.CREDIT, netto,
-                f"profit from business `${business.name}` #${business.id}", now())
 
 
             //// group business share not supported yet, fix this if necessary

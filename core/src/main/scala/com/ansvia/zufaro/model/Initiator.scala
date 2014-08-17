@@ -10,28 +10,30 @@ import com.ansvia.zufaro.exception.InvalidParameterException
  */
 trait Initiator
 object Initiator extends Initiator {
-    var id = 0L
-    var role = UserRole.SYSTEM
-    def apply(id:Long, role:Int) = {
-        this.id = id
-        this.role = role
-        this
-    }
 
-    override def toString() = {
-        role match {
-            case UserRole.SYSTEM => "system"
-            case UserRole.ADMIN => "admin=" + this.id
-            case UserRole.OPERATOR => "operator=" + this.id
-            case UserRole.INVESTOR => "investor=" + this.id
-            case x =>
-                throw InvalidParameterException("Unknown role type " + role)
+    case class HasInitiator(id:Long, role:Long) extends Initiator {
+        override def toString() = {
+            role match {
+                case UserRole.SYSTEM => "system"
+                case UserRole.ADMIN => "admin=" + this.id
+                case UserRole.OPERATOR => "operator=" + this.id
+                case UserRole.INVESTOR => "investor=" + this.id
+                case x =>
+                    throw InvalidParameterException("Unknown role type " + role)
+            }
         }
     }
+
+    def apply(id:Long, role:Int) = {
+        HasInitiator(id, role)
+    }
+
+    def system = HasInitiator(0L, UserRole.SYSTEM)
 
 }
 object NoInitiator extends Initiator {
     override def toString: String = ""
+
 }
 
 

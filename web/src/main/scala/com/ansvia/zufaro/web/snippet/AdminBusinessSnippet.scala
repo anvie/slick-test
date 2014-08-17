@@ -161,8 +161,9 @@ class AdminBusinessSnippet {
             <td>{bus.id.toString}</td>
             <td>{bus.name}</td>
             <td>{bus.desc}</td>
-            <td>{f"Rp.${bus.fund}%.02f,-"}</td>
+            <td>{bus.fund format IDR}</td>
             <td>{f"${bus.share}%.01f%%"}</td>
+            <td>{bus.saving format IDR}</td>
             {progress}
             <td>
 

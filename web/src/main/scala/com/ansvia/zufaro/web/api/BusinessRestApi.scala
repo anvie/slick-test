@@ -7,7 +7,7 @@ import json._
 import JsonDSL._
 import com.ansvia.zufaro.{BusinessHelpers, BusinessManager}
 import com.ansvia.zufaro.model.MutatorRole
-import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException}
+import com.ansvia.zufaro.exception.{IllegalStateException, PermissionDeniedException, InvalidParameterException}
 
 
 object BusinessRestApi extends ZufaroRestHelper {
@@ -42,6 +42,10 @@ object BusinessRestApi extends ZufaroRestHelper {
 
             val rv =
                 BusinessManager.getById(busId).map { bus =>
+
+                    // check, harus business yang sudah running
+                    if (bus.state != BusinessManager.state.PRODUCTION)
+                        throw IllegalStateException("This business is not in production mode")
 
                     // check is api client has grant to add-profit into this business
                     if (!bus.isGranted(apiClient, "add-profit"))

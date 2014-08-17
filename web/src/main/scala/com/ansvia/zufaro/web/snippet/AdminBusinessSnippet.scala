@@ -157,8 +157,8 @@ class AdminBusinessSnippet {
             <td>{bus.id.toString}</td>
             <td>{bus.name}</td>
             <td>{bus.desc}</td>
-            <td>{bus.fund}</td>
-            <td>{bus.share}</td>
+            <td>{f"${bus.fund}%.02f%%"}</td>
+            <td>{f"${bus.share}%.01f%%"}</td>
             {progress}
             <td>
 

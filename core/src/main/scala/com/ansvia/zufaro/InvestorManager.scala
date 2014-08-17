@@ -209,6 +209,21 @@ trait InvestorHelpers {
             }
         }
 
+        /**
+         * Get investor share for selected business.
+         * @param bus business.
+         * @return
+         */
+        def getShare(bus:BusinessRow) = {
+            Zufaro.db.withSession { implicit sess =>
+                val q = for {
+                    iv <- Invest if iv.invId === investor.id && iv.busId === bus.id
+                } yield iv.amount
+                q.firstOption.getOrElse(0.0)
+            }
+        }
+
+
         def getDepositMutations(offset:Int, limit:Int):Seq[MutationRow] = {
             Zufaro.db.withSession { implicit sess =>
                 val rv = for {

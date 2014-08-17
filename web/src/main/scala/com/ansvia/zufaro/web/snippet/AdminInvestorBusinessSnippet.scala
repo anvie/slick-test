@@ -135,11 +135,16 @@ class AdminInvestorBusinessSnippet {
                 case _ => "unknown"
             }
         }
+        val shareAmount = {
+            val s = inv.getShare(bus)
+            f"Rp.$s%.02f,-"
+        }
         
         <tr>
             <td>{bus.id}</td>
             <td>{bus.name}</td>
             <td>{bus.desc}</td>
+            <td>{shareAmount}</td>
             <td>{status}</td>
             <td>
                 <div class="dropdown">

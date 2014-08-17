@@ -109,7 +109,8 @@ class AdminBusinessSnippet {
             updateList() & JsRaw(s"alert('${bus.name} is now marked as project');").cmd
         }
         def stateChanger() = {
-            bus.state match {
+            <li class="divider"></li> ++
+            (bus.state match {
                 case BusinessManager.state.DRAFT =>
                     <li>{SHtml.a(runInternal, Text("Run"))}</li> ++
                     <li>{SHtml.a(closeInternal, Text("Close"))}</li>
@@ -118,18 +119,38 @@ class AdminBusinessSnippet {
                     <li>{SHtml.a(closeInternal, Text("Close"))}</li>
                 case BusinessManager.state.CLOSED =>
                     <li>{SHtml.a(toProjectInternal, Text("Make Project"))}</li>
-            }
+            })
         }
         def reporter() = {
             bus.state match {
                 case BusinessManager.state.PRODUCTION =>
-                    <li class="divider"></li> ++
-                    <li><a href={"/admin/business/" + bus.id + "/report"}>Report</a></li>
+                    <li><a href={s"/admin/business/${bus.id}/report"}>Report</a></li>
+                case BusinessManager.state.DRAFT =>
+                    <li><a href={s"/admin/business/${bus.id}/project-report"}>Progress Report</a></li>
                 case _ =>
                     NodeSeq.Empty
             }
         }
 
+        // only for project (non running business)
+        val progress = {
+            state match {
+                case "project" if bus.state == BusinessManager.state.DRAFT =>
+                    val p = bus.getPercentageDone()
+                    val percentageStr = f"$p%.02f%%"
+
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow={p.toString}
+                                 aria-valuemin="0" aria-valuemax="100" style={s"width: $percentageStr;"}>
+                                {percentageStr}
+                            </div>
+                        </div>
+                    </td>:NodeSeq
+                case _ =>
+                    NodeSeq.Empty
+            }
+        }
         
 
         <tr>
@@ -138,14 +159,15 @@ class AdminBusinessSnippet {
             <td>{bus.desc}</td>
             <td>{bus.fund}</td>
             <td>{bus.share}</td>
+            {progress}
             <td>
 
                 <div class="dropdown">
                     <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        {stateChanger()}
                         {reporter()}
+                        {stateChanger()}
                         <li class="divider"></li>
                         <li>{SHtml.a(deleteInternal,Text("Delete"))}</li>
                     </ul>
@@ -182,20 +204,7 @@ class AdminBusinessSnippet {
                 if (bp.shared)
                     throw new ZufaroException("Illegal Operation", 921)
 
-                val (initiator, initiatorRole) = {
-                    Auth.currentAdmin.map {
-                        admin =>
-                            (admin.id, UserRole.ADMIN)
-                    }.getOrElse {
-                        Auth.currentOperator.map {
-                            op =>
-                                (op.id, UserRole.OPERATOR)
-                        }.getOrElse {
-                            throw PermissionDeniedException("Unauthorized")
-                        }
-                    }
-                }
-                val shareMethod = ShareMethod(ShareMethod.MANUAL, initiator, initiatorRole)
+                val shareMethod = ShareMethod(ShareMethod.MANUAL, Auth.getInitiator)
 
                 Zufaro.db.withTransaction(implicit sess => bus.doShareProcess(bp, shareMethod))
 

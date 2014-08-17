@@ -102,3 +102,9 @@
   display: inline-block;
   border-radius: 50%;
 }
+
+
+.progress {
+    background-color: #dadada;
+}
+

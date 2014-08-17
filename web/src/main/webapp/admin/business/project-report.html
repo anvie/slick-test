@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body class="lift:content_id=Main">
+
+<div id="Main" data-lift="Surround?with=admin;at=content">
+
+    <head_embed>
+        <style type="text/css">
+
+        </style>
+    </head_embed>
+
+    <h1>Project Report</h1>
+
+    <div class="lift:AdminBusinessProjectSnippet.reportInfo">
+        <table class="table table-bordered">
+            <tr>
+                <td>Name</td>
+                <td><strong id="Name">Pulsa</strong></td>
+            </tr>
+            <tr>
+                <td>Desc</td>
+                <td><p id="Desc">Bisnis Pulsa</p></td>
+            </tr>
+            <tr>
+                <td>Created at</td>
+                <td><p id="Created">2014-10-08</p></td>
+            </tr>
+        </table>
+    </div>
+
+
+    <div class="lift:AdminBusinessProjectSnippet.reportOps" style="margin-bottom: 20px;">
+        <in:write-report></in:write-report>
+        <a href="/admin/business/project" class="btn">Back to project list</a>
+    </div>
+
+
+    <table class="lift:AdminBusinessProjectSnippet.reportList table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th style="width: 230px;">Time</th>
+            <th style="width: 100px;">Progress</th>
+            <th>Info</th>
+            <th>Op</th>
+        </tr>
+        </thead>
+        <tbody id="List">
+        <tr>
+            <td>12-08-2015</td>
+            <td>10%</td>
+            <td>This is cool</td>
+            <td>menu</td>
+        </tr>
+        </tbody>
+    </table>
+
+
+</div>
+
+</body>
+</html>

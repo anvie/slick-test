@@ -9,7 +9,7 @@ import java.sql.Timestamp
 import java.util.Date
 import com.ansvia.zufaro.exception.{IllegalStateException, ZufaroException}
 import com.ansvia.commons.logging.Slf4jLogger
-import com.ansvia.zufaro.model.{MutationKind, ShareMethod}
+import com.ansvia.zufaro.model.{Initiator, MutationKind, ShareMethod}
 
 /**
  * Author: robin
@@ -19,6 +19,9 @@ import com.ansvia.zufaro.model.{MutationKind, ShareMethod}
  */
 
 object BusinessManager {
+
+    import TimestampHelpers._
+
 
     object state {
 
@@ -58,8 +61,8 @@ object BusinessManager {
     def create(name:String, desc:String, fund:Double, share:Double, state:Int,
                shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
         val id = Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund, share, state,
-                shareTime, _sharePeriod)
+            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
+                share, state, shareTime, _sharePeriod, now())
         }
         getById(id).get
     }
@@ -204,7 +207,8 @@ trait BusinessHelpers {
         }
 
         def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
-            if (BusinessProfit.where(x => x.id === bp.id && x.shared == true).length.run > 0)
+            // double check
+            if (BusinessProfit.where(x => x.id === bp.id && x.shared === true).length.run > 0)
                 throw IllegalStateException("Illegal operation")
             doShareProcess(bp.profit, shareMethod)
             BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
@@ -231,7 +235,7 @@ trait BusinessHelpers {
 
                 // tulis business journal
                 ProfitShareJournal += ProfitShareJournalRow(business.id, iv.invId, share, shareMethod.method,
-                    Some(shareMethod.initiatorStr), now())
+                    Some(shareMethod.initiator.toString), now())
 
                 // tulis personal journal
                 Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
@@ -303,6 +307,39 @@ trait BusinessHelpers {
         def close() = {
             Zufaro.db.withTransaction { implicit sess =>
                 Business.where(_.id === business.id).map(_.state).update(CLOSED)
+            }
+        }
+
+
+        // for project
+
+        private def requireProject() = {
+            if (business.state != DRAFT)
+                throw IllegalStateException("Report only for project")
+        }
+
+
+        def getPercentageDone() = {
+            requireProject()
+            Zufaro.db.withSession { implicit sess =>
+                val s = ProjectReport.where(_.busId === business.id).sortBy(_.ts.desc)
+                    .map(_.percentage).take(1).run
+                s.headOption.getOrElse(0.0)
+            }
+        }
+
+
+        def getProjectReports(offset:Int, limit:Int):Seq[ProjectReportRow] = {
+            requireProject()
+            Zufaro.db.withSession { implicit sess =>
+                ProjectReport.where(p => p.busId === business.id).sortBy(_.ts.desc).drop(offset).take(limit).run
+            }
+        }
+
+        def writeProjectReport(info:String, percentageDone:Double, initiator:Initiator) = {
+            requireProject()
+            Zufaro.db.withSession { implicit sess =>
+                ProjectReport += ProjectReportRow(0L, business.id, info, percentageDone, initiator.toString, now())
             }
         }
 

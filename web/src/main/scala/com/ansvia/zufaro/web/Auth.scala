@@ -5,6 +5,7 @@ import com.ansvia.zufaro.model.Tables._
 import net.liftweb.common.{Full, Box, Empty}
 import com.ansvia.zufaro.{PasswordUtil, AdminManager}
 import com.ansvia.zufaro.exception.PermissionDeniedException
+import com.ansvia.zufaro.model.{Initiator, UserRole}
 
 /**
  * Author: robin
@@ -37,4 +38,23 @@ object Auth {
     def isLoggedIn_? = {
         currentAdmin.is.isDefined
     }
+
+
+    def getInitiator = {
+        val (initiator, initiatorRole) = {
+            Auth.currentAdmin.map {
+                admin =>
+                    (admin.id, UserRole.ADMIN)
+            }.getOrElse {
+                Auth.currentOperator.map {
+                    op =>
+                        (op.id, UserRole.OPERATOR)
+                }.getOrElse {
+                    throw PermissionDeniedException("Unauthorized")
+                }
+            }
+        }
+        Initiator(initiator, initiatorRole)
+    }
+
 }

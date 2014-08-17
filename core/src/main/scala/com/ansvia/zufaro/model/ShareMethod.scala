@@ -11,10 +11,4 @@ object ShareMethod {
     val MANUAL = 2
 }
 
-case class ShareMethod(method:Int, initiator:Long, initiatorRole:Int){
-    def initiatorStr = initiatorRole match {
-        case UserRole.SYSTEM => "system"
-        case UserRole.ADMIN => "admin=" + initiator
-        case UserRole.OPERATOR => "operator=" + initiator
-    }
-}
+case class ShareMethod(method:Int, initiator:Initiator)

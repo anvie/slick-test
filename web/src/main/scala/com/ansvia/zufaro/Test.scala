@@ -5,6 +5,7 @@ import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model.{ShareMethod, UserRole, InvestorRole}
 import java.util.UUID
 import java.io.{FilenameFilter, File}
+import com.ansvia.zufaro.web.Auth
 
 object Test {
 
@@ -156,7 +157,7 @@ object Test {
             }
 
             // lakukan prosedur share ke semua investor
-            val shareMethod = ShareMethod(ShareMethod.AUTO, 0L, UserRole.SYSTEM)
+            val shareMethod = ShareMethod(ShareMethod.AUTO, Auth.getInitiator)
             Business.foreach(_.doShareProcess(shareMethod))
 
 

@@ -7,10 +7,11 @@ WEBAPP_ASSETS=$(ROOT)/web/src/main/webapp/assets
 
 
 
-all: assets
+all:
+	tup upd
+	make assets
 
 assets: $(WEBAPP_ASSETS)/js/zufaro.js $(WEBAPP_ASSETS)/js/zufaro.min.js
-	tup upd
 
 $(WEBAPP_ASSETS)/js/zufaro.js: $(BASE_ASSETS)/out/zufaro.js
 	cp $(BASE_ASSETS)/out/zufaro.js $@
@@ -27,9 +28,13 @@ deploy:
 restart:
 	ssh robin@$(ZUFARO_SERVER) 'sudo chown -R robin:robin /home/robin/zufaro-web && sudo svc -du /etc/service/zufaro-web'
 
+reset:
+	ssh robin@$(ZUFARO_SERVER) 'sudo rm -rf jetty_instance/data/*'
+
 clean:
 
-.PHONY: deploy clean restart assets
+.PHONY: deploy clean restart assets reset
+
 
 
 

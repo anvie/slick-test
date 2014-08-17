@@ -18,6 +18,7 @@
 
     <logger name="akka" level="INFO" />
     <logger name="scala.slick" level="WARN" />
+    <logger name="net.liftweb.util.TimeHelpers" level="WARN" />
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>

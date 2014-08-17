@@ -173,10 +173,9 @@ object Test {
                 } yield (fin.kind, fin.amount, fin.info)
 
                 q.foreach { case (kind, amount, info) =>
-                    val mutationKind = kind match {
-                        case MutationKind.CREDIT => "credit"
-                        case MutationKind.DEBIT => "debit"
-                    }
+
+                    val mutationKind = mutationStr(kind)
+
                     println(s"    - $mutationKind: ${amount format IDR} - $info")
                 }
 
@@ -190,8 +189,10 @@ object Test {
                 println("\n")
                 println(f"  ${investor.name}%s balance: Rp.${investor.getBalance}%.02f")
                 println("  mutation:")
-                Mutation.filter(_.invId === investor.id).sortBy(_.ts.desc).foreach { case (credit) =>
-                    println(f"     + credit : Rp.${credit.amount}%.02f ref: ${credit.ref.getOrElse("-")}%s [${credit.ts}]")
+                Mutation.filter(_.invId === investor.id).sortBy(_.ts.desc)
+                .map(x => (x.kind, x.amount, x.ref, x.ts))
+                .foreach { case (kind, amount, ref, ts) =>
+                    println(f"     - ${mutationStr(kind)} : Rp.${amount format IDR} ref: ${ref.getOrElse("-")}%s [$ts]")
                 }
             }
 
@@ -207,6 +208,11 @@ object Test {
 
         }
 
+    }
+
+    private def mutationStr(kind:Int) = kind match {
+        case MutationKind.CREDIT => "credit"
+        case MutationKind.DEBIT => "debit"
     }
 
 }

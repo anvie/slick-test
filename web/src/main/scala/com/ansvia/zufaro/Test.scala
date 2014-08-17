@@ -2,13 +2,15 @@ package com.ansvia.zufaro
 
 import scala.slick.driver.H2Driver.simple._
 import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.{Initiator, ShareMethod, UserRole, InvestorRole}
+import com.ansvia.zufaro.model._
 import java.util.UUID
 import java.io.{FilenameFilter, File}
+import com.ansvia.zufaro.model.Tables.InvestorRow
 
 object Test {
 
     import Helpers._
+    import ZufaroHelpers._
 
 
     val dbTestFile = "/tmp/zufaro-data-test"
@@ -156,9 +158,33 @@ object Test {
             }
 
             // lakukan prosedur share ke semua investor
-            val shareMethod = ShareMethod(ShareMethod.AUTO, Initiator(0L, 0))
+            val shareMethod = ShareMethod(ShareMethod.AUTO, NoInitiator)
             Business.foreach(_.doShareProcess(shareMethod))
 
+
+            println("\n --------------- BUSINESS ACCOUNT -----------------\n")
+
+            for (b <- Business){
+
+                println(f" * ${b.name} - balance: ${b.getBalance format IDR}")
+
+                val q = for {
+                    fin <- BusinessFinance if fin.busId === b.id
+                } yield (fin.kind, fin.amount, fin.info)
+
+                q.foreach { case (kind, amount, info) =>
+                    val mutationKind = kind match {
+                        case MutationKind.CREDIT => "CREDIT"
+                        case MutationKind.DEBIT => "DEBIT"
+                    }
+                    println(s"    - $mutationKind ${amount format IDR} - $info")
+                }
+
+                println("")
+            }
+
+
+            println("\n --------------- INVESTOR ACCOUNT -----------------")
 
             Investor.foreach { investor =>
                 println("\n")

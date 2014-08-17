@@ -298,7 +298,7 @@ class AdminBusinessSnippet {
     private def busProfId = S.param("busProfId").openOr("0").toLong
 
     def shareReportTitle:CssSel = {
-        "h1 *" #> s"Profit Share Report #$busProfId"
+        "h1 *" #> s"Profit Share #$busProfId"
     }
 
     private def buildShareReportListItem(shareReport:BusinessManager.ShareReport) = {

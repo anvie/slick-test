@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessBalance.ddl ++ BusinessFinance.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey
@@ -152,6 +152,67 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table Business */
   lazy val Business = new TableQuery(tag => new Business(tag))
+  
+  /** Entity class storing rows of table BusinessBalance
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param busId Database column BUS_ID 
+   *  @param balance Database column BALANCE  */
+  case class BusinessBalanceRow(id: Long, busId: Long, balance: Double)
+  /** GetResult implicit for fetching BusinessBalanceRow objects using plain SQL queries */
+  implicit def GetResultBusinessBalanceRow(implicit e0: GR[Long], e1: GR[Double]): GR[BusinessBalanceRow] = GR{
+    prs => import prs._
+    BusinessBalanceRow.tupled((<<[Long], <<[Long], <<[Double]))
+  }
+  /** Table description of table BUSINESS_BALANCE. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessBalance(tag: Tag) extends Table[BusinessBalanceRow](tag, "BUSINESS_BALANCE") {
+    def * = (id, busId, balance) <> (BusinessBalanceRow.tupled, BusinessBalanceRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, busId.?, balance.?).shaped.<>({r=>import r._; _1.map(_=> BusinessBalanceRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
+    /** Database column BALANCE  */
+    val balance: Column[Double] = column[Double]("BALANCE")
+  }
+  /** Collection-like TableQuery object for table BusinessBalance */
+  lazy val BusinessBalance = new TableQuery(tag => new BusinessBalance(tag))
+  
+  /** Entity class storing rows of table BusinessFinance
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param busId Database column BUS_ID 
+   *  @param kind Database column KIND 
+   *  @param amount Database column AMOUNT 
+   *  @param info Database column INFO 
+   *  @param ts Database column TS  */
+  case class BusinessFinanceRow(id: Long, busId: Long, kind: Int, amount: Double, info: String, ts: java.sql.Timestamp)
+  /** GetResult implicit for fetching BusinessFinanceRow objects using plain SQL queries */
+  implicit def GetResultBusinessFinanceRow(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[String], e4: GR[java.sql.Timestamp]): GR[BusinessFinanceRow] = GR{
+    prs => import prs._
+    BusinessFinanceRow.tupled((<<[Long], <<[Long], <<[Int], <<[Double], <<[String], <<[java.sql.Timestamp]))
+  }
+  /** Table description of table BUSINESS_FINANCE. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessFinance(tag: Tag) extends Table[BusinessFinanceRow](tag, "BUSINESS_FINANCE") {
+    def * = (id, busId, kind, amount, info, ts) <> (BusinessFinanceRow.tupled, BusinessFinanceRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, busId.?, kind.?, amount.?, info.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> BusinessFinanceRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
+    /** Database column KIND  */
+    val kind: Column[Int] = column[Int]("KIND")
+    /** Database column AMOUNT  */
+    val amount: Column[Double] = column[Double]("AMOUNT")
+    /** Database column INFO  */
+    val info: Column[String] = column[String]("INFO")
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
+  }
+  /** Collection-like TableQuery object for table BusinessFinance */
+  lazy val BusinessFinance = new TableQuery(tag => new BusinessFinance(tag))
   
   /** Entity class storing rows of table BusinessGroup
    *  @param id Database column ID AutoInc

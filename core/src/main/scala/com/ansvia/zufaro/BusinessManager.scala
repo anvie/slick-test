@@ -61,8 +61,13 @@ object BusinessManager {
     def create(name:String, desc:String, fund:Double, share:Double, state:Int,
                shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
         val id = Zufaro.db.withSession { implicit sess =>
-            (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
+            val _id = (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
                 share, state, shareTime, _sharePeriod, now())
+
+            // create business account balance
+            BusinessBalance += BusinessBalanceRow(0L, _id, 0.0)
+
+            _id
         }
         getById(id).get
     }
@@ -183,6 +188,13 @@ trait BusinessHelpers {
             )
         }
 
+        def getBalance:Double = {
+            Zufaro.db.withSession { implicit sess =>
+                BusinessBalance.where(_.busId === business.id).map(_.balance).firstOption.getOrElse(0.0)
+            }
+        }
+
+
         def getReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
             Zufaro.db.withSession { implicit sess =>
                 BusinessProfit.where(_.busId === business.id).sortBy(_.ts.desc).run
@@ -240,6 +252,8 @@ trait BusinessHelpers {
                 ib <- InvestorBalance if ib.invId === iv.invId
             } yield (iv, ib)
 
+            var totalShared = 0D
+
             ivIb.foreach { case (iv, ib) =>
 
                 val margin = (iv.amount / business.fund) * bp.profit
@@ -252,10 +266,13 @@ trait BusinessHelpers {
                 ProfitShareJournal += ProfitShareJournalRow(business.id, bp.id, iv.invId, share, shareMethod.method,
                     Some(shareMethod.initiator.toString), now())
 
+
                 // tulis personal journal
                 Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
                     share, Some("bagi hasil dari bisnis " + business.name),
                     None, now())
+
+                totalShared += share
 
                 debug(f"profit shared from `${business.name} (${business.id})` " +
                     f"amount of $share%.02f to investor id `${iv.invId}`")
@@ -263,6 +280,21 @@ trait BusinessHelpers {
 
             BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
                 .update((true, now()))
+
+
+            /************************************************
+             * BUSINESS ACCOUNT MUTATION
+             ***********************************************/
+
+            val netto = bp.profit - totalShared
+            if (netto > 0.0){
+                val balQ = BusinessBalance.where(_.busId === business.id).map(_.balance)
+                val newBalance = balQ.firstOption.getOrElse(0.0) + netto
+                balQ.update(newBalance)
+            }
+            BusinessFinance += BusinessFinanceRow(0L, business.id, MutationKind.CREDIT, netto,
+                f"profit from business `${business.name}` #${business.id}", now())
+
 
             //// group business share not supported yet, fix this if necessary
 //            val groupQ = for {

@@ -134,7 +134,7 @@ object Test {
             }
 
             // remove test
-            temon.rmInvest(busCucianMobil)
+            temon.removeInvestment(busCucianMobil)
 
             println("\nbalance after invest:")
             Investor.foreach { inv =>

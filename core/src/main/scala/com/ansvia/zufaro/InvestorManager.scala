@@ -166,13 +166,6 @@ trait InvestorHelpers {
                 throw InsufficientBalanceException(f"Insufficient balance $curAmount%.02f < $amount%.02f")
         }
 
-
-        def rmInvest(business:BusinessRow) = {
-            Zufaro.db.withTransaction { implicit sess =>
-                Invest.where(iv => iv.busId === business.id && iv.invId === investor.id).delete
-            }
-        }
-
         def addBalance(by:Double, ref:Option[String]=None, initiator:Initiator=NoInitiator) = {
             Zufaro.db.withTransaction { implicit sess =>
                 val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
@@ -199,12 +192,22 @@ trait InvestorHelpers {
                   .firstOption.map(_.amount).getOrElse(0.0) )
         }
 
-        def getBusiness(offset:Int, limit:Int):Seq[BusinessRow] = {
+        def getBusiness(offset:Int, limit:Int, state:Int=BusinessManager.state.ANY):Seq[BusinessRow] = {
             Zufaro.db.withSession { implicit sess =>
-                val rv = for {
-                    i <- Invest if i.invId === investor.id
-                    bus <- Business if bus.id === i.busId
-                } yield bus
+                val rv =
+                    state match {
+                        case BusinessManager.state.ANY =>
+                            for {
+                                i <- Invest if i.invId === investor.id
+                                bus <- Business if bus.id === i.busId
+                            } yield bus
+                        case _state =>
+                            for {
+                                i <- Invest if i.invId === investor.id
+                                bus <- Business if bus.id === i.busId && bus.state === _state
+                            } yield bus
+                    }
+
                 rv.drop(offset).take(limit).run
             }
         }

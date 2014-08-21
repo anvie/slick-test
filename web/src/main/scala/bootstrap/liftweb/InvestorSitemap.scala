@@ -29,23 +29,18 @@ object InvestorSitemap {
     }
 
     private lazy val investorSubMenu =
+        /* ----------------- DASHBOARD ----------------- */
+        menu("investor/dashboard", "Dashboard") ::
         /* ------------------ BUSINESS ----------------- */
         menu("investor/business", "Business") ::
         menu("investor/business/add", "Business Add", Hidden) ::
         menu("investor/business/report", "Business Report", Hidden) ::
-        menu("investor/business/report/share-detail", "Share Detail", Hidden) ::
         menu("investor/business/project-report", "Project Report", Hidden) ::
         /* ------------------ Investor ----------------- */
         menu("investor/investor", "Investor") ::
         menu("investor/investor/add", "Investor Add", Hidden) ::
         menu("investor/investor/deposit", "Investor Deposit", Hidden) ::
         menu("investor/investor/business", "Investor Business", Hidden) ::
-        /* ------------------ Admin ----------------- */
-        menu("investor/admin", "Admin", InvestorOnly) ::
-        menu("investor/operator", "Operator", InvestorOnly) ::
-        /* ------------------ API ----------------- */
-        menu("investor/api", "API") ::
-        menu("investor/api/add", "API Add", Hidden) ::
         Nil
 
     private lazy val _sitemap =

@@ -19,7 +19,7 @@ object AdminSitemap {
 
     private val GROUP = "admin"
 
-    lazy val AdminOnly = If(()=>Auth.currentAdmin.isDefined, "Not found")
+    lazy val AdminOnly = If(()=>Auth.isLoggedIn_?("admin"), "Not found")
 
 
     private def menu(path:String, caption:String, locs:Loc.LocParam[Unit]*) = {

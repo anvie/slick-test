@@ -18,7 +18,7 @@ class NavbarSnippet {
 
     def welcome:CssSel = {
         "*" #> {
-            if (Auth.isLoggedIn_?){
+            if (Auth.isLoggedIn_?("any")){
                 "#WelcomeName *" #> {
                     Auth.currentAdmin.is.map { admin =>
                         admin.name

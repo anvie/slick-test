@@ -1,5 +1,7 @@
 package com.ansvia.zufaro.model
 
+import com.ansvia.zufaro.exception.ZufaroException
+
 /**
  * Author: robin
  * Date: 8/4/14
@@ -11,6 +13,16 @@ object UserRole {
     val ADMIN = 1
     val OPERATOR = 2
     val INVESTOR = 3
+
+    def toStr(role:Int) = role match {
+        case SYSTEM => "SYSTEM"
+        case ADMIN => "ADMIN"
+        case OPERATOR => "OPERATOR"
+        case INVESTOR => "INVESTOR"
+        case x =>
+            throw new ZufaroException(s"Unknown role code $role", -1)
+    }
+
 }
 
 object InvestorRole {

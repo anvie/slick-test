@@ -9,8 +9,12 @@
 
     <lift:embed what="admin/_chunk_login"></lift:embed>
 
-    <div class="lift:AuthSnippet.isLoggedIn?who=admin">
-        <h1 class="page-header">Welcome!</h1>
+    <div class="lift:AuthSnippet.isLoggedIn?who=investor;isNot=redirect;redirect-to=/">
+
+        <div class="lift:AuthSnippet.loginInfo">
+            <h1 class="page-header">Welcome <in:name></in:name>!</h1>
+
+        </div>
 
     </div>
 

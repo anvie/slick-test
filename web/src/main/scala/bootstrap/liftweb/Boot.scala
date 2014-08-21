@@ -20,6 +20,7 @@ class Boot extends Slf4jLogger {
 
         val sitemapEntries = (Menu(Loc("Home", List("index"), "Home")) :: Nil) ++
             AdminSitemap.sitemap ++
+            InvestorSitemap.sitemap ++
             WikiSitemap.sitemap
 
         LiftRules.setSiteMap(SiteMap(sitemapEntries: _*))

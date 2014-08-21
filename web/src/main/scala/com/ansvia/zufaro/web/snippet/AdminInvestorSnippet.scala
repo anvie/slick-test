@@ -28,6 +28,7 @@ import com.ansvia.zufaro.web.Auth
 class AdminInvestorSnippet {
 
     import com.ansvia.zufaro.InvestorHelpers._
+    import com.ansvia.zufaro.ZufaroHelpers._
 
     private object nameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
@@ -120,7 +121,7 @@ class AdminInvestorSnippet {
                     Text("-")
                 }
             </td>
-            <td>{inv.getBalance}</td>
+            <td>{inv.getBalance.format(IDR)}</td>
             <td>
 
                 <div class="dropdown">

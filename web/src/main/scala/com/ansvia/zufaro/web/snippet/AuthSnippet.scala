@@ -17,15 +17,21 @@ import com.ansvia.zufaro.model.UserRole
 object AuthSnippet {
 
     def isLoggedIn(in:NodeSeq):NodeSeq = {
-        if (Auth.isLoggedIn_?(S.attr("who").openOr("admin")))
-            in
-        else
+        if (Auth.isLoggedIn_?(S.attr("who").openOr("admin"))){
+            S.attr("isYes").openOr("") match {
+                case "redirect" =>
+                    S.redirectTo(S.attr("redirectTo").openOr("/"), ()=> S.error("Not Found"))
+                case _ =>
+                    in
+            }
+        } else {
             S.attr("isNot").openOr("") match {
                 case "redirect" =>
-                    S.redirectTo(S.attr("redirect-to").openOr("/"), ()=> S.error("Not Found"))
+                    S.redirectTo(S.attr("redirectTo").openOr("/"), ()=> S.error("Not Found"))
                 case _ =>
                     NodeSeq.Empty
             }
+        }
     }
 
     def isAnon(in:NodeSeq):NodeSeq = {

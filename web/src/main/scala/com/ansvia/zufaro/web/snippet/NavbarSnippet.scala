@@ -23,7 +23,13 @@ class NavbarSnippet {
                     Auth.currentAdmin.is.map { admin =>
                         admin.name
                     }.getOrElse {
-                        "Unknown"
+                        Auth.currentInvestor.is.map { investor =>
+                            investor.name
+                        }.getOrElse {
+                            Auth.currentOperator.is.map { operator =>
+                                operator.name
+                            }.getOrElse("unknown")
+                        }
                     }
                 }
             }else

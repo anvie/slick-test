@@ -1,0 +1,89 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+    <!--<title class="lift:MetaTitleSnippet.pageTitle"></title>-->
+    <!--<meta class="lift:MetaTitleSnippet.pageMeta" />-->
+
+    <link href="/assets/img/favicon.png?h=1DFC6AF7" rel="shortcut icon" />
+
+    <style class="lift:AssetsSnippet.css"></style>
+    <style class="lift:AssetsSnippet.js"></style>
+
+    <link rel="stylesheet" href="/assets/css/dashboard.css" />
+
+</head>
+<body>
+
+<header class="navbar navbar-inverse navbar-static-top bs-docs-nav" id="top" role="banner">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/" class="navbar-brand">ZUFARO</a>
+        </div>
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav">
+                <!--<li>-->
+                    <!--<a href="/admin">Admin</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../css">CSS</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../components">Components</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../javascript">JavaScript</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                <!--<a href="../customize">Customize</a>-->
+                <!--</li>-->
+            </ul>
+            <div class="lift:NavbarSnippet.welcome nav navbar-nav navbar-right">
+                <div style="padding: 15px; color: #aaa;">logged in as
+                    <a id="WelcomeName" href="#">robin</a>,
+                    <span><a href="/logout" style="color: #aaa;">logout</a></span>
+                </div>
+                <!--<li><a href="http://expo.getbootstrap.com" onclick="ga('send', 'event', 'Navbar', 'Community links', 'Expo');">Expo</a></li>-->
+                <!--<li><a href="http://blog.getbootstrap.com" onclick="ga('send', 'event', 'Navbar', 'Community links', 'Blog');">Blog</a></li>-->
+            </div>
+        </nav>
+    </div>
+</header>
+
+<div class="lift:AuthSnippet.isAnon?who=any">
+    <lift:embed what="admin/_chunk_alert"></lift:embed>
+</div>
+
+<div class="container-fluid">
+    <div class="hidden-loader" style="display: none;">
+        <img alt="" class="ajax-loader" src="/images/ajax-loader.gif">
+    </div>
+
+    <div class="lift:AuthSnippet.isLoggedIn?who=admin row">
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <!--<ul class="nav nav-sidebar">-->
+                <!--<li class="active"><a href="/admin/bussiness">Business</a></li>-->
+            <!--</ul>-->
+
+            <span data-lift="lift:Menu.builder?li_item:class=active;ul:class=nav+nav-sidebar;group=investor;linkToSelf=true"></span>
+
+        </div>
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <lift:embed what="admin/_chunk_alert"></lift:embed>
+            <div id="content">The main content will get bound here</div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

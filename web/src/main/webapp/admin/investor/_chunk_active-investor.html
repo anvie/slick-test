@@ -1,4 +1,9 @@
 <div>
+    <style type="text/css">
+        .hidden {
+            display: none;
+        }
+    </style>
 
     <a href="/admin/investor/add" class="btn btn-default">+ Add new investor</a>
 
@@ -9,6 +14,7 @@
         <tr>
             <th style="width: 40px;">ID</th>
             <th>Name</th>
+            <th style="width: 500px;">Address</th>
             <th>Business</th>
             <th>Balance</th>
             <th>Op</th>
@@ -18,6 +24,7 @@
             <tr>
                 <td>1</td>
                 <td>Tere</td>
+                <td>Jakarta</td>
                 <td>Pulsa</td>
                 <td>$100.0</td>
                 <td>menu</td>
@@ -25,4 +32,11 @@
         </tbody>
     </table>
 
+    <script type="text/javascript">
+        //<![CDATA[
+        function showAddressDetail(id){
+            $("#AddressDetail-" + id).toggleClass("hidden");
+        }
+        //]]>
+    </script>
 </div>

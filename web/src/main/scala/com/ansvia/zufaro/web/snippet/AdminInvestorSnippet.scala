@@ -40,7 +40,7 @@ class AdminInvestorSnippet {
     private object cityVar extends RequestVar("")
     private object provinceVar extends RequestVar("")
     private object countryVar extends RequestVar("")
-    private object postalCodeVar extends RequestVar(0L)
+    private object postalCodeVar extends RequestVar("")
     private object emailVar extends RequestVar("")
     private object phone1Var extends RequestVar("")
     private object phone2Var extends RequestVar("")
@@ -80,7 +80,7 @@ class AdminInvestorSnippet {
                     case "supervisor" => InvestorRole.SUPERVISOR
                 }
 
-                val addr = Address(addressVar, cityVar, provinceVar, countryVar, postalCodeVar)
+                val addr = Address(addressVar, cityVar, provinceVar, countryVar, postalCodeVar.is.toLong)
                 addr.validate()
                 val contact = Contact(addr, emailVar, phone1Var, phone2Var)
 
@@ -104,6 +104,14 @@ class AdminInvestorSnippet {
         "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
         "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
         "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
+        "email" -> SHtml.text(emailVar, emailVar(_), "class" -> "form-control", "id" -> "Email"),
+        "address" -> SHtml.textarea(addressVar, addressVar(_), "class" -> "form-control", "id" -> "Address"),
+        "city" -> SHtml.text(cityVar, cityVar(_), "class" -> "form-control", "id" -> "City"),
+        "province" -> SHtml.text(provinceVar, provinceVar(_), "class" -> "form-control", "id" -> "Province"),
+        "country" -> SHtml.text(countryVar, countryVar(_), "class" -> "form-control", "id" -> "Country"),
+        "postal-code" -> SHtml.text(postalCodeVar, postalCodeVar(_), "class" -> "form-control", "id" -> "PostalCode"),
+        "phone1" -> SHtml.text(phone1Var, phone1Var(_), "class" -> "form-control", "id" -> "Phone1"),
+        "phone2" -> SHtml.text(phone2Var, phone2Var(_), "class" -> "form-control", "id" -> "Phone2"),
         "submit" -> SHtml.submit("Create", doCreateInternal, "class" -> "btn btn-success")
         )
     }
@@ -115,13 +123,7 @@ class AdminInvestorSnippet {
         def updater() = {
             val investors = InvestorManager.getList(0, 50)
             val ns = NodeSeq.fromSeq(investors.map(buildInvestorListItem))
-            new JsCmd {
-                def toJsCmd: String = {
-                    fixHtmlFunc("inline", ns){ nss =>
-                        SetHtml("List", ns)
-                    }
-                }
-            }
+            SetHtml("List", ns)
         }
 
         val deleter = {
@@ -139,9 +141,38 @@ class AdminInvestorSnippet {
             <li>{bus.name} #{bus.id}</li>
         }
 
+        val contact = {
+            <td>
+                {inv.city} - <a href="javascript://" onclick={s"showAddressDetail('${inv.id}');"}>show detail</a>
+                <div id={s"AddressDetail-${inv.id}"} class="hidden">
+                    {
+                    <strong>Address:</strong><br />
+                    <p>{inv.address}</p>
+                    <p>City: {inv.city}<br />
+                    Province: {inv.province}<br />
+                    Country: {inv.country}<br />
+                    Postal code: {inv.postalCode}<br />
+                    </p>
+                    <hr />
+                    <p><strong>Phone:</strong><br />
+                        <ul>
+                            <li>#1 {inv.phone1}</li>
+                            <li>#2 {inv.phone2}</li>
+                        </ul>
+                    </p>
+                    <hr />
+                    <p><strong>Email: </strong><br />
+                        {inv.email}
+                    </p>
+                    }
+                </div>
+            </td>
+        }
+
         <tr>
             <td>{inv.id}</td>
             <td>{inv.name}</td>
+            {contact}
             <td>{
                 if (businessNs.length > 0){
                     <ul>{NodeSeq.fromSeq(businessNs)}</ul>

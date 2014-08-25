@@ -12,7 +12,7 @@ import xml.NodeSeq
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js._
 import JsCmds._
-import net.liftweb.http.js.JE.Str
+import net.liftweb.http.js.JE.{JsRaw, Str}
 import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.util.NamedPF
 
@@ -152,4 +152,14 @@ abstract class MtTabInterface extends DispatchSnippet {
 
 
 }
+
+trait HTML5HistoryHandler {
+    this: MtTabInterface =>
+
+    protected def urlFormat(tabName:String):String = s"/$tmplDir/$tabName"
+
+    override def preSendJs(tabName: String): JsCmd =
+        JsRaw(s"History.pushState(null,null,'${urlFormat(tabName)}');").cmd
+}
+
 

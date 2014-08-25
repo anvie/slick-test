@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessAccountMutation.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessAccountMutation.ddl ++ BusinessAsset.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Employee.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey
@@ -38,6 +38,9 @@ trait Tables {
     val name: Column[String] = column[String]("NAME")
     /** Database column PASSHASH  */
     val passhash: Column[String] = column[String]("PASSHASH")
+    
+    /** Uniqueness Index over (name) (database name CONSTRAINT_INDEX_3) */
+    val index1 = index("CONSTRAINT_INDEX_3", name, unique=true)
   }
   /** Collection-like TableQuery object for table Admin */
   lazy val Admin = new TableQuery(tag => new Admin(tag))
@@ -194,6 +197,47 @@ trait Tables {
   /** Collection-like TableQuery object for table BusinessAccountMutation */
   lazy val BusinessAccountMutation = new TableQuery(tag => new BusinessAccountMutation(tag))
   
+  /** Entity class storing rows of table BusinessAsset
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param busId Database column BUS_ID 
+   *  @param content Database column CONTENT 
+   *  @param kind Database column KIND 
+   *  @param creator Database column CREATOR 
+   *  @param creatorRole Database column CREATOR_ROLE 
+   *  @param ts Database column TS 
+   *  @param lastUpdated Database column LAST_UPDATED  */
+  case class BusinessAssetRow(id: Long, busId: Long, content: String, kind: Int, creator: Long, creatorRole: Int, ts: java.sql.Timestamp, lastUpdated: java.sql.Timestamp)
+  /** GetResult implicit for fetching BusinessAssetRow objects using plain SQL queries */
+  implicit def GetResultBusinessAssetRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int], e3: GR[java.sql.Timestamp]): GR[BusinessAssetRow] = GR{
+    prs => import prs._
+    BusinessAssetRow.tupled((<<[Long], <<[Long], <<[String], <<[Int], <<[Long], <<[Int], <<[java.sql.Timestamp], <<[java.sql.Timestamp]))
+  }
+  /** Table description of table BUSINESS_ASSET. Objects of this class serve as prototypes for rows in queries. */
+  class BusinessAsset(tag: Tag) extends Table[BusinessAssetRow](tag, "BUSINESS_ASSET") {
+    def * = (id, busId, content, kind, creator, creatorRole, ts, lastUpdated) <> (BusinessAssetRow.tupled, BusinessAssetRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, busId.?, content.?, kind.?, creator.?, creatorRole.?, ts.?, lastUpdated.?).shaped.<>({r=>import r._; _1.map(_=> BusinessAssetRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
+    /** Database column CONTENT  */
+    val content: Column[String] = column[String]("CONTENT")
+    /** Database column KIND  */
+    val kind: Column[Int] = column[Int]("KIND")
+    /** Database column CREATOR  */
+    val creator: Column[Long] = column[Long]("CREATOR")
+    /** Database column CREATOR_ROLE  */
+    val creatorRole: Column[Int] = column[Int]("CREATOR_ROLE")
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
+    /** Database column LAST_UPDATED  */
+    val lastUpdated: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("LAST_UPDATED")
+  }
+  /** Collection-like TableQuery object for table BusinessAsset */
+  lazy val BusinessAsset = new TableQuery(tag => new BusinessAsset(tag))
+  
   /** Entity class storing rows of table BusinessGroup
    *  @param id Database column ID AutoInc
    *  @param name Database column NAME 
@@ -293,6 +337,41 @@ trait Tables {
   /** Collection-like TableQuery object for table BusinessProfit */
   lazy val BusinessProfit = new TableQuery(tag => new BusinessProfit(tag))
   
+  /** Entity class storing rows of table Employee
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param busId Database column BUS_ID 
+   *  @param name Database column NAME 
+   *  @param jobDesc Database column JOB_DESC 
+   *  @param salary Database column SALARY 
+   *  @param status Database column STATUS  */
+  case class EmployeeRow(id: Long, busId: Long, name: String, jobDesc: String, salary: Double, status: Int)
+  /** GetResult implicit for fetching EmployeeRow objects using plain SQL queries */
+  implicit def GetResultEmployeeRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Double], e3: GR[Int]): GR[EmployeeRow] = GR{
+    prs => import prs._
+    EmployeeRow.tupled((<<[Long], <<[Long], <<[String], <<[String], <<[Double], <<[Int]))
+  }
+  /** Table description of table EMPLOYEE. Objects of this class serve as prototypes for rows in queries. */
+  class Employee(tag: Tag) extends Table[EmployeeRow](tag, "EMPLOYEE") {
+    def * = (id, busId, name, jobDesc, salary, status) <> (EmployeeRow.tupled, EmployeeRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, busId.?, name.?, jobDesc.?, salary.?, status.?).shaped.<>({r=>import r._; _1.map(_=> EmployeeRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column BUS_ID  */
+    val busId: Column[Long] = column[Long]("BUS_ID")
+    /** Database column NAME  */
+    val name: Column[String] = column[String]("NAME")
+    /** Database column JOB_DESC  */
+    val jobDesc: Column[String] = column[String]("JOB_DESC")
+    /** Database column SALARY  */
+    val salary: Column[Double] = column[Double]("SALARY")
+    /** Database column STATUS  */
+    val status: Column[Int] = column[Int]("STATUS")
+  }
+  /** Collection-like TableQuery object for table Employee */
+  lazy val Employee = new TableQuery(tag => new Employee(tag))
+  
   /** Entity class storing rows of table Invest
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param invId Database column INV_ID 
@@ -331,31 +410,61 @@ trait Tables {
   /** Entity class storing rows of table Investor
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param name Database column NAME 
+   *  @param fullName Database column FULL_NAME 
    *  @param role Database column ROLE 
    *  @param passhash Database column PASSHASH 
+   *  @param address Database column ADDRESS 
+   *  @param city Database column CITY 
+   *  @param province Database column PROVINCE 
+   *  @param country Database column COUNTRY 
+   *  @param postalCode Database column POSTAL_CODE 
+   *  @param email Database column EMAIL 
+   *  @param phone1 Database column PHONE1 
+   *  @param phone2 Database column PHONE2 
    *  @param status Database column STATUS Default(1) */
-  case class InvestorRow(id: Long, name: String, role: Int, passhash: String, status: Int = 1)
+  case class InvestorRow(id: Long, name: String, fullName: String, role: Int, passhash: String, address: String, city: String, province: String, country: String, postalCode: Long, email: String, phone1: String, phone2: String, status: Int = 1)
   /** GetResult implicit for fetching InvestorRow objects using plain SQL queries */
   implicit def GetResultInvestorRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int]): GR[InvestorRow] = GR{
     prs => import prs._
-    InvestorRow.tupled((<<[Long], <<[String], <<[Int], <<[String], <<[Int]))
+    InvestorRow.tupled((<<[Long], <<[String], <<[String], <<[Int], <<[String], <<[String], <<[String], <<[String], <<[String], <<[Long], <<[String], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table INVESTOR. Objects of this class serve as prototypes for rows in queries. */
   class Investor(tag: Tag) extends Table[InvestorRow](tag, "INVESTOR") {
-    def * = (id, name, role, passhash, status) <> (InvestorRow.tupled, InvestorRow.unapply)
+    def * = (id, name, fullName, role, passhash, address, city, province, country, postalCode, email, phone1, phone2, status) <> (InvestorRow.tupled, InvestorRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, role.?, passhash.?, status.?).shaped.<>({r=>import r._; _1.map(_=> InvestorRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, fullName.?, role.?, passhash.?, address.?, city.?, province.?, country.?, postalCode.?, email.?, phone1.?, phone2.?, status.?).shaped.<>({r=>import r._; _1.map(_=> InvestorRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get, _11.get, _12.get, _13.get, _14.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column NAME  */
     val name: Column[String] = column[String]("NAME")
+    /** Database column FULL_NAME  */
+    val fullName: Column[String] = column[String]("FULL_NAME")
     /** Database column ROLE  */
     val role: Column[Int] = column[Int]("ROLE")
     /** Database column PASSHASH  */
     val passhash: Column[String] = column[String]("PASSHASH")
+    /** Database column ADDRESS  */
+    val address: Column[String] = column[String]("ADDRESS")
+    /** Database column CITY  */
+    val city: Column[String] = column[String]("CITY")
+    /** Database column PROVINCE  */
+    val province: Column[String] = column[String]("PROVINCE")
+    /** Database column COUNTRY  */
+    val country: Column[String] = column[String]("COUNTRY")
+    /** Database column POSTAL_CODE  */
+    val postalCode: Column[Long] = column[Long]("POSTAL_CODE")
+    /** Database column EMAIL  */
+    val email: Column[String] = column[String]("EMAIL")
+    /** Database column PHONE1  */
+    val phone1: Column[String] = column[String]("PHONE1")
+    /** Database column PHONE2  */
+    val phone2: Column[String] = column[String]("PHONE2")
     /** Database column STATUS Default(1) */
     val status: Column[Int] = column[Int]("STATUS", O.Default(1))
+    
+    /** Uniqueness Index over (name) (database name CONSTRAINT_INDEX_5) */
+    val index1 = index("CONSTRAINT_INDEX_5", name, unique=true)
   }
   /** Collection-like TableQuery object for table Investor */
   lazy val Investor = new TableQuery(tag => new Investor(tag))
@@ -428,18 +537,19 @@ trait Tables {
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param name Database column NAME 
    *  @param abilities Database column ABILITIES 
-   *  @param passhash Database column PASSHASH  */
-  case class OperatorRow(id: Long, name: String, abilities: String, passhash: String)
+   *  @param passhash Database column PASSHASH 
+   *  @param status Database column STATUS  */
+  case class OperatorRow(id: Long, name: String, abilities: String, passhash: String, status: Int)
   /** GetResult implicit for fetching OperatorRow objects using plain SQL queries */
-  implicit def GetResultOperatorRow(implicit e0: GR[Long], e1: GR[String]): GR[OperatorRow] = GR{
+  implicit def GetResultOperatorRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int]): GR[OperatorRow] = GR{
     prs => import prs._
-    OperatorRow.tupled((<<[Long], <<[String], <<[String], <<[String]))
+    OperatorRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table OPERATOR. Objects of this class serve as prototypes for rows in queries. */
   class Operator(tag: Tag) extends Table[OperatorRow](tag, "OPERATOR") {
-    def * = (id, name, abilities, passhash) <> (OperatorRow.tupled, OperatorRow.unapply)
+    def * = (id, name, abilities, passhash, status) <> (OperatorRow.tupled, OperatorRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, abilities.?, passhash.?).shaped.<>({r=>import r._; _1.map(_=> OperatorRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, abilities.?, passhash.?, status.?).shaped.<>({r=>import r._; _1.map(_=> OperatorRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -449,6 +559,11 @@ trait Tables {
     val abilities: Column[String] = column[String]("ABILITIES")
     /** Database column PASSHASH  */
     val passhash: Column[String] = column[String]("PASSHASH")
+    /** Database column STATUS  */
+    val status: Column[Int] = column[Int]("STATUS")
+    
+    /** Uniqueness Index over (name) (database name CONSTRAINT_INDEX_1) */
+    val index1 = index("CONSTRAINT_INDEX_1", name, unique=true)
   }
   /** Collection-like TableQuery object for table Operator */
   lazy val Operator = new TableQuery(tag => new Operator(tag))
@@ -527,7 +642,7 @@ trait Tables {
   lazy val ProjectReport = new TableQuery(tag => new ProjectReport(tag))
   
   /** Entity class storing rows of table ProjectWatcher
-   *  @param id Database column ID AutoInc
+   *  @param id Database column ID AutoInc, PrimaryKey
    *  @param invId Database column INV_ID 
    *  @param busId Database column BUS_ID  */
   case class ProjectWatcherRow(id: Long, invId: Long, busId: Long)
@@ -542,8 +657,8 @@ trait Tables {
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (id.?, invId.?, busId.?).shaped.<>({r=>import r._; _1.map(_=> ProjectWatcherRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
-    /** Database column ID AutoInc */
-    val id: Column[Long] = column[Long]("ID", O.AutoInc)
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column INV_ID  */
     val invId: Column[Long] = column[Long]("INV_ID")
     /** Database column BUS_ID  */

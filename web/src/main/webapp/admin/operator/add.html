@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body class="lift:content_id=Main">
+
+<div id="Main" data-lift="Surround?with=admin;at=content">
+
+    <head_embed>
+        <style type="text/css">
+        </style>
+    </head_embed>
+
+    <h1>Add new Investor</h1>
+
+
+    <div style="width: 500px;">
+        <div class="lift:AdminInvestorSnippet.addNew?form=POST">
+
+            <div>
+                <label for="Name">Name:</label>
+                <div><in:name></in:name></div>
+            </div>
+            <div>
+                <label for="Role">Role:</label>
+                <div><in:role></in:role></div>
+            </div>
+            <div>
+                <label for="Password">Password:</label>
+                <div><in:password></in:password></div>
+            </div>
+            <div>
+                <label for="VerifyPassword">Verify Password:</label>
+                <div><in:verify-password></in:verify-password></div>
+            </div>
+
+            <div style="margin-top: 10px;" class="clearfix">
+                <hr />
+                <div class="pull-right">
+                    <a href="javascript://" onclick="history.back();" class="btn btn-default">Cancel</a>
+                    <in:submit></in:submit>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

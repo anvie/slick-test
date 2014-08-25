@@ -3,7 +3,7 @@ package com.ansvia.zufaro
 import scala.slick.driver.H2Driver.simple._
 import scala.slick.driver.H2Driver.backend
 import model.Tables._
-import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanceException}
+import com.ansvia.zufaro.exception.{InvalidParameterException, AlreadyInvestedException, InsufficientBalanceException}
 import com.ansvia.zufaro.model.{MutationKind, NoInitiator, Initiator}
 
 //import com.ansvia.zufaro.macros.RequireMacro
@@ -22,16 +22,43 @@ object InvestorManager {
         val SUSPENDED = 2
     }
 
+    case class Address(address:String, city:String, province:String, country:String, postalCode:Long){
+        def validate(){
+            if (address == "")
+                throw InvalidParameterException("No address")
+            if (city == "")
+                throw InvalidParameterException("No city")
+            if (province == "")
+                throw InvalidParameterException("No province")
+            if (country == "")
+                throw InvalidParameterException("No country")
+            if (postalCode == 0L)
+                throw InvalidParameterException("No postal code")
+        }
+
+    }
+    case class Contact(address:Address, email:String, phone1:String, phone2:String)
+
     /**
      * Create new investor
      * @param name investor name
+     * @param fullName investor name
      * @param role see [[com.ansvia.zufaro.model.InvestorRole]]
      * @return
      */
-    def create(name:String, role:Int, password:String) = {
+    def create(name:String, fullName:String, role:Int, password:String, contact:Contact) = {
         val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
-            val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, role, passHash)
+            val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, fullName,
+                role, passHash,
+                contact.address.address, contact.address.city,
+                contact.address.province,
+                contact.address.country,
+                contact.address.postalCode,
+                contact.email,
+                contact.phone1,
+                contact.phone2,
+                status.ACTIVE)
             InvestorBalance += InvestorBalanceRow(0L, userId, 0.0)
             userId
         }

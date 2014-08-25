@@ -6,31 +6,38 @@ import com.ansvia.zufaro.model._
 import java.util.UUID
 import java.io.{FilenameFilter, File}
 import com.ansvia.zufaro.model.Tables.InvestorRow
+import com.ansvia.zufaro.InvestorManager.{Address, Contact}
 
-object Test {
+
+object Test extends ZufaroTestHelpers {
 
     import Helpers._
     import ZufaroHelpers._
 
-
-    val dbTestFile = "/tmp/zufaro-data-test"
-
-    {   // clean up data file
-    val f = new File("/tmp")
-        if (f.exists()){
-            f.listFiles(new FilenameFilter {
-                def accept(dir: File, name: String): Boolean = name.startsWith("zufaro-data")
-            }).foreach { _f =>
-                println(s"deleting /tmp/${_f.getName} ...")
-                _f.delete()
-            }
-        }
-    }
-
-    Zufaro.jdbcUrl = s"jdbc:h2:$dbTestFile"
+//
+//    val dbTestFile = "/tmp/zufaro-data-test"
+//
+//    {   // clean up data file
+//    val f = new File("/tmp")
+//        if (f.exists()){
+//            f.listFiles(new FilenameFilter {
+//                def accept(dir: File, name: String): Boolean = name.startsWith("zufaro-data")
+//            }).foreach { _f =>
+//                println(s"deleting /tmp/${_f.getName} ...")
+//                _f.delete()
+//            }
+//        }
+//    }
+//
+//    Zufaro.jdbcUrl = s"jdbc:h2:$dbTestFile"
 
     private def genPass = {
         UUID.randomUUID().toString
+    }
+    private def genContact = {
+        val addr = Address(genRandomString,genRandomString,genRandomString,genRandomString,System.currentTimeMillis())
+        val email = s"$genRandomString@hello.com"
+        Contact(addr, email, genRandomString, genRandomString)
     }
 
 
@@ -45,17 +52,19 @@ object Test {
 //
 //            ddl.create
 
-            InvestorManager.create("robin", InvestorRole.OWNER, genPass)
-            InvestorManager.create("gondez", InvestorRole.OWNER, genPass)
-            InvestorManager.create("temon", InvestorRole.OWNER, genPass)
-            val imam = InvestorManager.create("imam", InvestorRole.OWNER, genPass)
+            val contacts = for (i <- 0 to 5) yield genContact
+
+            InvestorManager.create("robin", "robin", InvestorRole.OWNER, genPass, contacts(0))
+            InvestorManager.create("gondez", "gondez", InvestorRole.OWNER, genPass, contacts(1))
+            InvestorManager.create("temon", "temon", InvestorRole.OWNER, genPass, contacts(2))
+            val imam = InvestorManager.create("imam", "imam", InvestorRole.OWNER, genPass, contacts(3))
 
             //                Investor.users.foreach { case (id, name, role) =>
             //                    println(s" * $id - $name ($role)")
             //                }
 
             println("Investors:")
-            Investor.foreach { case InvestorRow(id, name, role, genPass, _) =>
+            Investor.foreach { case InvestorRow(id, name, role, genPass, _, _, _, _, _, _, _, _, _, _) =>
                 println(s" * $id - $name ($role)")
             }
 

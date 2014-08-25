@@ -15,7 +15,7 @@ import java.io.{FilenameFilter, File}
  *
  */
 
-abstract class ZufaroTest extends Specification with Slf4jLogger {
+abstract class ZufaroTest extends Specification with ZufaroTestHelpers with Slf4jLogger {
 
     val dbTestFile = "/tmp/zufaro-data-test"
 
@@ -33,8 +33,6 @@ abstract class ZufaroTest extends Specification with Slf4jLogger {
 
     Zufaro.jdbcUrl = s"jdbc:h2:$dbTestFile"
 
-    def genRandomString = {
-        Base64.encodeBase64String(DigestUtils.md5Hex(UUID.randomUUID().toString).getBytes("UTF-8")).replace("=","")
-    }
 
 }
+

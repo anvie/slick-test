@@ -75,6 +75,7 @@ object AdminSitemap {
     lazy val rewrite:LiftRules.RewritePF =
         com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite orElse
         com.ansvia.zufaro.web.snippet.AdminInvestorTab.rewrite orElse
+        com.ansvia.zufaro.web.snippet.AdminOperatorTab.rewrite orElse
             internalRewrite
 
 }

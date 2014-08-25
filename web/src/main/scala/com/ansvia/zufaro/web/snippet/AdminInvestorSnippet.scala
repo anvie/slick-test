@@ -13,7 +13,7 @@ import http._
 import Helpers._
 import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.InvestorManager
-import com.ansvia.zufaro.web.lib.MtTabInterface
+import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
@@ -23,6 +23,7 @@ import com.ansvia.zufaro.model.{UserRole, Initiator, InvestorRole}
 import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
 import com.ansvia.zufaro.web.Auth
+import com.ansvia.zufaro.InvestorManager.{Contact, Address}
 
 
 class AdminInvestorSnippet {
@@ -31,9 +32,18 @@ class AdminInvestorSnippet {
     import com.ansvia.zufaro.ZufaroHelpers._
 
     private object nameVar extends RequestVar("")
+    private object fullNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
     private object roleVar extends RequestVar("")
+    private object addressVar extends RequestVar("")
+    private object cityVar extends RequestVar("")
+    private object provinceVar extends RequestVar("")
+    private object countryVar extends RequestVar("")
+    private object postalCodeVar extends RequestVar(0L)
+    private object emailVar extends RequestVar("")
+    private object phone1Var extends RequestVar("")
+    private object phone2Var extends RequestVar("")
 
     def addNew(in:NodeSeq):NodeSeq = {
 
@@ -46,6 +56,20 @@ class AdminInvestorSnippet {
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
                     throw InvalidParameterException("Please verify password")
+                if (emailVar.isEmpty)
+                    throw InvalidParameterException("Please fill email")
+                if (addressVar.isEmpty)
+                    throw InvalidParameterException("Please fill address information")
+                if (cityVar.isEmpty)
+                    throw InvalidParameterException("Please fill address city information")
+                if (provinceVar.isEmpty)
+                    throw InvalidParameterException("Please fill address province information")
+                if (countryVar.isEmpty)
+                    throw InvalidParameterException("Please fill address country information")
+                if (postalCodeVar.is == 0L)
+                    throw InvalidParameterException("Please fill postal code information")
+                if (phone1Var.isEmpty && phone2Var.isEmpty)
+                    throw InvalidParameterException("Please fill at least 1 phone number")
 
                 if (passwordVar.is != verifyPasswordVar.is)
                     throw InvalidParameterException("Password verification didn't match")
@@ -56,7 +80,11 @@ class AdminInvestorSnippet {
                     case "supervisor" => InvestorRole.SUPERVISOR
                 }
 
-                val inv = InvestorManager.create(nameVar, role, passwordVar)
+                val addr = Address(addressVar, cityVar, provinceVar, countryVar, postalCodeVar)
+                addr.validate()
+                val contact = Contact(addr, emailVar, phone1Var, phone2Var)
+
+                val inv = InvestorManager.create(nameVar, fullNameVar, role, passwordVar, contact)
 
                 S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
             }
@@ -154,16 +182,16 @@ class AdminInvestorSnippet {
 }
 
 
-object AdminInvestorTab extends MtTabInterface {
+object AdminInvestorTab extends MtTabInterface with HTML5HistoryHandler {
     def defaultSelected: String = "active-investor"
 
     def tmplDir: String = "admin/investor"
 
     override def tabNames: Array[String] = Array("active-investor", "suspended-investor")
 
-    override def preSendJs(tabName: String): JsCmd = {
-        JsRaw(s"History.pushState(null,null,'/admin/investor/$tabName');").cmd
-    }
+//    override def preSendJs(tabName: String): JsCmd = {
+//        JsRaw(s"History.pushState(null,null,'/admin/investor/$tabName');").cmd
+//    }
 
     lazy val rewrite:LiftRules.RewritePF = NamedPF(s"${getClass.getSimpleName}Rewrite"){
         case RewriteRequest(ParsePath("admin" :: "investor" :: tabRe(tab) :: Nil, _, _, _), _, _) =>

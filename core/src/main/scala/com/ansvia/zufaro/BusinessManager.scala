@@ -20,7 +20,6 @@ object BusinessManager {
 
     import TimestampHelpers._
 
-
     object state {
 
         val ANY:Int = 0
@@ -154,6 +153,7 @@ trait BusinessHelpers {
 
     import BusinessManager.state._
     import TimestampHelpers._
+    import ZufaroHelpers._
 
     implicit class businessWrapper(business:BusinessRow) extends Slf4jLogger {
 
@@ -269,8 +269,13 @@ trait BusinessHelpers {
 
                 // tulis personal journal
                 Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
-                    share, Some("bagi hasil dari bisnis " + business.name),
+                    share, Some("bagi hasil dari bisnis: " + business.name),
                     None, now())
+
+                // tulis activity stream
+                Activity.publish("Profit share",
+                    s"From business: \"${business.name}\" amount of ${share format IDR}",
+                        iv.invId, Activity.kind.INVESTOR)
 
                 totalShared += share
 

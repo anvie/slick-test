@@ -8,6 +8,10 @@ import scala.xml.NodeSeq
 import net.liftweb.http.{RequestVar, SHtml}
 import com.ansvia.zufaro.exception.ZufaroException
 import com.ansvia.zufaro.web.Auth
+import com.ansvia.zufaro.Activity
+import com.ansvia.zufaro.Activity.ActivityStreamItem
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 /**
  * Author: robin
@@ -19,6 +23,8 @@ object InvestorSnippet {
 
     private object userNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
+
+    def investorO = Auth.currentInvestor.is
 
     def login(in:NodeSeq):NodeSeq = {
 
@@ -40,6 +46,25 @@ object InvestorSnippet {
                 SHtml.submit("Login", doLoginInternal, "class" -> "btn btn-success")
             //}
         )
+    }
+
+    private val dateTimeFormat = DateTimeFormat.forPattern("dd MMM yyyy HH:mm:ss")
+    
+    private def buildActivityListItem(activity:ActivityStreamItem) = {
+
+        val date = new DateTime(activity.ts).toString(dateTimeFormat)
+
+        <tr>
+            <td>{activity.activity}</td>
+            <td>{activity.info}</td>
+            <td>{date}</td>
+        </tr>
+    }
+
+
+    def recentActivityList:CssSel = {
+        val activities = Activity.getActivities(investorO.openOrThrowException("only for logged in investor"), 0, 5)
+        "#ListRecentActivity *" #> activities.map(a => buildActivityListItem(a))
     }
 
 }

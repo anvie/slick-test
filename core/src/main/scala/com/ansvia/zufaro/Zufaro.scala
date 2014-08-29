@@ -50,7 +50,7 @@ object ZufaroHelpers {
         def format(currency:Int) = {
             currency match {
                 case IDR =>
-                    f"Rp.$d%.01f,-"
+                    f"Rp.$d%.02f,-"
                 case USD =>
                     f"$$ $d%.01f USD"
                 case SGD =>

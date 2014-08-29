@@ -19,25 +19,37 @@ trait Tables {
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey
    *  @param name Database column NAME 
-   *  @param passhash Database column PASSHASH  */
-  case class AdminRow(id: Long, name: String, passhash: String)
+   *  @param email Database column EMAIL 
+   *  @param phone Database column PHONE 
+   *  @param passhash Database column PASSHASH 
+   *  @param createdAt Database column CREATED_AT 
+   *  @param status Database column STATUS  */
+  case class AdminRow(id: Long, name: String, email: String, phone: String, passhash: String, createdAt: java.sql.Timestamp, status: Int)
   /** GetResult implicit for fetching AdminRow objects using plain SQL queries */
-  implicit def GetResultAdminRow(implicit e0: GR[Long], e1: GR[String]): GR[AdminRow] = GR{
+  implicit def GetResultAdminRow(implicit e0: GR[Long], e1: GR[String], e2: GR[java.sql.Timestamp], e3: GR[Int]): GR[AdminRow] = GR{
     prs => import prs._
-    AdminRow.tupled((<<[Long], <<[String], <<[String]))
+    AdminRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[String], <<[java.sql.Timestamp], <<[Int]))
   }
   /** Table description of table ADMIN. Objects of this class serve as prototypes for rows in queries. */
   class Admin(tag: Tag) extends Table[AdminRow](tag, "ADMIN") {
-    def * = (id, name, passhash) <> (AdminRow.tupled, AdminRow.unapply)
+    def * = (id, name, email, phone, passhash, createdAt, status) <> (AdminRow.tupled, AdminRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, name.?, passhash.?).shaped.<>({r=>import r._; _1.map(_=> AdminRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, name.?, email.?, phone.?, passhash.?, createdAt.?, status.?).shaped.<>({r=>import r._; _1.map(_=> AdminRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
     /** Database column NAME  */
     val name: Column[String] = column[String]("NAME")
+    /** Database column EMAIL  */
+    val email: Column[String] = column[String]("EMAIL")
+    /** Database column PHONE  */
+    val phone: Column[String] = column[String]("PHONE")
     /** Database column PASSHASH  */
     val passhash: Column[String] = column[String]("PASSHASH")
+    /** Database column CREATED_AT  */
+    val createdAt: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("CREATED_AT")
+    /** Database column STATUS  */
+    val status: Column[Int] = column[Int]("STATUS")
     
     /** Uniqueness Index over (name) (database name CONSTRAINT_INDEX_3) */
     val index1 = index("CONSTRAINT_INDEX_3", name, unique=true)

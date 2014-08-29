@@ -4,12 +4,13 @@ import net.liftweb._
 import http._
 import util._
 import Helpers._
-import scala.xml.NodeSeq
+import scala.xml.{Text, NodeSeq}
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.exception.{UnimplementedException, InvalidParameterException, ZufaroException}
 import net.liftweb.common.Full
 import com.ansvia.zufaro.AdminManager
 import com.ansvia.commons.logging.Slf4jLogger
+import com.ansvia.zufaro.web.util.JsUtils
 
 /**
  * Author: robin
@@ -20,6 +21,8 @@ import com.ansvia.commons.logging.Slf4jLogger
 class AdminSnippet extends Slf4jLogger {
 
     private object userNameVar extends RequestVar("")
+    private object emailVar extends RequestVar("")
+    private object phoneVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object kindVar extends RequestVar("")
 
@@ -44,7 +47,7 @@ class AdminSnippet extends Slf4jLogger {
                         if (userNameVar.is == "admin" && AdminManager.getByName("admin") == None){
                             // create first
                             warn("first init detected, do admin creation")
-                            AdminManager.create(userNameVar.is, passwordVar.is, "")
+                            AdminManager.create(userNameVar.is, "", "", passwordVar.is, "")
                         }
 
                         Auth.adminLogin(userNameVar.is, passwordVar.is)
@@ -81,5 +84,8 @@ class AdminSnippet extends Slf4jLogger {
                 "Surround?with=default;at=content"
         }
     }
+
+
+
 
 }

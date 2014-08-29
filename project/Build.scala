@@ -40,6 +40,7 @@ object Build extends Build {
 
     lazy val zufaroWeb = Project("zufaro-web", file("web"))
           .settings(moduleSettings: _*)
+          .settings(version := /*WEB_VERSION*/ "0.0.5")
           .settings(com.earldouglas.xsbtwebplugin.WebPlugin.webSettings: _*)
           .settings(slickTask <<= slickCodeGenTask)
           .settings(libraryDependencies ++=

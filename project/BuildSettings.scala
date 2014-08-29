@@ -33,12 +33,12 @@ object BuildSettings {
     // (externalResolvers in LsKeys.lsync) := Seq("spray repo" at "http://repo.spray.cc")
   )
 
-  lazy val noPublishing = seq(
+  lazy val noPublishing = Seq(
     publish := (),
     publishLocal := ()
   )
   
-  lazy val withPublishing = seq(
+  lazy val withPublishing = Seq(
       publishTo <<= version { (v:String) =>
             val ansviaRepo = "http://scala.repo.ansvia.com/nexus"
             if(v.trim.endsWith("SNAPSHOT"))

@@ -39,7 +39,7 @@ object Activity {
             val q = for {
                 as <- ActivityStream if as.subscriberId === investor.id && as.subscriberKind === kind.INVESTOR
             } yield (as.id, as.activity, as.info, as.ts)
-            q.sortBy(_._3).drop(offset).take(limit)
+            q.sortBy(_._4.desc).drop(offset).take(limit)
                 .run.map(a => ActivityStreamItem(a._1, a._2, a._3, new Date(a._4.getTime)))
         }
     }

@@ -4,7 +4,7 @@ import net.liftweb._
 import util._
 import Helpers._
 import http._
-import scala.xml.NodeSeq
+import scala.xml.{Node, NodeSeq}
 import net.liftweb.http.{RequestVar, SHtml}
 import com.ansvia.zufaro.exception.ZufaroException
 import com.ansvia.zufaro.web.Auth
@@ -50,7 +50,7 @@ object InvestorSnippet {
 
     private val dateTimeFormat = DateTimeFormat.forPattern("dd MMM yyyy HH:mm:ss")
     
-    private def buildActivityListItem(activity:ActivityStreamItem) = {
+    private def buildActivityListItem(activity:ActivityStreamItem):Node = {
 
         val date = new DateTime(activity.ts).toString(dateTimeFormat)
 
@@ -64,7 +64,7 @@ object InvestorSnippet {
 
     def recentActivityList:CssSel = {
         val activities = Activity.getActivities(investorO.openOrThrowException("only for logged in investor"), 0, 5)
-        "#ListRecentActivity *" #> activities.map(a => buildActivityListItem(a))
+        "#ListRecentActivity *" #> NodeSeq.fromSeq(activities.map(a => buildActivityListItem(a)))
     }
 
 }

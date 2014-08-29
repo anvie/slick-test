@@ -12,6 +12,9 @@ import com.ansvia.zufaro.{ApiClientManager, BusinessManager}
 import com.ansvia.zufaro.model.UserRole
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
+import com.ansvia.zufaro.ApiClientHelpers._
+import net.liftweb.http.js.JsCmds.SetHtml
+import com.ansvia.zufaro.web.util.JsUtils
 
 
 /**
@@ -82,19 +85,32 @@ class AdminApiSnippet {
             JsRaw("Success").cmd
         }
 
+        val regenerateApiKey = {
+            SHtml.a(()=>{
+
+                val newApiKey = client.regenerateKey()
+
+                SetHtml("ApiClient-" + client.id, Text(newApiKey)) &
+                    JsUtils.showNotice("API key regenerated")
+
+            },Text("Regenerate API key"))
+        }
+
         <tr>
             <td>{client.id.toString}</td>
             <td>{client.name}</td>
             <td>{client.desc}</td>
             <td>-</td>
-            <td>{client.key}</td>
+            <td id={"ApiClient-" + client.id}>{client.key}</td>
             <td>
 
 
                 <div class="dropdown">
-                    <a data-toogle="dropdown" href="#"><span class="icon icon-gear"></span></a>
+                    <a data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <li>{regenerateApiKey}</li>
+                        <li class="divider"></li>
                         <li>
                             {SHtml.a(deleteInternal,Text("Delete"))}
                         </li>

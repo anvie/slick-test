@@ -63,6 +63,7 @@ object BusinessManager {
      * Create new business
      * @param name business name.
      * @param desc business description.
+     * @param tags business tags, separated by comma.
      * @param fund fund
      * @param share investment share.
      * @param state see [[com.ansvia.zufaro.BusinessManager.state]]
@@ -70,12 +71,12 @@ object BusinessManager {
      * @param _sharePeriod share period.
      * @return
      */
-    def create(name:String, desc:String, fund:Double, share:Double, state:Int,
+    def create(name:String, desc:String, tags:String, fund:Double, share:Double, state:Int,
                shareTime:Int=1, _sharePeriod:Int=sharePeriod.MONTHLY) = {
 
         val id = Zufaro.db.withSession { implicit sess =>
 
-            val _id = (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, fund,
+            val _id = (Business returning Business.map(_.id)) += BusinessRow(0L, name, desc, tags, fund,
                 share, state, shareTime, _sharePeriod, 0.0, now())
 
             // create business account balance

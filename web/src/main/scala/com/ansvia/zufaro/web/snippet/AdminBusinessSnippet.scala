@@ -41,6 +41,7 @@ class AdminBusinessSnippet {
     private def busO = BusinessManager.getById(busId)
 
     private object nameVar extends RequestVar("")
+    private object tagsVar extends RequestVar("")
     private object descVar extends RequestVar("")
     private object fundVar extends RequestVar(0.0)
     private object divInvestorVar extends RequestVar(0.0)
@@ -64,7 +65,7 @@ class AdminBusinessSnippet {
                 }
 
 
-                val bus = BusinessManager.create(nameVar, descVar, fundVar, divInvestorVar, stateVar)
+                val bus = BusinessManager.create(nameVar, descVar, tagsVar.trim, fundVar, divInvestorVar, stateVar)
 
                 S.redirectTo("/admin/business/project", () => S.notice(s"Success added business `${bus.name}` with id `${bus.id}`"))
 
@@ -81,6 +82,7 @@ class AdminBusinessSnippet {
             "description" -> SHtml.textarea(descVar, descVar(_), "class" -> "form-control", "id" -> "Desc"),
             "fund" -> SHtml.number(fundVar, fundVar(_), 0.0, 9999999.0, 1.0, "class" -> "form-control", "id" -> "Fund"),
             "div-investor" -> SHtml.number(divInvestorVar, divInvestorVar(_), 0.0, 100.0, 1.0, "class" -> "form-control", "id" -> "DivInvestor"),
+            "tags" -> SHtml.text(tagsVar, tagsVar(_), "class" -> "form-control", "id" -> "Tags"),
             "submit" -> SHtml.submit("Add", doAddNew, "class" -> "btn btn-success")
         )
     }

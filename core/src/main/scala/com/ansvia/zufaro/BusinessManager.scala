@@ -51,6 +51,12 @@ object BusinessManager {
         val YEAR = 3
     }
 
+    object reportStatus {
+        val NEW = 0
+        val ACCEPTED = 1
+        val INVALID = 2
+    }
+
     case class ShareReport(investorId:Long, investorName:String, amount:Double, date:Date)
 
     /**
@@ -159,6 +165,7 @@ object BusinessManager {
 trait BusinessHelpers {
 
     import BusinessManager.state._
+    import BusinessManager.reportStatus
     import TimestampHelpers._
     import ZufaroHelpers._
 
@@ -179,7 +186,7 @@ trait BusinessHelpers {
                 val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += 
                     BusinessProfitRow(0L, business.id, omzet, 
                     profit, now(), mutator.id,
-                    mutatorRole, additionalInfo, shared=false, sharedAt=now())
+                    mutatorRole, additionalInfo, shared=false, sharedAt=now(), reportStatus.NEW)
 
                 debug(f"profit added for business id `${business.id}`, omzet $omzet%.02f, " +
                     f"profit $profit%.02f, ref id: ${_busProfitId}")
@@ -290,8 +297,8 @@ trait BusinessHelpers {
                     f"amount of $share%.02f to investor id `${iv.invId}`")
             }
 
-            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt))
-                .update((true, now()))
+            BusinessProfit.where(_.id === bp.id).map(d => (d.shared, d.sharedAt, d.status))
+                .update((true, now(), reportStatus.ACCEPTED))
 
 
             /************************************************
@@ -335,6 +342,14 @@ trait BusinessHelpers {
 //                    Some("bagi hasil dari bisnis " + business.name + " group of " + g.name), new Timestamp(new Date().getTime))
 //            }
         }
+
+        def invalidateReport(bp:BusinessProfitRow){
+            Zufaro.db.withTransaction { implicit sess =>
+                // @TODO(robin): use `state=reportStatus.INVALID` instead of permanently deletion
+                BusinessProfit.where(_.id === bp.id).delete
+            }
+        }
+
 
 
         /**

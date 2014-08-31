@@ -13,6 +13,8 @@ all: version
 	make assets
 
 version: VERSION
+
+VERSION:
 	@@rm -f $<
 	echo "core: $(CORE_VERSION)" >> VERSION
 	echo "web: $(WEB_VERSION)" >> VERSION

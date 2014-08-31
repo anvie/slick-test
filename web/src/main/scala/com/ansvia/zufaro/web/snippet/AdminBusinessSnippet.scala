@@ -237,11 +237,28 @@ class AdminBusinessSnippet {
             }
         }
 
+//        def invalidateReport = () => {
+//            if (bp.shared)
+//                throw new ZufaroException("Illegal Operation", 921)
+//
+//            bus.invalidateReport(bp)
+//
+//            JsUtils.showNotice("Success") & updateList(bus)
+//        }
+
 
         val shareOp = {
             if (!bp.shared){
 
-                SHtml.a(doShareProcess(), Text("share now"))
+                SHtml.a(doShareProcess(), Text("share now")) ++
+                <span> | </span> ++
+                JsUtils.ajaxConfirm("Are you sure to invalidate this report?" +
+                    " This action cannot be undone.", Text("invalidate"), "Invalidate this report"){
+
+                    bus.invalidateReport(bp)
+
+                    JsUtils.showNotice("Success") & updateList(bus)
+                }
 
             }else
                 NodeSeq.Empty

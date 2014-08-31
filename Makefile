@@ -12,9 +12,7 @@ all: version
 	tup upd
 	make assets
 
-version: VERSION
-
-VERSION:
+version:
 	@@rm -f $<
 	echo "core: $(CORE_VERSION)" >> VERSION
 	echo "web: $(WEB_VERSION)" >> VERSION
@@ -42,7 +40,7 @@ reset:
 
 clean:
 
-.PHONY: deploy clean restart assets reset
+.PHONY: deploy clean restart assets reset version
 
 
 

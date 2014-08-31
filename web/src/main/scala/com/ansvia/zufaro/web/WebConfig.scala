@@ -8,6 +8,6 @@ package com.ansvia.zufaro.web
  */
 object WebConfig {
 
-    val VERSION = "0.0.9" /* auto-generated, don't change this by hand! */
+    val VERSION = "0.0.10" /* auto-generated, don't change this by hand! */
 }
 

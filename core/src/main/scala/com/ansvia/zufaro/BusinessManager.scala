@@ -20,7 +20,6 @@ object BusinessManager {
 
     import TimestampHelpers._
 
-
     object state {
 
         val ANY:Int = 0
@@ -37,6 +36,13 @@ object BusinessManager {
         val PRODUCTION:Int = 2
 
         val CLOSED:Int = 3
+
+        def toStr(s:Int) = s match {
+            case DRAFT => "DRAFT"
+            case PRODUCTION => "PRODUCTION"
+            case CLOSED => "CLOSED"
+        }
+
     }
 
     object sharePeriod {
@@ -154,6 +160,7 @@ trait BusinessHelpers {
 
     import BusinessManager.state._
     import TimestampHelpers._
+    import ZufaroHelpers._
 
     implicit class businessWrapper(business:BusinessRow) extends Slf4jLogger {
 
@@ -269,8 +276,13 @@ trait BusinessHelpers {
 
                 // tulis personal journal
                 Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
-                    share, Some("bagi hasil dari bisnis " + business.name),
+                    share, Some("bagi hasil dari bisnis: " + business.name),
                     None, now())
+
+                // tulis activity stream
+                Activity.publish("Profit share",
+                    s"""From business: "${business.name}" amount of ${share format IDR}""",
+                        iv.invId, Activity.kind.INVESTOR)
 
                 totalShared += share
 
@@ -344,21 +356,83 @@ trait BusinessHelpers {
             }
         }
 
+        private def stateStr(state:Int) = {
+            state match {
+                case DRAFT => "project"
+                case PRODUCTION => "running"
+                case CLOSED => "closed"
+            }
+        }
+
         def makeProduction() = {
             Zufaro.db.withTransaction { implicit sess =>
+
+                val beforeStr = stateStr(business.state)
+
                 Business.where(_.id === business.id).map(_.state).update(PRODUCTION)
+
+                // publish activity
+                val q = for {
+                    iv <- Invest if iv.busId === business.id
+                    investor <- Investor if investor.id === iv.invId
+                } yield investor.id
+
+
+                val afterStr = stateStr(PRODUCTION)
+
+                q.foreach { investorId =>
+                    Activity.publish("Project progress", "Project \"" + business.name + "\" " +
+                        s"status changed from $beforeStr to $afterStr." +
+                        "This project ready for production.",
+                        investorId, Activity.kind.INVESTOR)
+                }
             }
         }
 
         def makeDraft() = {
             Zufaro.db.withTransaction { implicit sess =>
+                val beforeStr = stateStr(business.state)
+
                 Business.where(_.id === business.id).map(_.state).update(DRAFT)
+
+                // publish activity
+                val q = for {
+                    iv <- Invest if iv.busId === business.id
+                    investor <- Investor if investor.id === iv.invId
+                } yield investor.id
+
+
+                val afterStr = stateStr(DRAFT)
+
+                q.foreach { investorId =>
+                    Activity.publish("Project progress", s"""Project "${business.name}" """ +
+                        s"""status changed from $beforeStr to $afterStr""", investorId, Activity.kind.INVESTOR)
+                }
             }
+
+
         }
 
         def close() = {
             Zufaro.db.withTransaction { implicit sess =>
+
+                val beforeStr = stateStr(business.state)
+
                 Business.where(_.id === business.id).map(_.state).update(CLOSED)
+
+                // publish activity
+                val q = for {
+                    iv <- Invest if iv.busId === business.id
+                    investor <- Investor if investor.id === iv.invId
+                } yield investor.id
+
+
+                val afterStr = stateStr(CLOSED)
+
+                q.foreach { investorId =>
+                    Activity.publish("Project progress", s"""Project "${business.name}" """ +
+                        s"""status changed from $beforeStr to $afterStr""", investorId, Activity.kind.INVESTOR)
+                }
             }
         }
 
@@ -391,7 +465,25 @@ trait BusinessHelpers {
         def writeProjectReport(info:String, percentageDone:Double, initiator:Initiator) = {
             requireProject()
             Zufaro.db.withSession { implicit sess =>
+
+                val beforeStr = business.getPercentageDone()
+
                 ProjectReport += ProjectReportRow(0L, business.id, info, percentageDone, initiator.toString, now())
+
+                // publish activity
+                val q = for {
+                    iv <- Invest if iv.busId === business.id
+                    investor <- Investor if investor.id === iv.invId
+                } yield investor.id
+
+
+                val afterStr = percentageDone
+
+                q.foreach { investorId =>
+                    Activity.publish("Project progress", s"""Project "${business.name}" """ +
+                        f"""progress changed from $beforeStr%.02f%% to $afterStr%.02f%%, Info : $info""",
+                        investorId, Activity.kind.INVESTOR)
+                }
             }
         }
 

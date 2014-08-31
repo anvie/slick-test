@@ -36,11 +36,11 @@ object InvestorSitemap {
         menu("investor/business/add", "Business Add", Hidden) ::
         menu("investor/business/report", "Business Report", Hidden) ::
         menu("investor/business/project-report", "Project Report", Hidden) ::
-        /* ------------------ Investor ----------------- */
-        menu("investor/investor", "Investor") ::
-        menu("investor/investor/add", "Investor Add", Hidden) ::
-        menu("investor/investor/deposit", "Investor Deposit", Hidden) ::
-        menu("investor/investor/business", "Investor Business", Hidden) ::
+//        /* ------------------ Investor ----------------- */
+//        menu("investor/investor", "Investor") ::
+//        menu("investor/investor/add", "Investor Add", Hidden) ::
+//        menu("investor/investor/deposit", "Investor Deposit", Hidden) ::
+//        menu("investor/investor/business", "Investor Business", Hidden) ::
         Nil
 
     private lazy val _sitemap =

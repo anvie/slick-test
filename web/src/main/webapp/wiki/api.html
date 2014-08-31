@@ -39,11 +39,12 @@
     </p>
 
     <p>
-        API endpoint: <code>http://[IP]/business/[ID]/report</code>
+        API endpoint: <code>http://[IP]/[VERSION]/business/[ID]/report</code>
     </p>
 
-    <p>Dimana <code>[ID]</code> adalah ID dari bisnis yang ingin dilaporkan.
-        dan <code>[IP]</code> adalah IP dari sistem ini.
+    <p>Dimana <code>[IP]</code> adalah IP dari sistem ini,
+        <code>[VERSION]</code> API version yang digunakan, versi terbaru saat ini adalah `v1`
+        <code>[ID]</code> adalah ID dari bisnis yang ingin dilaporkan.
     </p>
 
     <p>Parameter:</p>
@@ -55,7 +56,7 @@
             <th>Keterangan</th>
         </tr>
         <tr>
-            <td>omzet</td>
+            <td>gross</td>
             <td style="width: 100px;"><span class="label label-danger">wajib</span></td>
             <td>jumlah pendapatan kotor dalam bilangan angka.</td>
         </tr>
@@ -74,7 +75,7 @@
     <p>Contoh penggunaan menggunakan tool cUrl:
 
         <pre>
-$ curl -X POST http://123.123.123.123/api/business/1/report -d "api_key=xxxxxxxx&omzet=500&profit=50"
+$ curl -X POST http://123.123.123.123/v1/api/business/1/report -d "api_key=xxxxxxxx&omzet=500&profit=50"
         </pre>
 
     Contoh output apabila sukses:

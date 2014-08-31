@@ -14,6 +14,7 @@ object AuthRestApi extends ZufaroRestHelper {
     serve {
         case "logout" :: Nil Get req => {
             Auth.adminLogout()
+            Auth.investorLogout()
             S.redirectTo("/", () => S.notice("You are successfully logged out"))
         }
     }

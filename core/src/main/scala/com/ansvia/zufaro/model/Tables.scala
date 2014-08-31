@@ -14,7 +14,42 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessAccountMutation.ddl ++ BusinessAsset.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Employee.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
+  lazy val ddl = ActivityStream.ddl ++ Admin.ddl ++ ApiClient.ddl ++ ApiClientAccess.ddl ++ Business.ddl ++ BusinessAccountMutation.ddl ++ BusinessAsset.ddl ++ BusinessGroup.ddl ++ BusinessGroupLink.ddl ++ BusinessProfit.ddl ++ Employee.ddl ++ Invest.ddl ++ Investor.ddl ++ InvestorBalance.ddl ++ Mutation.ddl ++ Operator.ddl ++ ProfitShareJournal.ddl ++ ProjectReport.ddl ++ ProjectWatcher.ddl
+  
+  /** Entity class storing rows of table ActivityStream
+   *  @param id Database column ID AutoInc, PrimaryKey
+   *  @param activity Database column ACTIVITY 
+   *  @param info Database column INFO 
+   *  @param subscriberId Database column SUBSCRIBER_ID 
+   *  @param subscriberKind Database column SUBSCRIBER_KIND 
+   *  @param ts Database column TS  */
+  case class ActivityStreamRow(id: Long, activity: String, info: String, subscriberId: Long, subscriberKind: Int, ts: java.sql.Timestamp)
+  /** GetResult implicit for fetching ActivityStreamRow objects using plain SQL queries */
+  implicit def GetResultActivityStreamRow(implicit e0: GR[Long], e1: GR[String], e2: GR[Int], e3: GR[java.sql.Timestamp]): GR[ActivityStreamRow] = GR{
+    prs => import prs._
+    ActivityStreamRow.tupled((<<[Long], <<[String], <<[String], <<[Long], <<[Int], <<[java.sql.Timestamp]))
+  }
+  /** Table description of table ACTIVITY_STREAM. Objects of this class serve as prototypes for rows in queries. */
+  class ActivityStream(tag: Tag) extends Table[ActivityStreamRow](tag, "ACTIVITY_STREAM") {
+    def * = (id, activity, info, subscriberId, subscriberKind, ts) <> (ActivityStreamRow.tupled, ActivityStreamRow.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, activity.?, info.?, subscriberId.?, subscriberKind.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> ActivityStreamRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column ID AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
+    /** Database column ACTIVITY  */
+    val activity: Column[String] = column[String]("ACTIVITY")
+    /** Database column INFO  */
+    val info: Column[String] = column[String]("INFO")
+    /** Database column SUBSCRIBER_ID  */
+    val subscriberId: Column[Long] = column[Long]("SUBSCRIBER_ID")
+    /** Database column SUBSCRIBER_KIND  */
+    val subscriberKind: Column[Int] = column[Int]("SUBSCRIBER_KIND")
+    /** Database column TS  */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
+  }
+  /** Collection-like TableQuery object for table ActivityStream */
+  lazy val ActivityStream = new TableQuery(tag => new ActivityStream(tag))
   
   /** Entity class storing rows of table Admin
    *  @param id Database column ID AutoInc, PrimaryKey

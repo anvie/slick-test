@@ -3,13 +3,20 @@
 ROOT=.
 BASE_ASSETS=$(ROOT)/web/assets
 WEBAPP_ASSETS=$(ROOT)/web/src/main/webapp/assets
+CORE_VERSION=$(shell cat project/BuildSettings.scala | grep -e version | grep -P '\d+\.\d+\.[\d\-_a-zA-Z]+' -o | sed 's/"//g')
+WEB_VERSION=$(shell cat project/Build.scala | grep '/\*WEB_VERSION\*/' | grep -P '\d+\.\d+\.[\d\-_a-zA-Z]+' -o | sed 's/"//g')
 
 
 
-
-all:
+all: version
 	tup upd
 	make assets
+
+version: VERSION
+	@@rm -f $<
+	echo "core: $(CORE_VERSION)" >> VERSION
+	echo "web: $(WEB_VERSION)" >> VERSION
+	sed -i.bak 's/VERSION \= ".*"/VERSION = "$(WEB_VERSION)"/' web/src/main/scala/com/ansvia/zufaro/web/WebConfig.scala
 
 assets: $(WEBAPP_ASSETS)/js/zufaro.js $(WEBAPP_ASSETS)/js/zufaro.min.js
 

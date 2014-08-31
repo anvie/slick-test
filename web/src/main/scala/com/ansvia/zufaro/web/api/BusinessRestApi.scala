@@ -15,14 +15,14 @@ object BusinessRestApi extends ZufaroRestHelper {
     import BusinessHelpers._
 
     serve {
-        case "api" :: "business" :: AsLong(busId) :: "report" :: Nil Post req => authorized(req) {
+        case "v1" :: "api" :: "business" :: AsLong(busId) :: "report" :: Nil Post req => authorized(req) {
             case AuthInfo(_, Some(apiClient)) =>
 
-            val omzet:Double = req.param("omzet").openOr {
-                throw InvalidParameterException("No `omzet` parameter")
-            }.toLong
+            val omzet:Double = req.param("omzet").openOr(req.param("gross").openOr {
+                throw InvalidParameterException("No `gross` parameter, please set `gross` parameter")
+            }).toLong
             val profit:Double = req.param("profit").openOr {
-                throw InvalidParameterException("No `profit` parameter")
+                throw InvalidParameterException("No `profit` parameter, please set `profit` parameter")
             }.toLong
 
             // validate

@@ -41,8 +41,15 @@ class AdminAdminSnippet extends Slf4jLogger {
         }
         val deactivate = {
             SHtml.a(()=>{
-                admin.setActive(false)
-                updateList()
+                try {
+                    if (admin.name.toLowerCase.trim == "admin")
+                        throw PermissionDeniedException("You cannot deactivate this admin account")
+                    admin.setActive(false)
+                    updateList()
+                }catch{
+                    case e:ZufaroException =>
+                        JsUtils.showError(e.getMessage)
+                }
             },Text("Deactivate"))
         }
 

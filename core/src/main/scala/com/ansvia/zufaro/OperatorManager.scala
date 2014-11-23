@@ -1,6 +1,6 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.PostgresDriver.simple._
 import model.Tables._
 import org.apache.commons.codec.digest.DigestUtils
 import com.ansvia.zufaro.model.OperatorStatus

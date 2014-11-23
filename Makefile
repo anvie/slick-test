@@ -38,6 +38,37 @@ restart:
 reset:
 	ssh robin@$(ZUFARO_SERVER) 'sudo rm -rf jetty_instance/data/*'
 
+
+ifndef DB_NAME
+DB_NAME=zufaro
+endif
+
+ifndef PG_USER
+PG_USER=robin
+endif
+
+# this command should be run as user `postgres`
+reset-db:
+	- dropdb -U $(PG_USER) $(DB_NAME)
+	createdb -U $(PG_USER) -O $(PG_USER) $(DB_NAME)
+	psql -U $(PG_USER) $(DB_NAME) < core/src/main/sql/schema.sql
+	@@echo "generate slick code from database table schema? [y/n] "
+	@@read generate_table && \
+	if [ "$$generate_table" = "y" ]; then \
+		make gen-tables; \
+	fi
+#	@@echo "filling with dummy data? [y/n] "
+#	@@read fill_dummy && \
+#	if [ "$$fill_dummy" = "y" ]; then \
+#		make dummy-data; \
+#	fi
+
+gen-models:
+	@@echo "generating database tables into scala sources..."
+	@@sbt "project slick-util" "run-main scala.slick.codegen.ModelGenerator $(PG_USER) 123123"
+	@@echo "done."
+
+
 clean:
 
 .PHONY: deploy clean restart assets reset version

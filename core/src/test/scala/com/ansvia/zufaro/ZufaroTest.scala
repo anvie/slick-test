@@ -1,7 +1,7 @@
 package com.ansvia.zufaro
 
 import org.specs2.mutable.Specification
-import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.PostgresDriver.simple._
 import com.ansvia.commons.logging.Slf4jLogger
 import org.apache.commons.codec.digest.DigestUtils
 import java.util.UUID

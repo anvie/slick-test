@@ -9,7 +9,7 @@ object Build extends Build {
 
     // root
     lazy val root = Project("root", file("."))
-          .aggregate(zufaroCore, zufaroWeb/*, zufaroMacro*/)
+          .aggregate(zufaroCore, zufaroWeb, slickUtil/*, zufaroMacro*/)
           .settings(basicSettings: _*)
           .settings(noPublishing: _*)
 
@@ -25,7 +25,6 @@ object Build extends Build {
 
     lazy val zufaroCore = Project("zufaro-core", file("core"))
           .settings(moduleSettings: _*)
-          .settings(slickTask <<= slickCodeGenTask)
           .settings(libraryDependencies ++=
           compile(ansviaCommons, ansviaIdGen, slick, h2db/*, "com.ansvia.zufaro" % "zufaro-macro" % "0.0.1-alpha"*/,
                     apacheCodec) ++
@@ -42,24 +41,30 @@ object Build extends Build {
           .settings(moduleSettings: _*)
           .settings(version := /*WEB_VERSION*/ "0.0.10")
           .settings(com.earldouglas.xsbtwebplugin.WebPlugin.webSettings: _*)
-          .settings(slickTask <<= slickCodeGenTask)
           .settings(libraryDependencies ++=
           compile(/*ansviaCommons,*/ slick) ++ lift ++
                 test(specs2) ++
                 runtime(logback)
     ).dependsOn(zufaroCore)
 
+    lazy val slickUtil = Project("slick-util", file("slick-util"))
+        .settings(moduleSettings: _*)
+        .settings(libraryDependencies ++=
+        compile(ansviaCommons, slick, slickCodeGen, h2db) ++ slickPostgresDeps ++
+            runtime(logback)
+        )
 
-    // code generation task
-    lazy val slickTask = TaskKey[Seq[File]]("gen-tables")
-    lazy val slickCodeGenTask = (sourceManaged, dependencyClasspath in Compile, runner in Compile, streams) map { (dir, cp, r, s) =>
-        val outputDir = "core/src/main/scala"  //(dir / "slick").getPath // place generated files in sbt's managed sources folder
-    val url = "jdbc:h2:mem:test1;INIT=runscript from 'core/src/main/sql/schema.sql'" // connection info for a pre-populated throw-away, in-memory db for this demo, which is freshly initialized on every run
-    val jdbcDriver = "org.h2.Driver"
-        val slickDriver = "scala.slick.driver.H2Driver"
-        val pkg = "com.ansvia.zufaro.model"
-        toError(r.run("scala.slick.model.codegen.SourceCodeGenerator", cp.files, Array(slickDriver, jdbcDriver, url, outputDir, pkg), s.log))
-        val fname = outputDir + "/Tables.scala"
-        Seq(file(fname))
-    }
+
+//    // code generation task
+//    lazy val slickTask = TaskKey[Seq[File]]("gen-tables")
+//    lazy val slickCodeGenTask = (sourceManaged, dependencyClasspath in Compile, runner in Compile, streams) map { (dir, cp, r, s) =>
+//        val outputDir = "core/src/main/scala"  //(dir / "slick").getPath // place generated files in sbt's managed sources folder
+//    val url = "jdbc:h2:mem:test1;INIT=runscript from 'core/src/main/sql/schema.sql'" // connection info for a pre-populated throw-away, in-memory db for this demo, which is freshly initialized on every run
+//    val jdbcDriver = "org.h2.Driver"
+//        val slickDriver = "scala.slick.driver.H2Driver"
+//        val pkg = "com.ansvia.zufaro.model"
+//        toError(r.run("scala.slick.model.codegen.SourceCodeGenerator", cp.files, Array(slickDriver, jdbcDriver, url, outputDir, pkg), s.log))
+//        val fname = outputDir + "/Tables.scala"
+//        Seq(file(fname))
+//    }
 }

@@ -1,6 +1,6 @@
 //package com.ansvia.zufaro.model
 //
-//import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.PostgresDriver.simple._
 //import scala.slick.model.QualifiedName
 //import scala.slick.lifted.ProvenShape
 //

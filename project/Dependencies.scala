@@ -35,8 +35,20 @@ object Dependencies {
 
     val specs2        = "org.specs2" %% "specs2" % "2.4"
     val logback       = "ch.qos.logback" % "logback-classic" % "1.0.9"
-    lazy val slick    = "com.typesafe.slick" %% "slick" % "2.0.2"
+    lazy val slick    = "com.typesafe.slick" %% "slick" % "2.1.0"
+    lazy val slickCodeGen = "com.typesafe.slick" %% "slick-codegen" % "2.1.0"
     lazy val h2db     = "com.h2database" % "h2" % "1.2.140"
+    lazy val slickPostgresDeps = {
+        val pgExcludes = Seq(
+            ExclusionRule("com.typesafe.play")
+        )
+        Seq(
+            "postgresql" % "postgresql" % "9.1-901-1.jdbc4" % "compile",
+            "com.github.tminglei" %% "slick-pg" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*),
+            "com.github.tminglei" %% "slick-pg" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*),
+            "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*)
+        )
+    }
     lazy val apacheCodec = "commons-codec" % "commons-codec" % "1.9"
 
 }

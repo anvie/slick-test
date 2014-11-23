@@ -1,6 +1,6 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.PostgresDriver.simple._
 import model.Tables._
 import com.ansvia.util.idgen.TokenIdGenerator
 import com.ansvia.commons.logging.Slf4jLogger
@@ -25,13 +25,21 @@ object ApiClientManager extends Slf4jLogger {
         val id = Zufaro.db.withTransaction { implicit sess =>
 
             val apiKey = generateKey()
-            val apiClientId = (ApiClient returning ApiClient.map(_.id)) += ApiClientRow(0L, name, desc,
-                creatorId, creatorRole, apiKey, suspended=false)
+            val apiClientId = (ApiClients.map(s => (s.name, s.desc, s.creatorId, s.creatorRole, s.key, s.suspended))
+                returning ApiClients.map(_.id)) +=
+                (name, desc, creatorId, creatorRole, apiKey, false)
+
+//            ApiClient(0L, name, desc,
+//                creatorId, creatorRole, apiKey, suspended=false)
 
             debug(s"api client `$name` created with id `$apiClientId`, key: `$apiKey`")
 
             access.foreach { acc =>
-                ApiClientAccess += ApiClientAccessRow(0L, apiClientId, acc.grant, acc.target)
+                ApiClientAccesses.map(s => (s.apiClientId, s.grant, s.target)) +=
+                    (apiClientId, acc.grant, acc.target)
+
+//                    ApiClientAccess(0L, apiClientId, acc.grant, acc.target)
+
                 debug(s"add grant to api client $name : ${acc.grant} -> ${acc.target}")
             }
 
@@ -43,18 +51,18 @@ object ApiClientManager extends Slf4jLogger {
     def getById(id:Long, withSuspended:Boolean=false) = {
         Zufaro.db.withSession { implicit sess =>
             if (withSuspended)
-                ApiClient.where(_.id === id).firstOption
+                ApiClients.filter(_.id === id).firstOption
             else
-                ApiClient.where(a => a.id === id && a.suspended === false).firstOption
+                ApiClients.filter(a => a.id === id && a.suspended === false).firstOption
         }
     }
 
     def getByKey(key:String, withSuspended:Boolean=false) = {
         Zufaro.db.withSession { implicit sess =>
             if (withSuspended)
-                ApiClient.where(_.key === key).firstOption
+                ApiClients.filter(_.key === key).firstOption
             else
-                ApiClient.where(a => a.key === key && a.suspended === false).firstOption
+                ApiClients.filter(a => a.key === key && a.suspended === false).firstOption
         }
     }
 
@@ -63,16 +71,16 @@ object ApiClientManager extends Slf4jLogger {
         "API" + idgen.nextId() + idgen.nextId().substring(0, 5)
     }
 
-    def getList(offset: Int, limit: Int):Seq[ApiClientRow] = {
+    def getList(offset: Int, limit: Int):Seq[ApiClient] = {
         Zufaro.db.withSession { implicit sess =>
-            ApiClient.drop(offset).take(limit).run
+            ApiClients.drop(offset).take(limit).run
         }
     }
 
-    def delete(client:ApiClientRow) = {
+    def delete(client:ApiClient) = {
         Zufaro.db.withTransaction { implicit sess =>
-            ApiClientAccess.where(_.apiClientId === client.id).delete
-            ApiClient.where(_.id === client.id).delete
+            ApiClientAccesses.filter(_.apiClientId === client.id).delete
+            ApiClients.filter(_.id === client.id).delete
         }
     }
 
@@ -80,7 +88,7 @@ object ApiClientManager extends Slf4jLogger {
 
 trait ApiClientHelpers {
 
-    implicit class ApiClientWrapper(apiClient:ApiClientRow){
+    implicit class ApiClientWrapper(apiClient:ApiClient){
 
         /**
          * Regerenate API key.
@@ -89,7 +97,7 @@ trait ApiClientHelpers {
         def regenerateKey() = {
             val newKey = ApiClientManager.generateKey()
             Zufaro.db.withTransaction { implicit sess =>
-                ApiClient.where(_.id === apiClient.id).map(_.key).update(newKey)
+                ApiClients.filter(_.id === apiClient.id).map(_.key).update(newKey)
             }
             newKey
         }
@@ -97,7 +105,7 @@ trait ApiClientHelpers {
         def getAccesses = {
             Zufaro.db.withSession { implicit sess =>
                 val access = for {
-                    acc <- ApiClientAccess if acc.apiClientId === apiClient.id
+                    acc <- ApiClientAccesses if acc.apiClientId === apiClient.id
                 } yield acc
                 access.run
             }
@@ -105,7 +113,7 @@ trait ApiClientHelpers {
 
         def setSuspended(state:Boolean){
             Zufaro.db.withTransaction { implicit sess =>
-                ApiClient.where(_.id === apiClient.id).map(_.suspended).update(state)
+                ApiClients.filter(_.id === apiClient.id).map(_.suspended).update(state)
             }
         }
         

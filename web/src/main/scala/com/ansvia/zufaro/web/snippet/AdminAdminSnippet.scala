@@ -8,7 +8,7 @@ import scala.xml.{Node, Text, NodeSeq}
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.exception.{PermissionDeniedException, UnimplementedException, InvalidParameterException, ZufaroException}
 import net.liftweb.common.Full
-import com.ansvia.zufaro.AdminManager
+import com.ansvia.zufaro.UserManager
 import com.ansvia.zufaro.AdminHelpers._
 import com.ansvia.commons.logging.Slf4jLogger
 import com.ansvia.zufaro.model.Tables._
@@ -29,8 +29,8 @@ class AdminAdminSnippet extends Slf4jLogger {
         val elmId = "Admin-" + admin.id
 
         val status = admin.status match {
-            case AdminManager.status.ACTIVE => "ACTIVE"
-            case AdminManager.status.INACTIVE => "INACTIVE"
+            case UserManager.status.ACTIVE => "ACTIVE"
+            case UserManager.status.INACTIVE => "INACTIVE"
         }
 
         val activate = {
@@ -55,9 +55,9 @@ class AdminAdminSnippet extends Slf4jLogger {
 
         val activeDeactivate = {
             admin.status match {
-                case AdminManager.status.ACTIVE =>
+                case UserManager.status.ACTIVE =>
                     deactivate
-                case AdminManager.status.INACTIVE =>
+                case UserManager.status.INACTIVE =>
                     activate
             }
         }
@@ -65,7 +65,7 @@ class AdminAdminSnippet extends Slf4jLogger {
             try {
                 if (admin.name.toLowerCase.trim == "admin")
                     throw PermissionDeniedException("You cannot delete this admin account")
-                AdminManager.delete(admin)
+                UserManager.delete(admin)
                 updateList()
             }catch{
                 case e:ZufaroException =>
@@ -97,13 +97,13 @@ class AdminAdminSnippet extends Slf4jLogger {
     }
 
     private def updateList() = {
-        val admins = AdminManager.getList(0, 30)
+        val admins = UserManager.getList(0, 30)
         SetHtml("List", NodeSeq.fromSeq(admins.map(buildListItem)))
     }
 
 
     def list:CssSel = {
-        val admins = AdminManager.getList(0, 30)
+        val admins = UserManager.getList(0, 30)
         "#List *" #> NodeSeq.fromSeq(admins.map(buildListItem))
     }
 
@@ -125,7 +125,7 @@ class AdminAdminSnippet extends Slf4jLogger {
                 if (passwordVar.is != passwordVerificationVar.is)
                     throw InvalidParameterException("Password verification didn't match")
 
-                AdminManager.create(nameVar, emailVar, phoneVar, passwordVar)
+                UserManager.create(nameVar, emailVar, phoneVar, passwordVar)
 
                 JsUtils.hideAllModal &
                 updateList()

@@ -1,6 +1,6 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.H2Driver.simple._
+import scala.slick.driver.PostgresDriver.simple._
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model._
 import java.util.UUID

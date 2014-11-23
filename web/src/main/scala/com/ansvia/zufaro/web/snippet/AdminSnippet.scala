@@ -8,7 +8,7 @@ import scala.xml.{Text, NodeSeq}
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.exception.{UnimplementedException, InvalidParameterException, ZufaroException}
 import net.liftweb.common.Full
-import com.ansvia.zufaro.AdminManager
+import com.ansvia.zufaro.UserManager
 import com.ansvia.commons.logging.Slf4jLogger
 import com.ansvia.zufaro.web.util.JsUtils
 
@@ -44,10 +44,10 @@ class AdminSnippet extends Slf4jLogger {
                     case "admin" =>
                         // apabila user name adalah admin dan apabila belum ada user dengan nama
                         // tersebut maka dianggap baru jalankan pertama, lakukan prosedur admin creation
-                        if (userNameVar.is == "admin" && AdminManager.getByName("admin") == None){
+                        if (userNameVar.is == "admin" && UserManager.getByName("admin") == None){
                             // create first
                             warn("first init detected, do admin creation")
-                            AdminManager.create(userNameVar.is, "", "", passwordVar.is, "")
+                            UserManager.create(userNameVar.is, "", "", passwordVar.is, "")
                         }
 
                         Auth.adminLogin(userNameVar.is, passwordVar.is)

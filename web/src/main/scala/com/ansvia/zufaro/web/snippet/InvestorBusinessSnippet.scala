@@ -276,7 +276,7 @@ class InvestorBusinessSnippet {
     }
 
     def sharedIntoInvestorInfo:CssSel = {
-        import scala.slick.driver.H2Driver.simple._
+        import scala.slick.driver.PostgresDriver.simple._
         "#Count *" #> {
             Zufaro.db.withSession { implicit sess =>
                 val q = for {
@@ -305,7 +305,7 @@ class InvestorBusinessSnippet {
         }
         val initiator = mut.initiator.split('=').toList match {
             case "admin" :: AsLong(id) :: Nil =>
-                AdminManager.getById(id).map(_.name).getOrElse("-")
+                UserManager.getById(id).map(_.name).getOrElse("-")
             case "operator" :: AsLong(id) :: Nil =>
                 OperatorManager.getById(id).map(_.name).getOrElse("-")
             case _ =>

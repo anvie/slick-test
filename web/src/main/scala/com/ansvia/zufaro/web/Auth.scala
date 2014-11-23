@@ -3,7 +3,7 @@ package com.ansvia.zufaro.web
 import net.liftweb.http.SessionVar
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.common.{Full, Box, Empty}
-import com.ansvia.zufaro.{InvestorManager, PasswordUtil, AdminManager}
+import com.ansvia.zufaro.{InvestorManager, PasswordUtil, UserManager}
 import com.ansvia.zufaro.exception.PermissionDeniedException
 import com.ansvia.zufaro.model.{Initiator, UserRole}
 
@@ -23,7 +23,7 @@ object Auth {
 
 
     def adminLogin(userName:String, password:String) = {
-        AdminManager.getByName(userName).map { admin =>
+        UserManager.getByName(userName).map { admin =>
             if (!PasswordUtil.isMatch(password, admin.passhash))
                 throw PermissionDeniedException("Wrong user name or password")
 

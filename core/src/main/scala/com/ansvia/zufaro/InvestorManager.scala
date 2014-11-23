@@ -1,7 +1,7 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.H2Driver.simple._
-import scala.slick.driver.H2Driver.backend
+import scala.slick.driver.PostgresDriver.simple._
+import scala.slick.driver.PostgresDriver.backend
 import model.Tables._
 import com.ansvia.zufaro.exception.{InvalidParameterException, AlreadyInvestedException, InsufficientBalanceException}
 import com.ansvia.zufaro.model.{MutationKind, NoInitiator, Initiator}

@@ -1,7 +1,7 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.H2Driver.simple._
-import scala.slick.driver.H2Driver.backend.SessionDef
+import scala.slick.driver.PostgresDriver.simple._
+import scala.slick.driver.PostgresDriver.backend.SessionDef
 import com.ansvia.zufaro.model.Tables._
 import java.util.Date
 
@@ -21,7 +21,7 @@ object Activity {
         val OPERATOR = 3
     }
 
-    def publish(activity:String, info:String, investor:InvestorRow){
+    def publish(activity:String, info:String, investor:Investor){
         Zufaro.db.withTransaction { implicit sess =>
             publish(activity, info, investor.id, kind.INVESTOR)
         }
@@ -29,7 +29,9 @@ object Activity {
     }
 
     def publish(activity:String, info:String, subscriberId:Long, subscriberKind:Int)(implicit sess:SessionDef){
-        ActivityStream += ActivityStreamRow(0L, activity, info, subscriberId, subscriberKind, now())
+        ActivityStreams.map(s => (s.activity, s.info, s.subscriberId, s.subscriberKind)) +=
+            (activity, info, subscriberId, subscriberKind)
+//        += ActivityStreamRow(0L, activity, info, subscriberId, subscriberKind, now())
     }
 
     case class ActivityStreamItem(id:Long, activity:String, info:String, ts:Date)

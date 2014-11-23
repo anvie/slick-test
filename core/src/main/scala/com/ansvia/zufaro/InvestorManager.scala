@@ -178,7 +178,7 @@ trait InvestorHelpers {
         def removeInvestment(business:Business) = {
             Zufaro.db.withTransaction { implicit sess =>
 
-                Invest.filter(iv => iv.busId === business.id && iv.busKind === BusinessKind.SINGLE)
+                Invests.filter(iv => iv.businessId === business.id && iv.busKind === BusinessKind.SINGLE)
                     .delete
 
             }
@@ -193,8 +193,8 @@ trait InvestorHelpers {
          * @return
          */
         private def checkBalance(amount:Double)(implicit sess:backend.SessionDef){
-            val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
-            val curAmount = q.first()
+            val q = for { bal <- InvestorBalances if bal.invId === investor.id } yield bal.amount
+            val curAmount = q.first
 
             if(curAmount < amount)
                 throw InsufficientBalanceException(f"Insufficient balance $curAmount%.02f < $amount%.02f")
@@ -202,16 +202,23 @@ trait InvestorHelpers {
 
         def addBalance(by:Double, ref:Option[String]=None, initiator:Initiator=NoInitiator) = {
             Zufaro.db.withTransaction { implicit sess =>
-                val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
-                q.update(q.first() + by)
+                val q = for { bal <- InvestorBalances if bal.invId === investor.id } yield bal.amount
+                q.update(q.first + by)
 
                 // write journal
                 if (by > -0.1){
-                    Mutation += MutationRow(0L, investor.id, MutationKind.CREDIT, by,
-                        ref, Some(initiator.toString), now())
+//                    Mutation += Mutation(0L, investor.id, MutationKind.CREDIT, by,
+//                        ref, Some(initiator.toString), now())
+
+                    Mutations.map(s => (s.invId, s.kind, s.amount, s.ref, s.initiator)) +=
+                        (investor.id, MutationKind.CREDIT, by, ref, Some(initiator.toString))
+
                 }else{
-                    Mutation += MutationRow(0L, investor.id, MutationKind.DEBIT, -by,
-                        ref, Some(initiator.toString), now())
+//                    Mutation += Mutation(0L, investor.id, MutationKind.DEBIT, -by,
+//                        ref, Some(initiator.toString), now())
+
+                    Mutations.map(s => (s.invId, s.kind, s.amount, s.ref, s.initiator)) +=
+                        (investor.id, MutationKind.DEBIT, -by, ref, Some(initiator.toString))
                 }
             }
         }
@@ -222,7 +229,7 @@ trait InvestorHelpers {
 
 
         def getBalance = {
-            Zufaro.db.withSession( implicit sess => InvestorBalance.filter(_.invId === investor.id)
+            Zufaro.db.withSession( implicit sess => InvestorBalances.filter(_.invId === investor.id)
                   .firstOption.map(_.amount).getOrElse(0.0) )
         }
 
@@ -232,13 +239,13 @@ trait InvestorHelpers {
                     state match {
                         case BusinessManager.state.ANY =>
                             for {
-                                i <- Invest if i.invId === investor.id
-                                bus <- Business if bus.id === i.busId
+                                i <- Invests if i.investorId === investor.id
+                                bus <- Businesses if bus.id === i.businessId
                             } yield bus
                         case _state =>
                             for {
-                                i <- Invest if i.invId === investor.id
-                                bus <- Business if bus.id === i.busId && bus.state === _state
+                                i <- Invests if i.investorId === investor.id
+                                bus <- Businesses if bus.id === i.businessId && bus.state === _state
                             } yield bus
                     }
 
@@ -254,17 +261,17 @@ trait InvestorHelpers {
         def getShare(bus:Business) = {
             Zufaro.db.withSession { implicit sess =>
                 val q = for {
-                    iv <- Invest if iv.invId === investor.id && iv.busId === bus.id
+                    iv <- Invests if iv.investorId === investor.id && iv.businessId === bus.id
                 } yield iv.amount
                 q.firstOption.getOrElse(0.0)
             }
         }
 
 
-        def getDepositMutations(offset:Int, limit:Int):Seq[MutationRow] = {
+        def getDepositMutations(offset:Int, limit:Int):Seq[Mutation] = {
             Zufaro.db.withSession { implicit sess =>
                 val rv = for {
-                    m <- Mutation if m.invId === investor.id
+                    m <- Mutations if m.invId === investor.id
                 } yield m
                 rv.drop(offset).take(limit).sortBy(_.ts.desc).run
             }

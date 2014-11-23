@@ -1,6 +1,7 @@
 package com.ansvia.zufaro
 
 import com.ansvia.zufaro.model.Tables._
+import scala.slick.driver.PostgresDriver.simple._
 
 /**
  * Author: robin

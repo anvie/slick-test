@@ -25,7 +25,7 @@ import java.util.Date
 import com.ansvia.zufaro.model.Tables.BusinessAccountMutationRow
 import com.ansvia.zufaro.exception.InvalidParameterException
 import com.ansvia.zufaro.model.Tables.BusinessProfitRow
-import com.ansvia.zufaro.model.Tables.BusinessRow
+import com.ansvia.zufaro.model.Tables.Business
 import net.liftweb.http.ParsePath
 import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.js.JE.JsRaw
@@ -44,7 +44,7 @@ class InvestorBusinessSnippet {
     private def inv = Auth.currentInvestor.is.openOrThrowException("Investor should login first")
 
 
-    private def buildBusinessListItem(bus:BusinessRow, state:String):Node = {
+    private def buildBusinessListItem(bus:Business, state:String):Node = {
         def updateList() = {
             state match {
                 case "running" =>
@@ -155,7 +155,7 @@ class InvestorBusinessSnippet {
         <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
     }
 
-    private def buildReportListItem(bus:BusinessRow, bp:BusinessProfitRow):Node = {
+    private def buildReportListItem(bus:Business, bp:BusinessProfitRow):Node = {
 
         def doShareProcess() = () => {
             try {
@@ -210,7 +210,7 @@ class InvestorBusinessSnippet {
         </tr>:Node
     }
 
-    private def updateList(bus:BusinessRow) = {
+    private def updateList(bus:Business) = {
         val reports = bus.getIncomeReport(0, 30)
         val ns = NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         SetHtml("ListRunning", ns)

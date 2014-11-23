@@ -49,7 +49,7 @@ object InvestorManager {
     def create(name:String, fullName:String, role:Int, password:String, contact:Contact) = {
         val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
-            val userId = (Investor returning Investor.map(_.id)) += InvestorRow(0L, name, fullName,
+            val userId = (Investor returning Investor.map(_.id)) += Investor(0L, name, fullName,
                 role, passHash,
                 contact.address.address, contact.address.city,
                 contact.address.province,
@@ -87,7 +87,7 @@ object InvestorManager {
         }
     }
 
-    def getList(offset:Int, limit:Int):Seq[InvestorRow] = {
+    def getList(offset:Int, limit:Int):Seq[Investor] = {
         Zufaro.db.withSession { implicit sess =>
             Investor.where(_.status === status.ACTIVE).drop(offset).take(limit).run
         }
@@ -99,7 +99,7 @@ object InvestorManager {
      * @param investor investor to delete from db.
      * @return
      */
-    def delete(investor:InvestorRow) = {
+    def delete(investor:Investor) = {
         Zufaro.db.withTransaction { implicit sess =>
             Invest.where(_.invId === investor.id).delete
             Mutation.where(_.invId === investor.id).delete
@@ -115,8 +115,8 @@ trait InvestorHelpers {
 
     import TimestampHelpers._
 
-    implicit class investorWrapper(investor:InvestorRow){
-        def invest(business:BusinessRow, amount:Double) = {
+    implicit class investorWrapper(investor:Investor){
+        def invest(business:Business, amount:Double) = {
             Zufaro.db.withTransaction { implicit sess =>
 
                 // check is already invested
@@ -168,7 +168,7 @@ trait InvestorHelpers {
             }
         }
 
-        def removeInvestment(business:BusinessRow) = {
+        def removeInvestment(business:Business) = {
             Zufaro.db.withTransaction { implicit sess =>
 
                 Invest.where(iv => iv.busId === business.id && iv.busKind === BusinessKind.SINGLE)
@@ -219,7 +219,7 @@ trait InvestorHelpers {
                   .firstOption.map(_.amount).getOrElse(0.0) )
         }
 
-        def getBusiness(offset:Int, limit:Int, state:Int=BusinessManager.state.ANY):Seq[BusinessRow] = {
+        def getBusiness(offset:Int, limit:Int, state:Int=BusinessManager.state.ANY):Seq[Business] = {
             Zufaro.db.withSession { implicit sess =>
                 val rv =
                     state match {
@@ -244,7 +244,7 @@ trait InvestorHelpers {
          * @param bus business.
          * @return
          */
-        def getShare(bus:BusinessRow) = {
+        def getShare(bus:Business) = {
             Zufaro.db.withSession { implicit sess =>
                 val q = for {
                     iv <- Invest if iv.invId === investor.id && iv.busId === bus.id

@@ -129,7 +129,7 @@ class AdminInvestorDepositSnippet {
     }
 
 
-    private def updateMutationList(inv:InvestorRow) = {
+    private def updateMutationList(inv:Investor) = {
         val mutations = inv.getDepositMutations(0, 30)
         val ns = NodeSeq.fromSeq(mutations.map(buildJournalListItem)) ++ totalMutationNs(mutations)
         SetHtml("MutationList", ns)

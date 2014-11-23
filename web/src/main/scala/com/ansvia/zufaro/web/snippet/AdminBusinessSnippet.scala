@@ -24,7 +24,7 @@ import com.ansvia.zufaro.exception.InvalidParameterException
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.RewriteRequest
 import com.ansvia.zufaro.model.Tables.BusinessProfitRow
-import com.ansvia.zufaro.model.Tables.BusinessRow
+import com.ansvia.zufaro.model.Tables.Business
 
 /**
  * Author: robin
@@ -88,7 +88,7 @@ class AdminBusinessSnippet {
     }
 
 
-    private def buildBusinessListItem(bus:BusinessRow, state:String):Node = {
+    private def buildBusinessListItem(bus:Business, state:String):Node = {
         def updateList() = {
             val ns = NodeSeq.fromSeq(state match {
                 case "running" =>
@@ -220,7 +220,7 @@ class AdminBusinessSnippet {
         <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
     }
 
-    private def buildReportListItem(bus:BusinessRow, bp:BusinessProfitRow):Node = {
+    private def buildReportListItem(bus:Business, bp:BusinessProfitRow):Node = {
 
         def doShareProcess() = () => {
             try {
@@ -292,7 +292,7 @@ class AdminBusinessSnippet {
         </tr>:Node
     }
 
-    private def updateList(bus:BusinessRow) = {
+    private def updateList(bus:Business) = {
         val reports = bus.getIncomeReport(0, 30)
         val ns = NodeSeq.fromSeq(reports.map( r => buildReportListItem(bus, r) ))
         SetHtml("List", ns)

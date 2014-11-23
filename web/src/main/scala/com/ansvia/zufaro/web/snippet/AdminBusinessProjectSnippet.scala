@@ -58,7 +58,7 @@ class AdminBusinessProjectSnippet {
         "#List *" #> NodeSeq.fromSeq(reports.map(buildListItem))
     }
 
-    private def updateReportList(bus:BusinessRow) = {
+    private def updateReportList(bus:Business) = {
         val reports = bus.getProjectReports(0, 50)
         SetHtml("List", NodeSeq.fromSeq(reports.map(buildListItem)))
     }

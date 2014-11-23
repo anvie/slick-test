@@ -18,7 +18,7 @@ object Auth {
 
     object currentAdmin extends SessionVar[Box[AdminRow]](Empty)
     object currentOperator extends SessionVar[Box[OperatorRow]](Empty)
-    object currentInvestor extends SessionVar[Box[InvestorRow]](Empty)
+    object currentInvestor extends SessionVar[Box[Investor]](Empty)
 
 
 

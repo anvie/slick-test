@@ -118,7 +118,7 @@ class AdminInvestorSnippet {
 
 
 
-    private def buildInvestorListItem(inv:InvestorRow):Node = {
+    private def buildInvestorListItem(inv:Investor):Node = {
 
         def updater() = {
             val investors = InvestorManager.getList(0, 50)

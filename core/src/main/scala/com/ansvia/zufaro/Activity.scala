@@ -36,7 +36,7 @@ object Activity {
 
     case class ActivityStreamItem(id:Long, activity:String, info:String, ts:Date)
 
-    def getActivities(investor:InvestorRow, offset:Int, limit:Int):Seq[ActivityStreamItem] = {
+    def getActivities(investor:Investor, offset:Int, limit:Int):Seq[ActivityStreamItem] = {
         Zufaro.db.withSession { implicit sess =>
             val q = for {
                 as <- ActivityStream if as.subscriberId === investor.id && as.subscriberKind === kind.INVESTOR

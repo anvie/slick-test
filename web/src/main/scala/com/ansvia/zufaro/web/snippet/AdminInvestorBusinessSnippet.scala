@@ -103,7 +103,7 @@ class AdminInvestorBusinessSnippet {
 
 
 
-    private def buildListItem(inv:InvestorRow, bus:BusinessRow):Node = {
+    private def buildListItem(inv:Investor, bus:Business):Node = {
 
         def updater() = {
             val business = invO.get.getBusiness(0, 30)

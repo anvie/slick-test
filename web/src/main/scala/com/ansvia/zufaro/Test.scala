@@ -5,7 +5,7 @@ import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model._
 import java.util.UUID
 import java.io.{FilenameFilter, File}
-import com.ansvia.zufaro.model.Tables.InvestorRow
+import com.ansvia.zufaro.model.Tables.Investor
 import com.ansvia.zufaro.InvestorManager.{Address, Contact}
 
 
@@ -64,12 +64,12 @@ object Test extends ZufaroTestHelpers {
             //                }
 
             println("Investors:")
-            Investor.foreach { case InvestorRow(id, name, role, genPass, _, _, _, _, _, _, _, _, _, _) =>
+            Investor.foreach { case Investor(id, name, role, genPass, _, _, _, _, _, _, _, _, _, _) =>
                 println(s" * $id - $name ($role)")
             }
 
-            //                Business += BusinessRow(0, "Anu", "anu kae", , 70.0, 30.0)
-            //                Business += BusinessRow(0, "Kae", "anu kae", 60.0, 40.0)
+            //                Business += Business(0, "Anu", "anu kae", , 70.0, 30.0)
+            //                Business += Business(0, "Kae", "anu kae", 60.0, 40.0)
 
             val busCucianMobil = BusinessManager.create("Cucian Mobil", "cucian mobil", "jasa", 200, 30.0, BusinessManager.state.PRODUCTION)
             val busLaundry = BusinessManager.create("Laundry", "laundry", "jasa", 200, 50.0, BusinessManager.state.PRODUCTION)

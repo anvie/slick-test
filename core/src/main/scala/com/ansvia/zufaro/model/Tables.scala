@@ -14,7 +14,7 @@ trait Tables {
   import scala.slick.jdbc.{GetResult => GR}
   
   /** DDL for all tables. Call .create to execute. */
-  lazy val ddl = ActivityStreams.ddl ++ ApiClients.ddl ++ ApiClientAccesses.ddl ++ Businesses.ddl ++ BusinessAccountMutations.ddl ++ BusinessAssets.ddl ++ BusinessContacts.ddl ++ BusinessGroups.ddl ++ BusinessGroupLinks.ddl ++ BusinessProfits.ddl ++ Employees.ddl ++ Investors.ddl ++ InvestorBalances.ddl ++ InvestorContacts.ddl ++ InvestorHeirs.ddl ++ InvestorJobs.ddl ++ InvestorLegalIdentitys.ddl ++ InvestorOtherContacts.ddl ++ InvestorStocks.ddl ++ Mutations.ddl ++ ProfitShareJournals.ddl ++ ProjectReports.ddl ++ ProjectWatchers.ddl ++ Users.ddl
+  lazy val ddl = ActivityStreams.ddl ++ ApiClients.ddl ++ ApiClientAccesses.ddl ++ Businesses.ddl ++ BusinessAccountMutations.ddl ++ BusinessAssets.ddl ++ BusinessContacts.ddl ++ BusinessGroups.ddl ++ BusinessGroupLinks.ddl ++ BusinessProfits.ddl ++ Employees.ddl ++ Invests.ddl ++ Investors.ddl ++ InvestorBalances.ddl ++ InvestorContacts.ddl ++ InvestorHeirs.ddl ++ InvestorJobs.ddl ++ InvestorLegalIdentitys.ddl ++ InvestorOtherContacts.ddl ++ InvestorStocks.ddl ++ Mutations.ddl ++ ProfitShareJournals.ddl ++ ProjectReports.ddl ++ ProjectWatchers.ddl ++ Users.ddl
   
   /** Entity class storing rows of table ActivityStream
    *  @param id Database column ID DBType(bigserial), AutoInc, PrimaryKey
@@ -365,19 +365,19 @@ trait Tables {
    *  @param mutatorRole Database column MUTATOR_ROLE DBType(int4)
    *  @param info Database column INFO DBType(varchar), Length(2147483647,true)
    *  @param shared Database column SHARED DBType(bool), Default(false)
-   *  @param sharedAt Database column SHARED_AT DBType(timestamp)
+   *  @param sharedAt Database column SHARED_AT DBType(timestamp), Default(None)
    *  @param status Database column STATUS DBType(int4), Default(0) */
-  case class BusinessProfit(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String, shared: Boolean = false, sharedAt: java.sql.Timestamp, status: Int = 0)
+  case class BusinessProfit(id: Long, busId: Long, omzet: Double, profit: Double, ts: java.sql.Timestamp, mutatorId: Long, mutatorRole: Int, info: String, shared: Boolean = false, sharedAt: Option[java.sql.Timestamp] = None, status: Int = 0)
   /** GetResult implicit for fetching BusinessProfit objects using plain SQL queries */
-  implicit def GetResultBusinessProfit(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String], e5: GR[Boolean]): GR[BusinessProfit] = GR{
+  implicit def GetResultBusinessProfit(implicit e0: GR[Long], e1: GR[Double], e2: GR[java.sql.Timestamp], e3: GR[Int], e4: GR[String], e5: GR[Boolean], e6: GR[Option[java.sql.Timestamp]]): GR[BusinessProfit] = GR{
     prs => import prs._
-    BusinessProfit.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String], <<[Boolean], <<[java.sql.Timestamp], <<[Int]))
+    BusinessProfit.tupled((<<[Long], <<[Long], <<[Double], <<[Double], <<[java.sql.Timestamp], <<[Long], <<[Int], <<[String], <<[Boolean], <<?[java.sql.Timestamp], <<[Int]))
   }
   /** Table description of table business_profit. Objects of this class serve as prototypes for rows in queries. */
   class BusinessProfitRow(_tableTag: Tag) extends Table[BusinessProfit](_tableTag, "business_profit") {
     def * = (id, busId, omzet, profit, ts, mutatorId, mutatorRole, info, shared, sharedAt, status) <> (BusinessProfit.tupled, BusinessProfit.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?, shared.?, sharedAt.?, status.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfit.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get, _11.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, busId.?, omzet.?, profit.?, ts.?, mutatorId.?, mutatorRole.?, info.?, shared.?, sharedAt, status.?).shaped.<>({r=>import r._; _1.map(_=> BusinessProfit.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10, _11.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column ID DBType(bigserial), AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("ID", O.AutoInc, O.PrimaryKey)
@@ -397,8 +397,8 @@ trait Tables {
     val info: Column[String] = column[String]("INFO", O.Length(2147483647,varying=true))
     /** Database column SHARED DBType(bool), Default(false) */
     val shared: Column[Boolean] = column[Boolean]("SHARED", O.Default(false))
-    /** Database column SHARED_AT DBType(timestamp) */
-    val sharedAt: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("SHARED_AT")
+    /** Database column SHARED_AT DBType(timestamp), Default(None) */
+    val sharedAt: Column[Option[java.sql.Timestamp]] = column[Option[java.sql.Timestamp]]("SHARED_AT", O.Default(None))
     /** Database column STATUS DBType(int4), Default(0) */
     val status: Column[Int] = column[Int]("STATUS", O.Default(0))
   }
@@ -439,6 +439,49 @@ trait Tables {
   }
   /** Collection-like TableQuery object for table Employee */
   lazy val Employees = new TableQuery(tag => new EmployeeRow(tag))
+  
+  /** Entity class storing rows of table Invest
+   *  @param id Database column id DBType(bigserial), AutoInc, PrimaryKey
+   *  @param investorId Database column investor_id DBType(int8)
+   *  @param businessId Database column business_id DBType(int8), Default(1)
+   *  @param businessKind Database column business_kind DBType(int4)
+   *  @param amount Database column amount DBType(float8)
+   *  @param busKind Database column bus_kind DBType(int4)
+   *  @param ts Database column ts DBType(timestamp) */
+  case class Invest(id: Long, investorId: Long, businessId: Long = 1L, businessKind: Int, amount: Double, busKind: Int, ts: java.sql.Timestamp)
+  /** GetResult implicit for fetching Invest objects using plain SQL queries */
+  implicit def GetResultInvest(implicit e0: GR[Long], e1: GR[Int], e2: GR[Double], e3: GR[java.sql.Timestamp]): GR[Invest] = GR{
+    prs => import prs._
+    Invest.tupled((<<[Long], <<[Long], <<[Long], <<[Int], <<[Double], <<[Int], <<[java.sql.Timestamp]))
+  }
+  /** Table description of table invest. Objects of this class serve as prototypes for rows in queries. */
+  class InvestRow(_tableTag: Tag) extends Table[Invest](_tableTag, "invest") {
+    def * = (id, investorId, businessId, businessKind, amount, busKind, ts) <> (Invest.tupled, Invest.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (id.?, investorId.?, businessId.?, businessKind.?, amount.?, busKind.?, ts.?).shaped.<>({r=>import r._; _1.map(_=> Invest.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    
+    /** Database column id DBType(bigserial), AutoInc, PrimaryKey */
+    val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    /** Database column investor_id DBType(int8) */
+    val investorId: Column[Long] = column[Long]("investor_id")
+    /** Database column business_id DBType(int8), Default(1) */
+    val businessId: Column[Long] = column[Long]("business_id", O.Default(1L))
+    /** Database column business_kind DBType(int4) */
+    val businessKind: Column[Int] = column[Int]("business_kind")
+    /** Database column amount DBType(float8) */
+    val amount: Column[Double] = column[Double]("amount")
+    /** Database column bus_kind DBType(int4) */
+    val busKind: Column[Int] = column[Int]("bus_kind")
+    /** Database column ts DBType(timestamp) */
+    val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("ts")
+    
+    /** Foreign key referencing Business (database name invest_business_id_fkey) */
+    lazy val businessFk = foreignKey("invest_business_id_fkey", businessId, Businesses)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
+    /** Foreign key referencing Investor (database name invest_investor_id_fkey) */
+    lazy val investorFk = foreignKey("invest_investor_id_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+  }
+  /** Collection-like TableQuery object for table Invest */
+  lazy val Invests = new TableQuery(tag => new InvestRow(tag))
   
   /** Entity class storing rows of table Investor
    *  @param id Database column ID DBType(bigserial), AutoInc, PrimaryKey
@@ -724,7 +767,6 @@ trait Tables {
   /** Entity class storing rows of table InvestorStock
    *  @param id Database column id DBType(bigserial), AutoInc, PrimaryKey
    *  @param investorOwnerId Database column investor_owner_id DBType(int8)
-   *  @param businessId Database column business_id DBType(int8), Default(1)
    *  @param price Database column price DBType(float8)
    *  @param buyPurpose Database column buy_purpose DBType(varchar), Length(2147483647,true)
    *  @param fundSource Database column fund_source DBType(varchar), Length(2147483647,true)
@@ -733,24 +775,22 @@ trait Tables {
    *  @param processedByUserId Database column processed_by_user_id DBType(int8), Default(1)
    *  @param accepted Database column accepted DBType(bool), Default(false)
    *  @param acceptedByUserId Database column accepted_by_user_id DBType(int8), Default(1) */
-  case class InvestorStock(id: Long, investorOwnerId: Long, businessId: Long = 1L, price: Double, buyPurpose: String, fundSource: String, creationTime: java.sql.Timestamp, processed: Boolean = false, processedByUserId: Long = 1L, accepted: Boolean = false, acceptedByUserId: Long = 1L)
+  case class InvestorStock(id: Long, investorOwnerId: Long, price: Double, buyPurpose: String, fundSource: String, creationTime: java.sql.Timestamp, processed: Boolean = false, processedByUserId: Long = 1L, accepted: Boolean = false, acceptedByUserId: Long = 1L)
   /** GetResult implicit for fetching InvestorStock objects using plain SQL queries */
   implicit def GetResultInvestorStock(implicit e0: GR[Long], e1: GR[Double], e2: GR[String], e3: GR[java.sql.Timestamp], e4: GR[Boolean]): GR[InvestorStock] = GR{
     prs => import prs._
-    InvestorStock.tupled((<<[Long], <<[Long], <<[Long], <<[Double], <<[String], <<[String], <<[java.sql.Timestamp], <<[Boolean], <<[Long], <<[Boolean], <<[Long]))
+    InvestorStock.tupled((<<[Long], <<[Long], <<[Double], <<[String], <<[String], <<[java.sql.Timestamp], <<[Boolean], <<[Long], <<[Boolean], <<[Long]))
   }
   /** Table description of table investor_stock. Objects of this class serve as prototypes for rows in queries. */
   class InvestorStockRow(_tableTag: Tag) extends Table[InvestorStock](_tableTag, "investor_stock") {
-    def * = (id, investorOwnerId, businessId, price, buyPurpose, fundSource, creationTime, processed, processedByUserId, accepted, acceptedByUserId) <> (InvestorStock.tupled, InvestorStock.unapply)
+    def * = (id, investorOwnerId, price, buyPurpose, fundSource, creationTime, processed, processedByUserId, accepted, acceptedByUserId) <> (InvestorStock.tupled, InvestorStock.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (id.?, investorOwnerId.?, businessId.?, price.?, buyPurpose.?, fundSource.?, creationTime.?, processed.?, processedByUserId.?, accepted.?, acceptedByUserId.?).shaped.<>({r=>import r._; _1.map(_=> InvestorStock.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get, _11.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (id.?, investorOwnerId.?, price.?, buyPurpose.?, fundSource.?, creationTime.?, processed.?, processedByUserId.?, accepted.?, acceptedByUserId.?).shaped.<>({r=>import r._; _1.map(_=> InvestorStock.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9.get, _10.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
     
     /** Database column id DBType(bigserial), AutoInc, PrimaryKey */
     val id: Column[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column investor_owner_id DBType(int8) */
     val investorOwnerId: Column[Long] = column[Long]("investor_owner_id")
-    /** Database column business_id DBType(int8), Default(1) */
-    val businessId: Column[Long] = column[Long]("business_id", O.Default(1L))
     /** Database column price DBType(float8) */
     val price: Column[Double] = column[Double]("price")
     /** Database column buy_purpose DBType(varchar), Length(2147483647,true) */
@@ -768,14 +808,12 @@ trait Tables {
     /** Database column accepted_by_user_id DBType(int8), Default(1) */
     val acceptedByUserId: Column[Long] = column[Long]("accepted_by_user_id", O.Default(1L))
     
-    /** Foreign key referencing Business (database name investor_stock_business_id_fkey) */
-    lazy val businessFk = foreignKey("investor_stock_business_id_fkey", businessId, Businesses)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
     /** Foreign key referencing Investor (database name investor_stock_investor_owner_id_fkey) */
     lazy val investorFk = foreignKey("investor_stock_investor_owner_id_fkey", investorOwnerId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
     /** Foreign key referencing User (database name investor_stock_accepted_by_user_id_fkey) */
-    lazy val userFk3 = foreignKey("investor_stock_accepted_by_user_id_fkey", acceptedByUserId, Users)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
+    lazy val userFk2 = foreignKey("investor_stock_accepted_by_user_id_fkey", acceptedByUserId, Users)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
     /** Foreign key referencing User (database name investor_stock_processed_by_user_id_fkey) */
-    lazy val userFk4 = foreignKey("investor_stock_processed_by_user_id_fkey", processedByUserId, Users)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
+    lazy val userFk3 = foreignKey("investor_stock_processed_by_user_id_fkey", processedByUserId, Users)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
   }
   /** Collection-like TableQuery object for table InvestorStock */
   lazy val InvestorStocks = new TableQuery(tag => new InvestorStockRow(tag))

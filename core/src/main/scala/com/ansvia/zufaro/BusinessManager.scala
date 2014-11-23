@@ -152,7 +152,7 @@ object BusinessManager {
 
     def delete(business:Business){
         Zufaro.db.withTransaction { implicit sess =>
-            InvestorStocks.filter(_.businessId === business.id).delete
+            Invests.filter(_.businessId === business.id).delete
             ProjectWatchers.filter(_.busId === business.id).delete
             BusinessProfits.filter(_.busId === business.id).delete
             Businesses.filter(_.id === business.id).delete
@@ -266,43 +266,46 @@ trait BusinessHelpers {
                 throw IllegalStateException("Illegal operation")
 
             val ivIb = for {
-                iv <- InvestorStocks if iv.businessId === business.id && iv.busKind === BusinessKind.SINGLE
-                ib <- InvestorBalances if ib.invId === iv.invId
+                iv <- Invests if iv.businessId === business.id && iv.businessKind === BusinessKind.SINGLE
+                ib <- InvestorBalances if ib.invId === iv.investorId
             } yield (iv, ib)
 
             var totalShared = 0D
 
-            ivIb.foreach { case (iv, ib) =>
+            ivIb.run.asInstanceOf[Seq[(Invest, InvestorBalance)]].foreach { case (iv, ib) =>
 
                 val margin = (iv.amount / business.fund) * bp.profit
                 val share = margin * p(business.share)
                 val curBal = ib.amount + share
 
-                InvestorBalance.filter(_.id === ib.id).map(_.amount).update(curBal)
+                InvestorBalances.filter(_.id === ib.id).map(_.amount).update(curBal)
 
                 // tulis business journal
-                ProfitShareJournal += ProfitShareJournalRow(business.id, bp.id, iv.invId, share, shareMethod.method,
+                ProfitShareJournals += ProfitShareJournal(business.id, bp.id, iv.investorId, share, shareMethod.method,
                     Some(shareMethod.initiator.toString), now())
 
 
                 // tulis personal journal
-                Mutation += MutationRow(0L, iv.invId, MutationKind.CREDIT,
-                    share, Some("bagi hasil dari bisnis: " + business.name),
-                    None, now())
+//                Mutations += Mutation(0L, iv.invId, MutationKind.CREDIT,
+//                    share, Some("bagi hasil dari bisnis: " + business.name),
+//                    None, now())
+                
+                Mutations.map(s => (s.invId, s.kind, s.amount, s.ref)) += 
+                    (iv.investorId, MutationKind.CREDIT, share, Some("bagi hasil dari bisnis: " + business.name))
 
                 // tulis activity stream
                 Activity.publish("Profit share",
                     s"""From business: "${business.name}" amount of ${share format IDR}""",
-                        iv.invId, Activity.kind.INVESTOR)
+                        iv.investorId, Activity.kind.INVESTOR)
 
                 totalShared += share
 
                 debug(f"profit shared from `${business.name} (${business.id})` " +
-                    f"amount of $share%.02f to investor id `${iv.invId}`")
+                    f"amount of $share%.02f to investor id `${iv.investorId}`")
             }
 
-            BusinessProfit.filter(_.id === bp.id).map(d => (d.shared, d.sharedAt, d.status))
-                .update((true, now(), reportStatus.ACCEPTED))
+            BusinessProfits.filter(_.id === bp.id).map(d => (d.shared, d.sharedAt, d.status))
+                .update((true, Some(now()), reportStatus.ACCEPTED))
 
 
             /************************************************
@@ -311,13 +314,17 @@ trait BusinessHelpers {
 
             val income = bp.profit - totalShared
             if (income > 0.0){
-                val balQ = Business.filter(_.id === business.id).map(_.saving)
+                val balQ = Businesses.filter(_.id === business.id).map(_.saving)
                 val newBalance = balQ.firstOption.getOrElse(0.0) + income
                 balQ.update(newBalance)
                 
-                BusinessAccountMutation += BusinessAccountMutation(0L, business.id, MutationKind.CREDIT, income,
-                    f"Profit from business `${business.name}` #${business.id}",
-                    Initiator.system.toString(), now())
+//                BusinessAccountMutations += BusinessAccountMutation(0L, business.id, MutationKind.CREDIT, income,
+//                    f"Profit from business `${business.name}` #${business.id}",
+//                    Initiator.system.toString(), now())
+
+                BusinessAccountMutations.map(s => (s.busId, s.kind, s.amount, s.info, s.initiator)) +=
+                    (business.id, MutationKind.CREDIT, income, f"Profit from business `${business.name}` #${business.id}",
+                        Initiator.system.toString())
             }
 
 
@@ -350,7 +357,7 @@ trait BusinessHelpers {
         def invalidateReport(bp:BusinessProfit){
             Zufaro.db.withTransaction { implicit sess =>
                 // @TODO(robin): use `state=reportStatus.INVALID` instead of permanently deletion
-                BusinessProfit.filter(_.id === bp.id).delete
+                BusinessProfits.filter(_.id === bp.id).delete
             }
         }
 
@@ -362,13 +369,13 @@ trait BusinessHelpers {
          * @param access access name to check.
          * @return
          */
-        def isGranted(client:ApiClientRow, access:String):Boolean = {
+        def isGranted(client:ApiClient, access:String):Boolean = {
             Zufaro.db.withSession { implicit sess =>
                 val target = s"bus=${business.id}"
-                (ApiClientAccess.filter(ac => ac.apiClientId === client.id &&
+                (ApiClientAccesses.filter(ac => ac.apiClientId === client.id &&
                     ac.grant === access &&
                     ac.target === target).length.run > 0) |
-                (ApiClientAccess.filter(ac => ac.apiClientId === client.id &&
+                (ApiClientAccesses.filter(ac => ac.apiClientId === client.id &&
                     ac.target === target &&
                     ac.grant === "all").length.run > 0)
 
@@ -388,12 +395,12 @@ trait BusinessHelpers {
 
                 val beforeStr = stateStr(business.state)
 
-                Business.filter(_.id === business.id).map(_.state).update(PRODUCTION)
+                Businesses.filter(_.id === business.id).map(_.state).update(PRODUCTION)
 
                 // publish activity
                 val q = for {
-                    iv <- Invest if iv.busId === business.id
-                    investor <- Investor if investor.id === iv.invId
+                    iv <- Invests if iv.businessId === business.id
+                    investor <- Investors if investor.id === iv.investorId
                 } yield investor.id
 
 
@@ -412,12 +419,12 @@ trait BusinessHelpers {
             Zufaro.db.withTransaction { implicit sess =>
                 val beforeStr = stateStr(business.state)
 
-                Business.filter(_.id === business.id).map(_.state).update(DRAFT)
+                Businesses.filter(_.id === business.id).map(_.state).update(DRAFT)
 
                 // publish activity
                 val q = for {
-                    iv <- Invest if iv.busId === business.id
-                    investor <- Investor if investor.id === iv.invId
+                    iv <- Invests if iv.businessId === business.id
+                    investor <- Investors if investor.id === iv.investorId
                 } yield investor.id
 
 
@@ -437,12 +444,12 @@ trait BusinessHelpers {
 
                 val beforeStr = stateStr(business.state)
 
-                Business.filter(_.id === business.id).map(_.state).update(CLOSED)
+                Businesses.filter(_.id === business.id).map(_.state).update(CLOSED)
 
                 // publish activity
                 val q = for {
-                    iv <- Invest if iv.busId === business.id
-                    investor <- Investor if investor.id === iv.invId
+                    iv <- Invests if iv.businessId === business.id
+                    investor <- Investors if investor.id === iv.investorId
                 } yield investor.id
 
 
@@ -467,7 +474,7 @@ trait BusinessHelpers {
         def getPercentageDone() = {
             requireProject()
             Zufaro.db.withSession { implicit sess =>
-                val s = ProjectReport.filter(_.busId === business.id).sortBy(_.ts.desc)
+                val s = ProjectReports.filter(_.busId === business.id).sortBy(_.ts.desc)
                     .map(_.percentage).take(1).run
                 s.headOption.getOrElse(0.0)
             }
@@ -477,7 +484,7 @@ trait BusinessHelpers {
         def getProjectReports(offset:Int, limit:Int):Seq[ProjectReport] = {
             requireProject()
             Zufaro.db.withSession { implicit sess =>
-                ProjectReport.filter(p => p.busId === business.id).sortBy(_.ts.desc).drop(offset).take(limit).run
+                ProjectReports.filter(p => p.busId === business.id).sortBy(_.ts.desc).drop(offset).take(limit).run
             }
         }
 
@@ -487,12 +494,15 @@ trait BusinessHelpers {
 
                 val beforeStr = business.getPercentageDone()
 
-                ProjectReport += ProjectReport(0L, business.id, info, percentageDone, initiator.toString, now())
+//                ProjectReport += ProjectReport(0L, business.id, info, percentageDone, initiator.toString, now())
+
+                ProjectReports.map(s => (s.busId, s.info, s.percentage, s.initiator)) +=
+                    (business.id, info, percentageDone, initiator.toString)
 
                 // publish activity
                 val q = for {
-                    iv <- Invest if iv.busId === business.id
-                    investor <- Investor if investor.id === iv.invId
+                    iv <- Invests if iv.businessId === business.id
+                    investor <- Investors if investor.id === iv.investorId
                 } yield investor.id
 
 
@@ -524,7 +534,8 @@ trait BusinessGroupHelpers {
         def addMembers(business:Business*) = {
             Zufaro.db.withTransaction { implicit sess =>
                 business.foreach { bus =>
-                    BusinessGroupLink += BusinessGroupLinkRow(0L, businessGroup.id, bus.id)
+//                    BusinessGroupLinks += BusinessGroupLink(0L, businessGroup.id, bus.id)
+                    BusinessGroupLinks.map(s => (s.busGroupId, s.busId)) += (businessGroup.id, bus.id)
                 }
             }
         }
@@ -536,15 +547,16 @@ trait BusinessGroupHelpers {
          */
         def rmMember(business:Business) = {
             Zufaro.db.withSession { implicit sess =>
-                BusinessGroupLink += BusinessGroupLinkRow(0L, businessGroup.id, business.id)
-                BusinessGroupLink.filter(link => link.busId === business.id && link.busGroupId === businessGroup.id).delete
+//                BusinessGroupLink += BusinessGroupLink(0L, businessGroup.id, business.id)
+
+                BusinessGroupLinks.filter(link => link.busId === business.id && link.busGroupId === businessGroup.id).delete
             }
         }
 
         def getMembers(offset:Int, limit:Int = -1) = {
             lazy val q = for {
-                link <- BusinessGroupLink if link.busGroupId === businessGroup.id
-                bus <- Business if bus.id === link.busId
+                link <- BusinessGroupLinks if link.busGroupId === businessGroup.id
+                bus <- Businesses if bus.id === link.busId
             } yield bus
             if (limit > 0)
                 q.drop(offset).take(limit)
@@ -554,7 +566,7 @@ trait BusinessGroupHelpers {
 
         def getMemberCount:Int = {
             Zufaro.db.withSession(implicit sess =>
-                BusinessGroupLink.filter(_.busGroupId === businessGroup.id).length.run)
+                BusinessGroupLinks.filter(_.busGroupId === businessGroup.id).length.run)
         }
 
 

@@ -152,9 +152,9 @@ object BusinessManager {
 
     def delete(business:Business){
         Zufaro.db.withTransaction { implicit sess =>
-            Invest.filter(_.busId === business.id).delete
-            ProjectWatcher.filter(_.busId === business.id).delete
-            BusinessProfit.filter(_.busId === business.id).delete
+            InvestorStocks.filter(_.businessId === business.id).delete
+            ProjectWatchers.filter(_.busId === business.id).delete
+            BusinessProfits.filter(_.busId === business.id).delete
             Businesses.filter(_.id === business.id).delete
         }
     }
@@ -176,7 +176,7 @@ trait BusinessHelpers {
 
 
 
-        def addProfit(omzet:Double, profit:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfitRow = {
+        def addProfit(omzet:Double, profit:Double, mutator:{def id:Long}, mutatorRole:Int, additionalInfo:String=""):BusinessProfit = {
 
             if (business.state != PRODUCTION)
                 throw new ZufaroException("business not in production state, got %d".format(business.state), 709)
@@ -184,10 +184,13 @@ trait BusinessHelpers {
             val busProfitId =
             Zufaro.db.withTransaction { implicit sess =>
 
-                val _busProfitId = (BusinessProfit returning BusinessProfit.map(_.id)) += 
-                    BusinessProfitRow(0L, business.id, omzet, 
-                    profit, now(), mutator.id,
-                    mutatorRole, additionalInfo, shared=false, sharedAt=now(), reportStatus.NEW)
+                val _busProfitId = (BusinessProfits.map(s => (s.busId, s.omzet, s.profit, s.mutatorId,
+                    s.mutatorRole, s.info)) returning BusinessProfits.map(_.id)) +=
+                        (business.id, omzet, profit, mutator.id, mutatorRole, additionalInfo)
+
+//                    BusinessProfit(0L, business.id, omzet,
+//                    profit, now(), mutator.id,
+//                    mutatorRole, additionalInfo, shared=false, sharedAt=now(), reportStatus.NEW)
 
                 debug(f"profit added for business id `${business.id}`, omzet $omzet%.02f, " +
                     f"profit $profit%.02f, ref id: ${_busProfitId}")
@@ -196,26 +199,26 @@ trait BusinessHelpers {
             }
 
             // returning succeeded added profit info db object
-            Zufaro.db.withSession(implicit sess => BusinessProfit.filter(_.id === busProfitId).firstOption.get)
+            Zufaro.db.withSession(implicit sess => BusinessProfits.filter(_.id === busProfitId).firstOption.get)
         }
 
         def getProfit:Double = {
             Zufaro.db.withSession( implicit sess =>
-                BusinessProfit.filter(_.busId === business.id).map(_.profit).sum.run.getOrElse(0.0)
+                BusinessProfits.filter(_.busId === business.id).map(_.profit).sum.run.getOrElse(0.0)
             )
         }
 
-        def getIncomeReport(offset:Int, limit:Int):Seq[BusinessProfitRow] = {
+        def getIncomeReport(offset:Int, limit:Int):Seq[BusinessProfit] = {
             Zufaro.db.withSession { implicit sess =>
-                BusinessProfit.filter(_.busId === business.id).sortBy(_.ts.desc).run
+                BusinessProfits.filter(_.busId === business.id).sortBy(_.ts.desc).run
             }
         }
         
         def getShareReport(busProfId:Long, offset:Int, limit:Int):Seq[ShareReport] = {
             Zufaro.db.withSession { implicit sess =>
                 val q = for {
-                    b <- ProfitShareJournal if b.busId === business.id && b.busProfId === busProfId
-                    inv <- Investor if inv.id === b.invId
+                    b <- ProfitShareJournals if b.busId === business.id && b.busProfId === busProfId
+                    inv <- Investors if inv.id === b.invId
                 } yield (inv.id, inv.name, b.amount, b.ts)
             
                 q.run.map { case (investorId, investorName, amount, ts) =>
@@ -224,9 +227,9 @@ trait BusinessHelpers {
             }
         }
 
-        def getAccountMutationReport(offset:Int, limit:Int):Seq[BusinessAccountMutationRow] = {
+        def getAccountMutationReport(offset:Int, limit:Int):Seq[BusinessAccountMutation] = {
             Zufaro.db.withSession { implicit sess =>
-                BusinessAccountMutation.filter(_.busId === business.id).sortBy(_.ts.desc).run
+                BusinessAccountMutations.filter(_.busId === business.id).sortBy(_.ts.desc).run
             }
         }
 
@@ -237,7 +240,7 @@ trait BusinessHelpers {
             debug("do share process...")
             Zufaro.db.withTransaction { implicit sess =>
                 val bps = for {
-                    bp <- BusinessProfit if bp.busId === business.id && bp.shared === false
+                    bp <- BusinessProfits if bp.busId === business.id && bp.shared === false
                 } yield bp
 
                 bps.foreach { bp =>
@@ -246,7 +249,7 @@ trait BusinessHelpers {
             }
         }
 
-//        def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
+//        def doShareProcess(bp:BusinessProfit, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
 //            // double check
 //            if (BusinessProfit.filter(x => x.id === bp.id && x.shared === true).length.run > 0)
 //                throw IllegalStateException("Illegal operation")
@@ -256,15 +259,15 @@ trait BusinessHelpers {
 //        }
 
 
-        def doShareProcess(bp:BusinessProfitRow, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
+        def doShareProcess(bp:BusinessProfit, shareMethod:ShareMethod)(implicit sess:backend.SessionDef){
             // kalkulasi bagi hasil
 
-            if (BusinessProfit.filter(x => x.id === bp.id && x.shared === true).length.run > 0)
+            if (BusinessProfits.filter(x => x.id === bp.id && x.shared === true).length.run > 0)
                 throw IllegalStateException("Illegal operation")
 
             val ivIb = for {
-                iv <- Invest if iv.busId === business.id && iv.busKind === BusinessKind.SINGLE
-                ib <- InvestorBalance if ib.invId === iv.invId
+                iv <- InvestorStocks if iv.businessId === business.id && iv.busKind === BusinessKind.SINGLE
+                ib <- InvestorBalances if ib.invId === iv.invId
             } yield (iv, ib)
 
             var totalShared = 0D
@@ -312,7 +315,7 @@ trait BusinessHelpers {
                 val newBalance = balQ.firstOption.getOrElse(0.0) + income
                 balQ.update(newBalance)
                 
-                BusinessAccountMutation += BusinessAccountMutationRow(0L, business.id, MutationKind.CREDIT, income,
+                BusinessAccountMutation += BusinessAccountMutation(0L, business.id, MutationKind.CREDIT, income,
                     f"Profit from business `${business.name}` #${business.id}",
                     Initiator.system.toString(), now())
             }
@@ -344,7 +347,7 @@ trait BusinessHelpers {
 //            }
         }
 
-        def invalidateReport(bp:BusinessProfitRow){
+        def invalidateReport(bp:BusinessProfit){
             Zufaro.db.withTransaction { implicit sess =>
                 // @TODO(robin): use `state=reportStatus.INVALID` instead of permanently deletion
                 BusinessProfit.filter(_.id === bp.id).delete
@@ -471,7 +474,7 @@ trait BusinessHelpers {
         }
 
 
-        def getProjectReports(offset:Int, limit:Int):Seq[ProjectReportRow] = {
+        def getProjectReports(offset:Int, limit:Int):Seq[ProjectReport] = {
             requireProject()
             Zufaro.db.withSession { implicit sess =>
                 ProjectReport.filter(p => p.busId === business.id).sortBy(_.ts.desc).drop(offset).take(limit).run
@@ -484,7 +487,7 @@ trait BusinessHelpers {
 
                 val beforeStr = business.getPercentageDone()
 
-                ProjectReport += ProjectReportRow(0L, business.id, info, percentageDone, initiator.toString, now())
+                ProjectReport += ProjectReport(0L, business.id, info, percentageDone, initiator.toString, now())
 
                 // publish activity
                 val q = for {

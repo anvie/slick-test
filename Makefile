@@ -55,7 +55,7 @@ reset-db:
 	@@echo "generate slick code from database table schema? [y/n] "
 	@@read generate_table && \
 	if [ "$$generate_table" = "y" ]; then \
-		make gen-tables; \
+		make gen-models; \
 	fi
 #	@@echo "filling with dummy data? [y/n] "
 #	@@read fill_dummy && \

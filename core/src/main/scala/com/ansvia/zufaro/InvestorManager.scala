@@ -1,10 +1,11 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.PostgresDriver.simple._
+import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanceException, InvalidParameterException}
+import com.ansvia.zufaro.model.Tables._
+import com.ansvia.zufaro.model.{Initiator, MutationKind, NoInitiator}
+
 import scala.slick.driver.PostgresDriver.backend
-import model.Tables._
-import com.ansvia.zufaro.exception.{InvalidParameterException, AlreadyInvestedException, InsufficientBalanceException}
-import com.ansvia.zufaro.model.{MutationKind, NoInitiator, Initiator}
+import scala.slick.driver.PostgresDriver.simple._
 
 //import com.ansvia.zufaro.macros.RequireMacro
 
@@ -107,8 +108,6 @@ object InvestorManager {
 }
 
 trait InvestorHelpers {
-
-    import TimestampHelpers._
 
     implicit class investorWrapper(investor:Investor){
         def invest(business:Business, amount:Double) = {

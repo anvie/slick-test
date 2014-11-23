@@ -78,7 +78,7 @@ class AdminSnippet extends Slf4jLogger {
 
     def surround:CssSel = {
         "#Main [data-lift]" #> {
-            if (Auth.currentAdmin.is.isDefined)
+            if (Auth.currentUser.is.isDefined)
                 "Surround?with=admin;at=content"
             else
                 "Surround?with=default;at=content"

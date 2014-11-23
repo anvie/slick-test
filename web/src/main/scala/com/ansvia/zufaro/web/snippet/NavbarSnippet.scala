@@ -20,7 +20,7 @@ class NavbarSnippet {
         "*" #> {
             if (Auth.isLoggedIn_?("any")){
                 "#WelcomeName *" #> {
-                    Auth.currentAdmin.is.map { admin =>
+                    Auth.currentUser.is.map { admin =>
                         admin.name
                     }.getOrElse {
                         Auth.currentInvestor.is.map { investor =>

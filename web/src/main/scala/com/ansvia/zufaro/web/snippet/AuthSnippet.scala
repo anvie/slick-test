@@ -47,7 +47,7 @@ object AuthSnippet {
         val (name, role) =
             who match {
                 case "admin" =>
-                    (Auth.currentAdmin.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.ADMIN))
+                    (Auth.currentUser.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.ADMIN))
                 case "operator" =>
                     (Auth.currentOperator.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.OPERATOR))
                 case "investor" =>

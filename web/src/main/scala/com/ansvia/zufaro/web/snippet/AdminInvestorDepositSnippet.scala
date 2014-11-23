@@ -96,7 +96,7 @@ class AdminInvestorDepositSnippet {
                     throw NotExistsException(s"No investor with id $invId")
                 }
                 val (initId, initRole) = {
-                    Auth.currentAdmin.map {
+                    Auth.currentUser.map {
                         admin =>
                             (admin.id, UserRole.ADMIN)
                     }.getOrElse {
@@ -150,7 +150,7 @@ class AdminInvestorDepositSnippet {
                     throw NotExistsException(s"No investor with id $invId")
                 }
                 val (initId, initRole) = {
-                    Auth.currentAdmin.map {
+                    Auth.currentUser.map {
                         admin =>
                             (admin.id, UserRole.ADMIN)
                     }.getOrElse {

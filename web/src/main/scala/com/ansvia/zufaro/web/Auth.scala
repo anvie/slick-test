@@ -16,8 +16,8 @@ import com.ansvia.zufaro.model.{Initiator, UserRole}
 object Auth {
 
 
-    object currentAdmin extends SessionVar[Box[AdminRow]](Empty)
-    object currentOperator extends SessionVar[Box[OperatorRow]](Empty)
+    object currentUser extends SessionVar[Box[User]](Empty)
+//    object currentOperator extends SessionVar[Box[OperatorRow]](Empty)
     object currentInvestor extends SessionVar[Box[Investor]](Empty)
 
 
@@ -27,13 +27,13 @@ object Auth {
             if (!PasswordUtil.isMatch(password, admin.passhash))
                 throw PermissionDeniedException("Wrong user name or password")
 
-            currentAdmin.set(Full(admin))
+            currentUser.set(Full(admin))
         }
     }
 
     def adminLogout(){
-        currentAdmin.remove()
-        currentOperator.remove()
+        currentUser.remove()
+//        currentOperator.remove()
     }
 
     def investorLogin(userName:String, password:String) = {
@@ -52,30 +52,22 @@ object Auth {
 
     def isLoggedIn_?(who:String) = who match {
         case "admin" =>
-            currentAdmin.is.isDefined
-        case "operator" =>
-            currentOperator.is.isDefined
+            currentUser.is.isDefined
         case "investor" =>
             currentInvestor.is.isDefined
         case "any" =>
-            currentAdmin.is.isDefined ||
-                currentOperator.is.isDefined ||
+            currentUser.is.isDefined ||
                 currentInvestor.is.isDefined
     }
 
 
     def getInitiator = {
         val (initiator, initiatorRole) = {
-            Auth.currentAdmin.map {
-                admin =>
-                    (admin.id, UserRole.ADMIN)
+            Auth.currentUser.map {
+                user =>
+                    (user.id, UserRole.ADMIN)
             }.getOrElse {
-                Auth.currentOperator.map {
-                    op =>
-                        (op.id, UserRole.OPERATOR)
-                }.getOrElse {
-                    throw PermissionDeniedException("Unauthorized")
-                }
+                throw PermissionDeniedException("Unauthorized")
             }
         }
         Initiator(initiator, initiatorRole)

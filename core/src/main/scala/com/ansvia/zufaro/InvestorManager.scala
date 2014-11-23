@@ -41,25 +41,20 @@ object InvestorManager {
 
     /**
      * Create new investor
-     * @param name investor name
-     * @param fullName investor name
-     * @param role see [[com.ansvia.zufaro.model.InvestorRole]]
+     * @param investor to create.
+     * @param password plain password
      * @return
      */
-    def create(name:String, fullName:String, role:Int, password:String, contact:Contact) = {
+    def create(investor:Investor, password:String) = {
         val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
-            val userId = (Investor returning Investor.map(_.id)) += Investor(0L, name, fullName,
-                role, passHash,
-                contact.address.address, contact.address.city,
-                contact.address.province,
-                contact.address.country,
-                contact.address.postalCode,
-                contact.email,
-                contact.phone1,
-                contact.phone2,
-                status.ACTIVE)
-            InvestorBalance += InvestorBalanceRow(0L, userId, 0.0)
+            val userId = (Investors.map(s => (s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate, 
+                s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName, s.passhash, 
+                s.status)) returning Investors.map(_.id)) += 
+                (investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                    investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, passHash, status.ACTIVE)
+
+            InvestorBalances.map(s => (s.invId, s.amount)) += (userId, 0.0)
             userId
         }
         getById(userId).get
@@ -72,7 +67,7 @@ object InvestorManager {
      */
     def getById(id:Long) = {
         Zufaro.db.withSession { implicit session =>
-            Investor.where(_.id === id).firstOption
+            Investors.filter(_.id === id).firstOption
         }
     }
 
@@ -83,13 +78,13 @@ object InvestorManager {
      */
     def getByName(name:String) = {
         Zufaro.db.withSession { implicit session =>
-            Investor.where(_.name === name).firstOption
+            Investors.filter(_.name === name).firstOption
         }
     }
 
     def getList(offset:Int, limit:Int):Seq[Investor] = {
         Zufaro.db.withSession { implicit sess =>
-            Investor.where(_.status === status.ACTIVE).drop(offset).take(limit).run
+            Investors.filter(_.status === status.ACTIVE).drop(offset).take(limit).run
         }
     }
 
@@ -101,10 +96,10 @@ object InvestorManager {
      */
     def delete(investor:Investor) = {
         Zufaro.db.withTransaction { implicit sess =>
-            Invest.where(_.invId === investor.id).delete
-            Mutation.where(_.invId === investor.id).delete
-            InvestorBalance.where(_.invId === investor.id).delete
-            Investor.where(_.id === investor.id).delete
+            Invests.filter(_.investorId === investor.id).delete
+            Mutations.filter(_.invId === investor.id).delete
+            InvestorBalances.filter(_.invId === investor.id).delete
+            Investors.filter(_.id === investor.id).delete
         }
     }
 
@@ -120,7 +115,9 @@ trait InvestorHelpers {
             Zufaro.db.withTransaction { implicit sess =>
 
                 // check is already invested
-                val qex = for { iv <- Invest if iv.busId === business.id && iv.invId === investor.id } yield iv.amount
+                val qex = for { 
+                    iv <- Invests if iv.businessId === business.id && iv.investorId === investor.id 
+                } yield iv.amount
 
                 val alreadyAmount = qex.firstOption.getOrElse(0.0)
                 if (alreadyAmount > 0.0)
@@ -128,16 +125,23 @@ trait InvestorHelpers {
 
                 checkBalance(amount)
 
-                Invest += InvestRow(0L, investor.id, business.id, amount, BusinessKind.SINGLE, now())
+                Invests.map(s => (s.investorId, s.businessId, s.amount, s.businessKind)) +=
+                    (investor.id, business.id, amount, BusinessKind.SINGLE)
+                
+                //+= InvestRow(0L, investor.id, business.id, amount, BusinessKind.SINGLE, now())
 
                 // debit investor balance
-                val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
-                val curAmount = q.first()
+                val q = for { bal <- InvestorBalances if bal.invId === investor.id } yield bal.amount
+                val curAmount = q.first
                 q.update(curAmount - amount)
 
                 // write mutation journal
-                Mutation += MutationRow(0L, investor.id, MutationKind.DEBIT, amount,
-                    Some(f"for business investment: ${business.name} ${business.id}"), None, now())
+//                Mutation += Mutation(0L, investor.id, MutationKind.DEBIT, amount,
+//                    Some(f"for business investment: ${business.name} ${business.id}"), None, now())
+                
+                Mutations.map(s => (s.invId, s.kind, s.amount, s.ref)) += 
+                    (investor.id, MutationKind.DEBIT, amount,
+                        Some(f"for business investment: ${business.name} ${business.id}"))
             }
         }
 
@@ -147,7 +151,7 @@ trait InvestorHelpers {
          * @param amount invest amount.
          * @return
          */
-        def invest(businessGroup:BusinessGroupRow, amount:Double) = {
+        def invest(businessGroup:BusinessGroup, amount:Double) = {
             Zufaro.db.withTransaction { implicit sess:backend.SessionDef =>
 //
 //                import BusinessHelpers._
@@ -159,11 +163,14 @@ trait InvestorHelpers {
                 // check balance
                 checkBalance(amount)
 
-                Invest += InvestRow(0L, investor.id, businessGroup.id, amount, BusinessKind.GROUP, now())
+//                Invest += InvestRow(0L, investor.id, businessGroup.id, amount, BusinessKind.GROUP, now())
+
+                Invests.map(s => (s.investorId, s.businessId, s.businessKind, s.amount)) +=
+                    (investor.id, businessGroup.id, BusinessKind.GROUP, amount)
 
                 // debit investor balance
-                val q = for { bal <- InvestorBalance if bal.invId === investor.id } yield bal.amount
-                val curAmount = q.first()
+                val q = for { bal <- InvestorBalances if bal.invId === investor.id } yield bal.amount
+                val curAmount = q.first
                 q.update(curAmount - amount)
             }
         }
@@ -171,7 +178,7 @@ trait InvestorHelpers {
         def removeInvestment(business:Business) = {
             Zufaro.db.withTransaction { implicit sess =>
 
-                Invest.where(iv => iv.busId === business.id && iv.busKind === BusinessKind.SINGLE)
+                Invest.filter(iv => iv.busId === business.id && iv.busKind === BusinessKind.SINGLE)
                     .delete
 
             }
@@ -215,7 +222,7 @@ trait InvestorHelpers {
 
 
         def getBalance = {
-            Zufaro.db.withSession( implicit sess => InvestorBalance.where(_.invId === investor.id)
+            Zufaro.db.withSession( implicit sess => InvestorBalance.filter(_.invId === investor.id)
                   .firstOption.map(_.amount).getOrElse(0.0) )
         }
 

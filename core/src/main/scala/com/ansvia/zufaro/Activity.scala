@@ -1,9 +1,11 @@
 package com.ansvia.zufaro
 
-import scala.slick.driver.PostgresDriver.simple._
-import scala.slick.driver.PostgresDriver.backend.SessionDef
-import com.ansvia.zufaro.model.Tables._
 import java.util.Date
+
+import com.ansvia.zufaro.model.Tables._
+
+import scala.slick.driver.PostgresDriver.backend.SessionDef
+import scala.slick.driver.PostgresDriver.simple._
 
 /**
  * Author: robin
@@ -12,8 +14,6 @@ import java.util.Date
  *
  */
 object Activity {
-
-    import TimestampHelpers._
 
     object kind {
         val ADMIN = 1
@@ -39,7 +39,7 @@ object Activity {
     def getActivities(investor:Investor, offset:Int, limit:Int):Seq[ActivityStreamItem] = {
         Zufaro.db.withSession { implicit sess =>
             val q = for {
-                as <- ActivityStream if as.subscriberId === investor.id && as.subscriberKind === kind.INVESTOR
+                as <- ActivityStreams if as.subscriberId === investor.id && as.subscriberKind === kind.INVESTOR
             } yield (as.id, as.activity, as.info, as.ts)
             q.sortBy(_._4.desc).drop(offset).take(limit)
                 .run.map(a => ActivityStreamItem(a._1, a._2, a._3, new Date(a._4.getTime)))

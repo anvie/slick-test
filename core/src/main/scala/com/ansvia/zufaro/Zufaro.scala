@@ -22,7 +22,7 @@ object Zufaro extends Slf4jLogger {
         val _db = Database.forURL(jdbcUrl, driver = "org.postgresql.Driver")
 
         _db.withSession { implicit sess =>
-            if (MTable.getTables.list().isEmpty){
+            if (MTable.getTables.list.isEmpty){
                 info("first init db, no any tables exists, creating...")
                 model.Tables.ddl.create
             }

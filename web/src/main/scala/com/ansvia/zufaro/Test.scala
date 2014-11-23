@@ -1,5 +1,7 @@
 package com.ansvia.zufaro
 
+import java.sql.Date
+
 import scala.slick.driver.PostgresDriver.simple._
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model._
@@ -14,22 +16,6 @@ object Test extends ZufaroTestHelpers {
     import Helpers._
     import ZufaroHelpers._
 
-//
-//    val dbTestFile = "/tmp/zufaro-data-test"
-//
-//    {   // clean up data file
-//    val f = new File("/tmp")
-//        if (f.exists()){
-//            f.listFiles(new FilenameFilter {
-//                def accept(dir: File, name: String): Boolean = name.startsWith("zufaro-data")
-//            }).foreach { _f =>
-//                println(s"deleting /tmp/${_f.getName} ...")
-//                _f.delete()
-//            }
-//        }
-//    }
-//
-//    Zufaro.jdbcUrl = s"jdbc:h2:$dbTestFile"
 
     private def genPass = {
         UUID.randomUUID().toString
@@ -54,18 +40,34 @@ object Test extends ZufaroTestHelpers {
 
             val contacts = for (i <- 0 to 5) yield genContact
 
-            InvestorManager.create("robin", "robin", InvestorRole.OWNER, genPass, contacts(0))
-            InvestorManager.create("gondez", "gondez", InvestorRole.OWNER, genPass, contacts(1))
-            InvestorManager.create("temon", "temon", InvestorRole.OWNER, genPass, contacts(2))
-            val imam = InvestorManager.create("imam", "imam", InvestorRole.OWNER, genPass, contacts(3))
+            val inv = Investor(0L,
+                name = "robin",
+                fullName = "robin",
+                role = InvestorRole.OWNER,
+                sex = SexType.MALE,
+                nation = "Indonesia",
+                birthPlace = "Wonosobo",
+                birthDate = new Date(1988,01,01),
+                religion = "-",
+                education = "S1",
+                titleFront = "Ir.",
+                maritalStatus = 1,
+                motherName = "",
+                passhash = ""
+            )
+
+            InvestorManager.create(inv, genPass)
+            InvestorManager.create(inv.copy(name = "gondez", fullName = "gondez"), genPass)
+            InvestorManager.create(inv.copy(name = "temon", fullName = "temon"), genPass)
+            val imam = InvestorManager.create(inv.copy(name = "imam", fullName = "imam"), genPass)
 
             //                Investor.users.foreach { case (id, name, role) =>
             //                    println(s" * $id - $name ($role)")
             //                }
 
             println("Investors:")
-            Investor.foreach { case Investor(id, name, role, genPass, _, _, _, _, _, _, _, _, _, _) =>
-                println(s" * $id - $name ($role)")
+            Investors.foreach { case inv:Investor =>
+                println(s" * ${inv.id} - ${inv.name} (${inv.role})")
             }
 
             //                Business += Business(0, "Anu", "anu kae", , 70.0, 30.0)
@@ -80,12 +82,12 @@ object Test extends ZufaroTestHelpers {
             busGroupAll.addMembers(busCucianMobil, busLaundry, busPulsa)
 
             println("\nBusiness: ")
-            for (b <- Business){
+            for (b <- Businesses){
                 println(f"  + bisnis `${b.name}` has fund: Rp.${b.fund}%.02f")
             }
 
             println("\nBusiness Group: ")
-            BusinessGroup.foreach { bg =>
+            BusinessGroups.foreach { bg =>
                 println("    * `" + bg.name + "` with members:")
                 bg.getMembers(0, 10).sortBy(_.name).foreach { bus =>
                     println("      - " + bus.name)
@@ -106,7 +108,7 @@ object Test extends ZufaroTestHelpers {
             imam.addBalance(200.0)
 
             println("balance before invest:")
-            Investor.foreach { inv =>
+            Investors.foreach { inv =>
                 println(f"   ${inv.name} balance: Rp.${inv.getBalance}%.02f")
             }
 
@@ -124,8 +126,8 @@ object Test extends ZufaroTestHelpers {
 //            println(s"${robin.name} balance after invest: ${robin.getBalance}")
 
             val investors = for {
-                ((u, v), b) <- Investor.innerJoin(Invest).innerJoin(Business).on {
-                    case ((_u, _v), _b) => _u.id === _v.invId && _b.id === _v.busId
+                ((u, v), b) <- Investors.innerJoin(Invests).innerJoin(Businesses).on {
+                    case ((_u, _v), _b) => _u.id === _v.investorId && _b.id === _v.businessId
                 }
             } yield (u, v.amount, b.id, b.name, v.id, v.busKind)
 
@@ -146,7 +148,7 @@ object Test extends ZufaroTestHelpers {
             temon.removeInvestment(busCucianMobil)
 
             println("\nbalance after invest:")
-            Investor.foreach { inv =>
+            Investors.foreach { inv =>
                 println(f"   ${inv.name} balance: Rp.${inv.getBalance}%.02f")
             }
 
@@ -161,24 +163,24 @@ object Test extends ZufaroTestHelpers {
             // walaupun sudah add profit tapi belum otomatis ke-share profit-nya ke investor
             // harus eksekusi doShareProcess() dulu
 
-            Business.foreach { bus =>
+            Businesses.foreach { bus =>
                 if (bus.getProfit > 0)
                     println(f"  business ${bus.name}%s has profit amount of Rp.${bus.getProfit}%.02f")
             }
 
             // lakukan prosedur share ke semua investor
             val shareMethod = ShareMethod(ShareMethod.AUTO, NoInitiator)
-            Business.foreach(_.doShareProcess(shareMethod))
+            Businesses.foreach(_.doShareProcess(shareMethod))
 
 
             println("\n --------------- BUSINESS ACCOUNT -----------------\n")
 
-            for (b <- Business){
+            for (b <- Businesses){
 
                 println(f" * ${b.name} - balance: ${b.saving format IDR}")
 
                 val q = for {
-                    fin <- BusinessAccountMutation if fin.busId === b.id
+                    fin <- BusinessAccountMutations if fin.busId === b.id
                 } yield (fin.kind, fin.amount, fin.info)
 
                 q.foreach { case (kind, amount, info) =>
@@ -194,15 +196,15 @@ object Test extends ZufaroTestHelpers {
 
             println("\n --------------- INVESTOR ACCOUNT -----------------")
 
-            Investor.foreach { investor =>
+            Investors.foreach { investor =>
                 println("\n")
                 println(f"  ${investor.name}%s balance: Rp.${investor.getBalance}%.02f")
                 println("  mutation:")
-                Mutation.filter(_.invId === investor.id).sortBy(_.ts.desc)
-                .map(x => (x.kind, x.amount, x.ref, x.ts))
-                .foreach { case (kind, amount, ref, ts) =>
-                    println(f"     - ${mutationStr(kind)} : Rp.${amount format IDR} ref: ${ref.getOrElse("-")}%s [$ts]")
-                }
+                Mutations.filter(_.invId === investor.id).sortBy(_.ts.desc)
+                    .map(x => (x.kind, x.amount, x.ref, x.ts))
+                    .foreach { case (kind, amount, ref, ts) =>
+                        println(f"     - ${mutationStr(kind)} : Rp.${amount format IDR} ref: ${ref.getOrElse("-")}%s [$ts]")
+                    }
             }
 
 

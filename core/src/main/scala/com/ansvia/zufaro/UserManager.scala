@@ -24,6 +24,8 @@ object UserManager {
     }
 
 
+
+
     def create(name:String, email:String, phone:String, password:String, role:Int, abilities:String=""):User = {
         val passHash = PasswordUtil.hash(password)
         val opId = Zufaro.db.withSession { implicit sess =>
@@ -81,3 +83,10 @@ trait UserHelpers {
 }
 
 object UserHelpers extends UserHelpers
+
+
+object SexType {
+    val FEMALE = 1
+    val MALE = 2
+}
+

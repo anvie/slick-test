@@ -12,7 +12,7 @@ import util._
 import http._
 import Helpers._
 import scala.xml.{Node, Text, NodeSeq}
-import com.ansvia.zufaro.InvestorManager
+import com.ansvia.zufaro.{Zufaro, InvestorManager}
 import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
 import com.ansvia.zufaro.model.Tables._
 import net.liftweb.http.js.JE.JsRaw
@@ -24,6 +24,8 @@ import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
 import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.InvestorManager.{Contact, Address}
+import scala.slick.driver.PostgresDriver.backend
+import scala.slick.driver.PostgresDriver.simple._
 
 
 class AdminInvestorSnippet {
@@ -117,11 +119,20 @@ class AdminInvestorSnippet {
     }
 
 
+    import InvestorManager.status
 
-    private def buildInvestorListItem(inv:Investor):Node = {
+    private def buildInvestorListItem(invWithContact:InvestorWithContact):Node = {
+
+        val inv = invWithContact.inv
 
         def updater() = {
-            val investors = InvestorManager.getList(0, 50)
+
+            val investors = Zufaro.db.withSession { implicit sess =>
+                //            Investors.filter(_.status === status.ACTIVE).drop(0).take(50).run
+                val q = InvestorContacts join Investors.filter(_.status === status.ACTIVE) on (_.investorId === _.id)
+                q.run.map(a => InvestorWithContact(a._2, a._1))
+            }
+
             val ns = NodeSeq.fromSeq(investors.map(buildInvestorListItem))
             SetHtml("List", ns)
         }
@@ -141,28 +152,32 @@ class AdminInvestorSnippet {
             <li>{bus.name} #{bus.id}</li>
         }
 
+        val invContact = invWithContact.contact
+
         val contact = {
             <td>
-                {inv.city} - <a href="javascript://" onclick={s"showAddressDetail('${inv.id}');"}>show detail</a>
+                {invContact.city} - <a href="javascript://" onclick={s"showAddressDetail('${inv.id}');"}>show detail</a>
                 <div id={s"AddressDetail-${inv.id}"} class="hidden">
                     {
                     <strong>Address:</strong><br />
-                    <p>{inv.address}</p>
-                    <p>City: {inv.city}<br />
-                    Province: {inv.province}<br />
-                    Country: {inv.country}<br />
-                    Postal code: {inv.postalCode}<br />
+                    <p>{invContact.address}</p>
+                    <p>City: {invContact.city}<br />
+                    Province: {invContact.province}<br />
+                    Country: {invContact.country}<br />
+                    Postal code: {invContact.postalCode}<br />
                     </p>
                     <hr />
                     <p><strong>Phone:</strong><br />
                         <ul>
-                            <li>#1 {inv.phone1}</li>
-                            <li>#2 {inv.phone2}</li>
+                            <li>home: {invContact.homePhone}</li>
+                            <li>mobile: {invContact.mobilePhone}</li>
                         </ul>
+                    </p>
+                    <p><strong>BB PIN: {invContact.bbPin}</strong>
                     </p>
                     <hr />
                     <p><strong>Email: </strong><br />
-                        {inv.email}
+                        {invContact.email}
                     </p>
                     }
                 </div>
@@ -198,9 +213,17 @@ class AdminInvestorSnippet {
         </tr>
     }
 
+    case class InvestorWithContact(inv:Investor, contact:InvestorContact)
 
     def investorList:CssSel = {
-        val investors = InvestorManager.getList(0, 50)
+//        val investors = InvestorManager.getList(0, 50)
+
+        val investors = Zufaro.db.withSession { implicit sess =>
+//            Investors.filter(_.status === status.ACTIVE).drop(0).take(50).run
+            val q = InvestorContacts join Investors.filter(_.status === status.ACTIVE) on (_.investorId === _.id)
+            q.run.map(a => InvestorWithContact(a._2, a._1))
+        }
+
         "#List *" #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 

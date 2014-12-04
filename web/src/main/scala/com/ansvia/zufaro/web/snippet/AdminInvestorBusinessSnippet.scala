@@ -167,7 +167,7 @@ class AdminInvestorBusinessSnippet {
     }
 
 
-    def updateList(inv:InvestorRow) = {
+    def updateList(inv:Investor) = {
         val business = inv.getBusiness(0, 30)
         SetHtml("List", NodeSeq.fromSeq(business.map(b => buildListItem(inv, b))))
     }

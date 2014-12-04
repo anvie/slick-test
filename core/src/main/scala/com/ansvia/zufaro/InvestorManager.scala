@@ -252,6 +252,16 @@ trait InvestorHelpers {
             }
         }
 
+        def getContact = {
+            Zufaro.db.withSession { implicit sess =>
+                val q = for {
+                    contact <- InvestorContacts if contact.investorId === investor.id
+                } yield contact
+                q.first()
+            }
+        }
+
+
         /**
          * Get investor share for selected business.
          * @param bus business.

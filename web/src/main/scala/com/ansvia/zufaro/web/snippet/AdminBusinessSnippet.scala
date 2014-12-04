@@ -1,30 +1,22 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import util._
-import http._
-import Helpers._
-import scala.xml.{Node, Text, NodeSeq}
-import com.ansvia.zufaro.exception.{PermissionDeniedException, InvalidParameterException, ZufaroException}
+import java.util.Date
+
 import com.ansvia.zufaro._
+import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
+import com.ansvia.zufaro.model.Tables.{Business, BusinessAccountMutation, BusinessProfit, _}
+import com.ansvia.zufaro.model.{MutationKind, ShareMethod}
+import com.ansvia.zufaro.web.Auth
 import com.ansvia.zufaro.web.lib.MtTabInterface
-import com.ansvia.zufaro.model.Tables._
+import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
-import com.ansvia.zufaro.model.{MutationKind, UserRole, ShareMethod}
-import com.ansvia.zufaro.web.Auth
-import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
-import java.util.Date
-import net.liftweb.http.ParsePath
-import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.util.Helpers
-import com.ansvia.zufaro.model.Tables.BusinessAccountMutationRow
-import com.ansvia.zufaro.exception.InvalidParameterException
-import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.RewriteRequest
-import com.ansvia.zufaro.model.Tables.BusinessProfit
-import com.ansvia.zufaro.model.Tables.Business
+import net.liftweb.http.{ParsePath, RewriteRequest, _}
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+
+import scala.xml.{Node, NodeSeq, Text}
 
 /**
  * Author: robin
@@ -35,7 +27,7 @@ import com.ansvia.zufaro.model.Tables.Business
 class AdminBusinessSnippet {
 
     import com.ansvia.zufaro.BusinessHelpers._
-    import ZufaroHelpers._
+    import com.ansvia.zufaro.ZufaroHelpers._
 
     private def busId = S.param("busId").openOr("0").toLong
     private def busO = BusinessManager.getById(busId)
@@ -363,8 +355,8 @@ class AdminBusinessSnippet {
         "#Count *" #> {
             Zufaro.db.withSession { implicit sess =>
                 val q = for {
-                    b <- ProfitShareJournal if b.busId === busId && b.busProfId === busProfId
-                    inv <- Investor if inv.id === b.invId
+                    b <- ProfitShareJournals if b.busId === busId && b.busProfId === busProfId
+                    inv <- Investors if inv.id === b.invId
                 } yield b.busId
                 q.length.run.toString
             }
@@ -376,7 +368,7 @@ class AdminBusinessSnippet {
      * ACCOUNT MUTATION
      ***********************************************/
 
-    private def buildAccountMutationListItem(mut:BusinessAccountMutationRow) = {
+    private def buildAccountMutationListItem(mut:BusinessAccountMutation) = {
 
         val credit = mut.kind match {
             case MutationKind.CREDIT => mut.amount.format(IDR)
@@ -389,8 +381,8 @@ class AdminBusinessSnippet {
         val initiator = mut.initiator.split('=').toList match {
             case "admin" :: AsLong(id) :: Nil =>
                 UserManager.getById(id).map(_.name).getOrElse("-")
-            case "operator" :: AsLong(id) :: Nil =>
-                OperatorManager.getById(id).map(_.name).getOrElse("-")
+//            case "operator" :: AsLong(id) :: Nil =>
+//                OperatorManager.getById(id).map(_.name).getOrElse("-")
             case _ =>
                 "-"
         }

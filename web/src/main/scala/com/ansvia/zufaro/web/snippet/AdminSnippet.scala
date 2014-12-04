@@ -1,16 +1,16 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import http._
-import util._
-import Helpers._
-import scala.xml.{Text, NodeSeq}
-import com.ansvia.zufaro.web.Auth
-import com.ansvia.zufaro.exception.{UnimplementedException, InvalidParameterException, ZufaroException}
-import net.liftweb.common.Full
-import com.ansvia.zufaro.UserManager
 import com.ansvia.commons.logging.Slf4jLogger
-import com.ansvia.zufaro.web.util.JsUtils
+import com.ansvia.zufaro.UserManager
+import com.ansvia.zufaro.exception.{InvalidParameterException, UnimplementedException, ZufaroException}
+import com.ansvia.zufaro.model.UserRole
+import com.ansvia.zufaro.web.Auth
+import net.liftweb.common.Full
+import net.liftweb.http._
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+
+import scala.xml.NodeSeq
 
 /**
  * Author: robin
@@ -47,7 +47,7 @@ class AdminSnippet extends Slf4jLogger {
                         if (userNameVar.is == "admin" && UserManager.getByName("admin") == None){
                             // create first
                             warn("first init detected, do admin creation")
-                            UserManager.create(userNameVar.is, "", "", passwordVar.is, "")
+                            UserManager.create(userNameVar.is, "", "", passwordVar.is, UserRole.ADMIN, "all")
                         }
 
                         Auth.adminLogin(userNameVar.is, passwordVar.is)

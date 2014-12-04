@@ -38,7 +38,7 @@ object InvestorManager {
         }
 
     }
-    case class Contact(address:Address, email:String, phone1:String, phone2:String)
+//    case class Contact(address:Address, email:String, phone1:String, phone2:String)
 
     /**
      * Create new investor
@@ -46,9 +46,16 @@ object InvestorManager {
      * @param password plain password
      * @return
      */
-    def create(investor:Investor, password:String) = {
+    def create(investor:Investor, password:String, contact:InvestorContact) = {
+        assert(investor != null, "investor is null")
+        assert(password != null, "password can't be null")
+        assert(contact != null, "contact can't be null")
+        assert(investor.id != 0L, "for creation don't accept id here")
+        assert(contact.investorId != 0L, "for creation don't accept investorId here")
+
         val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
+
             val userId = (Investors.map(s => (s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate, 
                 s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName, s.passhash, 
                 s.status)) returning Investors.map(_.id)) += 
@@ -56,6 +63,13 @@ object InvestorManager {
                     investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, passHash, status.ACTIVE)
 
             InvestorBalances.map(s => (s.invId, s.amount)) += (userId, 0.0)
+
+            InvestorContacts.map(s => (s.address, s.city, s.country, s.district, s.email, s.identityBasedOn,
+                s.investorId, s.kind, s.mobilePhone, s.postalCode, s.province, s.village)) +=
+                (contact.address, contact.city, contact.country, contact.district, contact.email,
+                    contact.identityBasedOn, userId, contact.kind, contact.mobilePhone, contact.postalCode,
+                    contact.province, contact.village)
+
             userId
         }
         getById(userId).get
@@ -257,7 +271,7 @@ trait InvestorHelpers {
                 val q = for {
                     contact <- InvestorContacts if contact.investorId === investor.id
                 } yield contact
-                q.first()
+                q.first
             }
         }
 

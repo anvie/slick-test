@@ -7,25 +7,21 @@ package com.ansvia.zufaro.web.snippet
  *
  */
 
-import net.liftweb._
-import util._
-import http._
-import Helpers._
-import scala.xml.{Node, Text, NodeSeq}
-import com.ansvia.zufaro.{Zufaro, InvestorManager}
-import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
+import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.model.Tables._
-import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.js.JsCmd
-import com.ansvia.zufaro.exception.{NotExistsException, ZufaroException, InvalidParameterException}
-import net.liftweb.common.Full
-import com.ansvia.zufaro.model.{UserRole, Initiator, InvestorRole}
+import com.ansvia.zufaro.model._
+import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
 import com.ansvia.zufaro.web.util.JsUtils
+import com.ansvia.zufaro.{InvestorManager, SexType, Zufaro}
+import net.liftweb.common.Full
+import net.liftweb.http._
 import net.liftweb.http.js.JsCmds.SetHtml
-import com.ansvia.zufaro.web.Auth
-import com.ansvia.zufaro.InvestorManager.{Contact, Address}
-import scala.slick.driver.PostgresDriver.backend
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+import org.joda.time.format.DateTimeFormat
+
 import scala.slick.driver.PostgresDriver.simple._
+import scala.xml.{Node, NodeSeq, Text}
 
 
 class AdminInvestorSnippet {
@@ -35,6 +31,16 @@ class AdminInvestorSnippet {
 
     private object nameVar extends RequestVar("")
     private object fullNameVar extends RequestVar("")
+    private object sexVar extends RequestVar("")
+    private object nationVar extends RequestVar("")
+    private object birthPlaceVar extends RequestVar("")
+    private object birthDateVar extends RequestVar("")
+    private object religionVar extends RequestVar("")
+    private object educationVar extends RequestVar("")
+    private object titleFrontVar extends RequestVar("")
+    private object titleBackVar extends RequestVar("")
+    private object maritalStatusVar extends RequestVar("")
+    private object motherNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
     private object roleVar extends RequestVar("")
@@ -44,9 +50,18 @@ class AdminInvestorSnippet {
     private object countryVar extends RequestVar("")
     private object postalCodeVar extends RequestVar("")
     private object emailVar extends RequestVar("")
-    private object phone1Var extends RequestVar("")
-    private object phone2Var extends RequestVar("")
+    private object homePhoneVar extends RequestVar("")
+    private object mobilePhoneVar extends RequestVar("")
+    private object villageVar extends RequestVar("")
+    private object districtVar extends RequestVar("")
+//    private object identityBasedOnVar extends RequestVar("ktp")
+    private object bbPinVar extends RequestVar("")
+    private object contactKindVar extends RequestVar("")
 
+    private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
+    private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
+
+    // @TODO(robin): test fungsional ini secara manual
     def addNew(in:NodeSeq):NodeSeq = {
 
         def doCreateInternal() = {
@@ -54,6 +69,24 @@ class AdminInvestorSnippet {
             try {
                 if (nameVar.isEmpty)
                     throw InvalidParameterException("No name")
+                if (fullNameVar.isEmpty)
+                    throw InvalidParameterException("No full name")
+                if (sexVar.isEmpty)
+                    throw InvalidParameterException("No sex type")
+                if (nationVar.isEmpty)
+                    throw InvalidParameterException("No nation information")
+                if (birthPlaceVar.isEmpty)
+                    throw InvalidParameterException("No birth place information")
+                if (birthDateVar.isEmpty)
+                    throw InvalidParameterException("No birth date information")
+                if (religionVar.isEmpty)
+                    throw InvalidParameterException("No religion information")
+                if (educationVar.isEmpty)
+                    throw InvalidParameterException("No education")
+                if (maritalStatusVar.isEmpty)
+                    throw InvalidParameterException("No marital status information")
+                if (motherNameVar.isEmpty)
+                    throw InvalidParameterException("No mother name")
                 if (passwordVar.isEmpty)
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
@@ -68,9 +101,9 @@ class AdminInvestorSnippet {
                     throw InvalidParameterException("Please fill address province information")
                 if (countryVar.isEmpty)
                     throw InvalidParameterException("Please fill address country information")
-                if (postalCodeVar.is == 0L)
+                if (postalCodeVar.isEmpty)
                     throw InvalidParameterException("Please fill postal code information")
-                if (phone1Var.isEmpty && phone2Var.isEmpty)
+                if (homePhoneVar.isEmpty && mobilePhoneVar.isEmpty)
                     throw InvalidParameterException("Please fill at least 1 phone number")
 
                 if (passwordVar.is != verifyPasswordVar.is)
@@ -82,11 +115,47 @@ class AdminInvestorSnippet {
                     case "supervisor" => InvestorRole.SUPERVISOR
                 }
 
-                val addr = Address(addressVar, cityVar, provinceVar, countryVar, postalCodeVar.is.toLong)
-                addr.validate()
-                val contact = Contact(addr, emailVar, phone1Var, phone2Var)
+                val sex = sexVar.is match {
+                    case "male" => SexType.MALE
+                    case "female" => SexType.FEMALE
+                }
+                val birthDate = birthDateVar.is match {
+                    case birthDateRegex(day, month, year) =>
 
-                val inv = InvestorManager.create(nameVar, fullNameVar, role, passwordVar, contact)
+                        val dt = dateTimeFormatter.parseDateTime(birthDateVar)
+                        new java.sql.Date(dt.getMillis)
+
+                    case x =>
+                        throw InvalidParameterException(s"Invalid birth date format: $x, please use this format: dd/MM/yyyy.")
+                }
+                val religion = religionVar.is
+
+                val maritalStatus = maritalStatusVar.is match {
+                    case "single" => MaritalStatus.SINGLE
+                    case "maried" => MaritalStatus.MARIED
+                }
+
+//                val identityBasedOn = identityBasedOnVar.is match {
+//                    case "ktp" => IdentityType.KTP_BASED
+//                    case "passport" => IdentityType.PASSPORT_BASED
+//                    case "current-live" => IdentityType.CURRENTLY_LIVE
+//                }
+                val identityBasedOn = IdentityType.KTP_BASED
+
+//                val contactKind = contactKindVar.is match {
+//                    case "personal" => ContactKind.PERSONAL
+//                    case "emergency" => ContactKind.EMERGENCY
+//                }
+
+
+                val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
+                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
+
+                val contact = InvestorContact(0L, addressVar, villageVar, districtVar, cityVar, provinceVar,
+                        countryVar, postalCodeVar, emailVar, homePhoneVar, mobilePhoneVar, bbPinVar,
+                        identityBasedOn, ContactKind.PERSONAL)
+
+                val inv = InvestorManager.create(investor, fullNameVar, contact)
 
                 S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
             }
@@ -98,11 +167,26 @@ class AdminInvestorSnippet {
         }
 
 
+        val sexTypes = Seq(("male", "MALE"), ("female", "FEMALE"))
         val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
+        val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
+        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
+//        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
 
         bind("in", in,
         "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
+        "full-name" -> SHtml.text(fullNameVar, fullNameVar(_), "class" -> "form-control", "id" -> "FullName"),
+        "sex" -> SHtml.select(sexTypes, Full(fullNameVar.is), fullNameVar(_), "class" -> "form-control", "id" -> "Sex"),
+        "nation" -> SHtml.text(nationVar, nationVar(_), "class" -> "form-control", "id" -> "Nation"),
+        "birth-place" -> SHtml.text(birthPlaceVar, birthPlaceVar(_), "class" -> "form-control", "id" -> "BirthPlace"),
+        "birth-date" -> SHtml.text(birthDateVar, birthDateVar(_), "class" -> "form-control", "id" -> "BirthDate"),
+        "religion" -> SHtml.text(religionVar, religionVar(_), "class" -> "form-control", "id" -> "Religion"),
+        "education" -> SHtml.text(educationVar, educationVar(_), "class" -> "form-control", "id" -> "BirthDate"),
+        "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
+        "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
+        "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
+        "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
         "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
         "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
         "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
@@ -112,14 +196,18 @@ class AdminInvestorSnippet {
         "province" -> SHtml.text(provinceVar, provinceVar(_), "class" -> "form-control", "id" -> "Province"),
         "country" -> SHtml.text(countryVar, countryVar(_), "class" -> "form-control", "id" -> "Country"),
         "postal-code" -> SHtml.text(postalCodeVar, postalCodeVar(_), "class" -> "form-control", "id" -> "PostalCode"),
-        "phone1" -> SHtml.text(phone1Var, phone1Var(_), "class" -> "form-control", "id" -> "Phone1"),
-        "phone2" -> SHtml.text(phone2Var, phone2Var(_), "class" -> "form-control", "id" -> "Phone2"),
+        "home-phone" -> SHtml.text(homePhoneVar, homePhoneVar(_), "class" -> "form-control", "id" -> "Phone1"),
+        "mobile-phone" -> SHtml.text(mobilePhoneVar, mobilePhoneVar(_), "class" -> "form-control", "id" -> "Phone2"),
+        "bb-pin" -> SHtml.text(bbPinVar, bbPinVar(_), "class" -> "form-control", "id" -> "BBPin"),
+        "village" -> SHtml.text(villageVar, villageVar(_), "class" -> "form-control", "id" -> "Village"),
+        "district" -> SHtml.text(districtVar, districtVar(_), "class" -> "form-control", "id" -> "District"),
+//        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),
         "submit" -> SHtml.submit("Create", doCreateInternal, "class" -> "btn btn-success")
         )
     }
 
 
-    import InvestorManager.status
+    import com.ansvia.zufaro.InvestorManager.status
 
     private def buildInvestorListItem(invWithContact:InvestorWithContact):Node = {
 

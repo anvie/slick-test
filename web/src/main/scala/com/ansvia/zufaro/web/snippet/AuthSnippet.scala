@@ -48,8 +48,8 @@ object AuthSnippet {
             who match {
                 case "admin" =>
                     (Auth.currentUser.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.ADMIN))
-                case "operator" =>
-                    (Auth.currentOperator.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.OPERATOR))
+//                case "operator" =>
+//                    (Auth.currentOperator.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.OPERATOR))
                 case "investor" =>
                     (Auth.currentInvestor.is.map(_.name).getOrElse("unknown"), UserRole.toStr(UserRole.INVESTOR))
             }

@@ -8,4 +8,4 @@ import com.ansvia.zufaro.model.Tables._
  * Time: 7:31 PM
  *
  */
-case class AuthInfo(cred:Option[Credential], client:Option[ApiClientRow])
+case class AuthInfo(cred:Option[Credential], client:Option[ApiClient])

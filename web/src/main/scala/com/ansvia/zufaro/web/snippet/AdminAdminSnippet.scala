@@ -1,19 +1,18 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import http._
-import util._
-import Helpers._
-import scala.xml.{Node, Text, NodeSeq}
-import com.ansvia.zufaro.web.Auth
-import com.ansvia.zufaro.exception.{PermissionDeniedException, UnimplementedException, InvalidParameterException, ZufaroException}
-import net.liftweb.common.Full
-import com.ansvia.zufaro.UserManager
-import com.ansvia.zufaro.AdminHelpers._
 import com.ansvia.commons.logging.Slf4jLogger
+import com.ansvia.zufaro.UserManager
+import com.ansvia.zufaro.exception.{InvalidParameterException, PermissionDeniedException, ZufaroException}
 import com.ansvia.zufaro.model.Tables._
-import net.liftweb.http.js.JsCmds.SetHtml
+import com.ansvia.zufaro.model.UserRole
 import com.ansvia.zufaro.web.util.JsUtils
+import net.liftweb.common.Full
+import net.liftweb.http._
+import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+
+import scala.xml.{Node, NodeSeq, Text}
 
 
 /**
@@ -24,8 +23,9 @@ import com.ansvia.zufaro.web.util.JsUtils
  */
 class AdminAdminSnippet extends Slf4jLogger {
 
+    import com.ansvia.zufaro.UserHelpers._
 
-    private def buildListItem(admin:AdminRow):Node = {
+    private def buildListItem(admin:User):Node = {
         val elmId = "Admin-" + admin.id
 
         val status = admin.status match {
@@ -113,6 +113,9 @@ class AdminAdminSnippet extends Slf4jLogger {
     private object phoneVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object passwordVerificationVar extends RequestVar("")
+    private object roleVar extends RequestVar("")
+    // @TODO(robin): buat abilities berguna
+//    private object abilitiesVar extends RequestVar("")
 
     def addAdminDialog(in:NodeSeq):NodeSeq = {
 
@@ -125,7 +128,13 @@ class AdminAdminSnippet extends Slf4jLogger {
                 if (passwordVar.is != passwordVerificationVar.is)
                     throw InvalidParameterException("Password verification didn't match")
 
-                UserManager.create(nameVar, emailVar, phoneVar, passwordVar)
+                val role = roleVar.is match {
+                    case "admin" => UserRole.ADMIN
+                    case "operator" => UserRole.OPERATOR
+                    case "investor" => UserRole.INVESTOR
+                }
+
+                UserManager.create(nameVar, emailVar, phoneVar, passwordVar, role, "")
 
                 JsUtils.hideAllModal &
                 updateList()
@@ -135,6 +144,7 @@ class AdminAdminSnippet extends Slf4jLogger {
             }
         }
 
+        val roles = Seq(("admin" -> "ADMIN"), ("operator" -> "OPERATOR"), ("investor" -> "INVESTOR"))
 
         SHtml.ajaxForm(
         bind("in", in,
@@ -143,6 +153,8 @@ class AdminAdminSnippet extends Slf4jLogger {
         "phone" -> SHtml.text(phoneVar, phoneVar(_), "class" -> "form-control"),
         "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control"),
         "password-verification" -> SHtml.password(passwordVerificationVar, passwordVerificationVar(_), "class" -> "form-control"),
+        "role" -> SHtml.select(roles, Full(roleVar.is), roleVar(_), "class" -> "form-control"),
+//        "abilitiesVar" -> SHtml.select(abilities, Full(abilitiesVar.is), abilitiesVar(_), "class" -> "form-control"),
         "submit" -> S.formGroup(1000){
             SHtml.hidden(addAdminInternal) ++
             SHtml.submit("Add", addAdminInternal, "class" -> "btn btn-success")

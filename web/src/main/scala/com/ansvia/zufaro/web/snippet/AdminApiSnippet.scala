@@ -80,7 +80,7 @@ class AdminApiSnippet {
         )
     }
 
-    private def buildListItem(client:ApiClientRow) = {
+    private def buildListItem(client:ApiClient) = {
         val deleteInternal = () => {
             JsRaw("Success").cmd
         }

@@ -1,18 +1,18 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import util._
-import Helpers._
-import com.ansvia.zufaro.model.Tables._
-import net.liftweb.http.{RequestVar, SHtml, S}
-import com.ansvia.zufaro.{BusinessHelpers, BusinessManager}
 import java.util.Date
-import scala.xml.{Node, Text, NodeSeq}
-import com.ansvia.zufaro.web.util.JsUtils
-import com.ansvia.zufaro.model.Initiator
-import com.ansvia.zufaro.web.Auth
+
+import com.ansvia.zufaro.BusinessManager
 import com.ansvia.zufaro.exception.ZufaroException
+import com.ansvia.zufaro.model.Tables._
+import com.ansvia.zufaro.web.Auth
+import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.{RequestVar, S, SHtml}
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+
+import scala.xml.{Node, NodeSeq, Text}
 
 /**
  * Author: robin
@@ -22,7 +22,7 @@ import net.liftweb.http.js.JsCmds.SetHtml
  */
 class AdminBusinessProjectSnippet {
 
-    import BusinessHelpers._
+    import com.ansvia.zufaro.BusinessHelpers._
 
     private def busId = S.param("busId").openOr(S.attr("busId").openOr("0")).toLong
     private def busO = {
@@ -40,7 +40,7 @@ class AdminBusinessProjectSnippet {
     }
 
 
-    private def buildListItem(rep:ProjectReportRow) = {
+    private def buildListItem(rep:ProjectReport) = {
 
         val time = new Date(rep.ts.getTime)
 

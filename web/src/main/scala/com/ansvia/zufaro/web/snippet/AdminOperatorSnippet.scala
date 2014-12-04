@@ -1,24 +1,18 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import util._
-import Helpers._
-import common._
+import com.ansvia.commons.logging.Slf4jLogger
+import com.ansvia.zufaro.UserManager
+import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
+import com.ansvia.zufaro.model.Tables._
+import com.ansvia.zufaro.model.{OperatorStatus, UserRole}
 import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http._
-import net.liftweb.util.{CssSel, NamedPF}
-import scala.util.matching.Regex
-import com.ansvia.zufaro.{OperatorHelpers, OperatorManager}
-import scala.xml.{Node, NodeSeq, Text}
-import net.liftweb.http.RewriteRequest
-import net.liftweb.http.ParsePath
 import com.ansvia.zufaro.web.util.JsUtils
 import net.liftweb.http.js.JsCmds.SetHtml
-import com.ansvia.zufaro.exception.{ZufaroException, InvalidParameterException}
-import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.OperatorStatus
+import net.liftweb.http.{ParsePath, RewriteRequest, _}
+import net.liftweb.util.Helpers._
+import net.liftweb.util.{CssSel, NamedPF}
+
+import scala.xml.{Node, NodeSeq, Text}
 
 
 /**
@@ -27,14 +21,15 @@ import com.ansvia.zufaro.model.OperatorStatus
  * Time: 6:59 PM
  *
  */
-class AdminOperatorSnippet {
+class AdminOperatorSnippet extends Slf4jLogger {
 
     import com.ansvia.zufaro.model.OperatorStatus._
-    import OperatorHelpers._
 
     private object nameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
+    private object emailVar extends RequestVar("")
+    private object phoneVar extends RequestVar("")
 
     def addNewOperatorDialog(in:NodeSeq):NodeSeq = {
 
@@ -45,6 +40,10 @@ class AdminOperatorSnippet {
             try {
                 if (nameVar.isEmpty)
                     throw InvalidParameterException("No name")
+                if (emailVar.isEmpty)
+                    throw InvalidParameterException("Please enter email address")
+                if (phoneVar.isEmpty)
+                    throw InvalidParameterException("Please enter phone number")
                 if (passwordVar.isEmpty)
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
@@ -54,11 +53,12 @@ class AdminOperatorSnippet {
                     throw InvalidParameterException("Password verification didn't match")
 
 
-                val op = OperatorManager.create(nameVar, passwordVar)
+                val op = UserManager.create(nameVar, emailVar, phoneVar, passwordVar, UserRole.OPERATOR, "")
+
+                info("operator created: " + op)
 
                 updateList(currentStatus) & JsUtils.hideAllModal
 
-//                S.redirectTo("/admin/operator/active-operator", () => S.notice(s"Operator created ${op.name} with id ${op.id}"))
             }
             catch {
                 case e:ZufaroException =>
@@ -71,6 +71,8 @@ class AdminOperatorSnippet {
 
         SHtml.ajaxForm(bind("in", in,
             "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
+            "email" -> SHtml.text(emailVar, emailVar(_), "class" -> "form-control", "id" -> "Email"),
+            "phone" -> SHtml.text(phoneVar, phoneVar(_), "class" -> "form-control", "id" -> "Phone"),
             "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
             "password-verification" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
             "submit" -> S.formGroup(1000){
@@ -92,18 +94,20 @@ class AdminOperatorSnippet {
 
 
     private def updateList(state:Int) = {
-        val operators = OperatorManager.getList(0, 50, state)
+        val operators = UserManager.getOperatorList(0, 50)
         val ns = NodeSeq.fromSeq(operators.map(op => buildOperatorListItem(op, state)))
         SetHtml("List", ns)
     }
 
-    private def buildOperatorListItem(op:OperatorRow, currentState:Int):Node = {
+    private def buildOperatorListItem(op:User, currentState:Int):Node = {
+
+        import com.ansvia.zufaro.UserHelpers._
 
         val deleter = {
             JsUtils.ajaxConfirm("Are you sure to delete this investor? " +
                 "This operation cannot be undone", Text("delete"), "Delete this investor"){
 
-                OperatorManager.delete(op)
+                UserManager.delete(op)
 
                 updateList(currentState)
             }
@@ -114,12 +118,12 @@ class AdminOperatorSnippet {
         val activeInactive = op.status match {
             case ACTIVE =>
                 SHtml.a(()=>{
-                    op.suspend()
+                    op.setActive(state = false)
                     updateList(currentState)
                 },Text("Suspend"))
             case SUSPENDED =>
                 SHtml.a(()=>{
-                    op.activate()
+                    op.setActive(state = true)
                     updateList(currentState)
                 },Text("Activate"))
         }
@@ -151,7 +155,7 @@ class AdminOperatorSnippet {
     }
 
     def operatorList:CssSel = {
-        val operators = OperatorManager.getList(0, 50, status)
+        val operators = UserManager.getOperatorList(0, 50)
         "#List *" #> NodeSeq.fromSeq(operators.map(op => buildOperatorListItem(op, status)))
     }
 }

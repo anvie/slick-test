@@ -1,6 +1,7 @@
 package com.ansvia.zufaro
 
 import com.ansvia.zufaro.model.Tables._
+import com.ansvia.zufaro.model.UserRole
 import scala.slick.driver.PostgresDriver.simple._
 
 /**
@@ -56,6 +57,12 @@ object UserManager {
         }
     }
 
+    def getOperatorList(offset:Int, limit:Int):Seq[User] = {
+        Zufaro.db.withSession { implicit sess =>
+            Users.filter(_.role === UserRole.OPERATOR).drop(offset).take(limit).run
+        }
+    }
+
     def delete(user:User){
         Zufaro.db.withTransaction { implicit sess =>
             Users.filter(_.id === user.id).delete
@@ -69,9 +76,9 @@ trait UserHelpers {
     import com.ansvia.zufaro.UserManager.status
 
     implicit class AdminWrapper(user:User){
-        def setActive(s:Boolean){
+        def setActive(state:Boolean){
             Zufaro.db.withTransaction { implicit sess =>
-                val _status = s match {
+                val _status = state match {
                     case true => status.ACTIVE
                     case false => status.INACTIVE
                 }

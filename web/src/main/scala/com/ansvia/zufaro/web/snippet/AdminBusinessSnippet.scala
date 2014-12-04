@@ -23,7 +23,7 @@ import com.ansvia.zufaro.model.Tables.BusinessAccountMutationRow
 import com.ansvia.zufaro.exception.InvalidParameterException
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.RewriteRequest
-import com.ansvia.zufaro.model.Tables.BusinessProfitRow
+import com.ansvia.zufaro.model.Tables.BusinessProfit
 import com.ansvia.zufaro.model.Tables.Business
 
 /**
@@ -217,10 +217,11 @@ class AdminBusinessSnippet {
     }
 
     def reportTitle:NodeSeq = {
-        <p>Business <strong>{BusinessManager.getById(S.param("busId").openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
+        <p>Business <strong>{BusinessManager.getById(S.param("busId")
+            .openOr("0").toLong).map(_.name).getOrElse("-")}</strong></p>
     }
 
-    private def buildReportListItem(bus:Business, bp:BusinessProfitRow):Node = {
+    private def buildReportListItem(bus:Business, bp:BusinessProfit):Node = {
 
         def doShareProcess() = () => {
             try {
@@ -269,8 +270,8 @@ class AdminBusinessSnippet {
         val sharedInfo = {
             bp.shared match {
                 case true =>
-                    val at = new Date(bp.sharedAt.getTime)
-                    <div>{f"YES at $at"} - <a href={s"/admin/business/${bus.id}/report/${bp.id}/share-detail"}>detail</a></div>
+                    val at = bp.sharedAt.map(x => " at " + new Date(x.getTime).toString).getOrElse("")
+                    <div>{f"YES $at".trim} - <a href={s"/admin/business/${bus.id}/report/${bp.id}/share-detail"}>detail</a></div>
                 case _ =>
                     "NO"
             }

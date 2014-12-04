@@ -1,18 +1,16 @@
 package com.ansvia.zufaro.web.snippet
 
-import net.liftweb._
-import util._
-import http._
-import Helpers._
-import net.liftweb.util.CssSel
-import scala.xml.{Text, NodeSeq}
 import com.ansvia.zufaro.InvestorManager
-import com.ansvia.zufaro.model.{Initiator, UserRole, MutationKind}
-import com.ansvia.zufaro.web.util.JsUtils
-import com.ansvia.zufaro.exception.{ZufaroException, NotExistsException, InvalidParameterException}
+import com.ansvia.zufaro.exception.{InvalidParameterException, NotExistsException, ZufaroException}
+import com.ansvia.zufaro.model.{Initiator, MutationKind, UserRole}
 import com.ansvia.zufaro.web.Auth
+import com.ansvia.zufaro.web.util.JsUtils
+import net.liftweb.http._
 import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.js.JsCmd
+import net.liftweb.util.CssSel
+import net.liftweb.util.Helpers._
+
+import scala.xml.{NodeSeq, Text}
 
 /**
  * Author: robin
@@ -22,8 +20,8 @@ import net.liftweb.http.js.JsCmd
  */
 class AdminInvestorDepositSnippet {
 
-    import com.ansvia.zufaro.model.Tables._
     import com.ansvia.zufaro.InvestorHelpers._
+    import com.ansvia.zufaro.model.Tables._
 
     private def invO = {
         val id = S.param("invId").openOr("0").toLong
@@ -99,12 +97,7 @@ class AdminInvestorDepositSnippet {
                     Auth.currentUser.map {
                         admin =>
                             (admin.id, UserRole.ADMIN)
-                    }.getOrElse {
-                        Auth.currentOperator.map {
-                            op =>
-                                (op.id, UserRole.OPERATOR)
-                        }.openOrThrowException("Not authorized")
-                    }
+                    }.openOrThrowException("Not authorized")
                 }
                 inv.addBalance(amount, Some(info), Initiator(initId, initRole))
 
@@ -153,12 +146,7 @@ class AdminInvestorDepositSnippet {
                     Auth.currentUser.map {
                         admin =>
                             (admin.id, UserRole.ADMIN)
-                    }.getOrElse {
-                        Auth.currentOperator.map {
-                            op =>
-                                (op.id, UserRole.OPERATOR)
-                        }.openOrThrowException("Not authorized")
-                    }
+                    }.openOrThrowException("Not authorized")
                 }
                 inv.subBalance(amount, Some(info), Initiator(initId, initRole))
 
@@ -183,7 +171,7 @@ class AdminInvestorDepositSnippet {
     }
 
 
-    private def totalMutationNs(mutations:Seq[MutationRow]) = {
+    private def totalMutationNs(mutations:Seq[Mutation]) = {
         val totalCredit = mutations.filter(_.kind==MutationKind.CREDIT).map(_.amount).sum
         val totalDebit = mutations.filter(_.kind==MutationKind.DEBIT).map(_.amount).sum
         <tr>
@@ -200,7 +188,7 @@ class AdminInvestorDepositSnippet {
         "#MutationList *" #> (NodeSeq.fromSeq(mutations.map(buildJournalListItem)) ++ totalMutationNs(mutations))
     }
 
-    private def buildJournalListItem(mut:MutationRow) = {
+    private def buildJournalListItem(mut:Mutation) = {
         val debitInfo = {
             if (mut.kind == MutationKind.DEBIT)
                 Text(f"Rp.${mut.amount}%.02f,-")

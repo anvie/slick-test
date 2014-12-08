@@ -19,4 +19,10 @@ object IdentityType {
 object MaritalStatus {
     val SINGLE = 1
     val MARIED = 2
+
+    def toStr(code:Int) = code match {
+        case SINGLE => "SINGLE"
+        case MARIED => "MARIED"
+    }
+
 }

@@ -82,6 +82,9 @@ object AdminSitemap {
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: contactKindRe(kind) :: Nil, _, _, _), _, _) =>
             RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactKind" -> kind))
 
+        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "data" :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "investor" :: "data" :: Nil, Map("invId" -> invId.toString))
+
     }
     lazy val rewrite:LiftRules.RewritePF =
         com.ansvia.zufaro.web.snippet.AdminBusinessTab.rewrite orElse

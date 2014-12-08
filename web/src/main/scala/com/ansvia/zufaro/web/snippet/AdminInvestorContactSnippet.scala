@@ -68,7 +68,7 @@ class AdminInvestorContactSnippet {
     // @TODO(robin): test fungsional ini secara manual
     def updateDataBasic(in:NodeSeq):NodeSeq = {
 
-        val _contactKind = contactKind
+        val _idType = S.attr("idType").openOr("ktp")
 
         def doUpdateInternal() = {
 
@@ -142,8 +142,9 @@ class AdminInvestorContactSnippet {
                 else
                     None
 
-                val idType = _contactKind match {
-                    case "ktp" => IdentityType.
+                val idType = _idType match {
+                    case "ktp" => IdentityType.KTP_BASED
+                    case "passport" => IdentityType.PASSPORT_BASED
                 }
 
                 val invUpdated = InvestorManager.updateBasicInfo(investor.id, investor, newPassword, idType)
@@ -158,14 +159,24 @@ class AdminInvestorContactSnippet {
         }
 
 
+        val inv = invO.openOrThrowException("investor not exists")
+
         val sexTypes = Seq(("male", "MALE"), ("female", "FEMALE"))
         val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
         val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
-        //        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
-        //        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
-        sexVar.setIsUnset("male")
-        contactKindVar.setIsUnset(_contactKind)
+        nameVar.setIsUnset(inv.name)
+        fullNameVar.setIsUnset(inv.fullName)
+        sexVar.setIsUnset(SexType.toStr(inv.sex).toLowerCase)
+        nationVar.setIsUnset(inv.nation)
+        birthPlaceVar.setIsUnset(inv.birthPlace)
+        birthDateVar.setIsUnset(dateTimeFormatter.print(inv.birthDate.getTime))
+        religionVar.setIsUnset(inv.religion)
+        educationVar.setIsUnset(inv.education)
+        titleFrontVar.setIsUnset(inv.titleFront)
+        titleBackVar.setIsUnset(inv.titleBack)
+        maritalStatusVar.setIsUnset(MaritalStatus.toStr(inv.maritalStatus).toLowerCase)
+        motherNameVar.setIsUnset(inv.motherName)
 
         bind("in", in,
             "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
@@ -181,19 +192,6 @@ class AdminInvestorContactSnippet {
             "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
             "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
             "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
-            "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
-            "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
-            "email" -> SHtml.text(emailVar, emailVar(_), "class" -> "form-control", "id" -> "Email"),
-            "address" -> SHtml.textarea(addressVar, addressVar(_), "class" -> "form-control", "id" -> "Address"),
-            "city" -> SHtml.text(cityVar, cityVar(_), "class" -> "form-control", "id" -> "City"),
-            "province" -> SHtml.text(provinceVar, provinceVar(_), "class" -> "form-control", "id" -> "Province"),
-            "country" -> SHtml.text(countryVar, countryVar(_), "class" -> "form-control", "id" -> "Country"),
-            "postal-code" -> SHtml.text(postalCodeVar, postalCodeVar(_), "class" -> "form-control", "id" -> "PostalCode"),
-            "home-phone" -> SHtml.text(homePhoneVar, homePhoneVar(_), "class" -> "form-control", "id" -> "MobilePhone"),
-            "mobile-phone" -> SHtml.text(mobilePhoneVar, mobilePhoneVar(_), "class" -> "form-control", "id" -> "HomePhone"),
-            "bb-pin" -> SHtml.text(bbPinVar, bbPinVar(_), "class" -> "form-control", "id" -> "BBPin"),
-            "village" -> SHtml.text(villageVar, villageVar(_), "class" -> "form-control", "id" -> "Village"),
-            "district" -> SHtml.text(districtVar, districtVar(_), "class" -> "form-control", "id" -> "District"),
             //        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),
             "submit" -> SHtml.submit("Create", doUpdateInternal, "class" -> "btn btn-success")
         )

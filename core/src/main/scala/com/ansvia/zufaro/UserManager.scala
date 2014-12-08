@@ -95,5 +95,11 @@ object UserHelpers extends UserHelpers
 object SexType {
     val FEMALE = 1
     val MALE = 2
+
+    def toStr(code:Int) = code match {
+        case MALE => "MALE"
+        case FEMALE => "FEMALE"
+    }
+
 }
 

@@ -19,7 +19,7 @@ import scala.xml.{NodeSeq, Text}
  *
  */
 
-class AdminInvestorContactSnippet {
+class AdminInvestorDataSnippet {
 
     private lazy val invO = {
         S.param("invId").flatMap {

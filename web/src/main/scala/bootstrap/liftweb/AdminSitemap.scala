@@ -57,8 +57,7 @@ object AdminSitemap {
 
     lazy val sitemap = _sitemap
 
-//    private val tabRe = "(running|project|closed)".r
-    private val contactKindRe = "(ktp|tinggal|darurat)".r
+    private val contactTypeRe = "(personal|emergency)".r
 
     private lazy val internalRewrite:LiftRules.RewritePF = NamedPF("AdminRewrite2"){
         case RewriteRequest(ParsePath("admin" :: "business" :: AsLong(busId) :: "report" :: AsLong(busProfId) :: "share-detail" :: Nil, _, _, _), _, _) =>
@@ -75,12 +74,12 @@ object AdminSitemap {
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "business" :: Nil, _, _, _), _, _) =>
             RewriteResponse("admin" :: "investor" :: "business" :: Nil, Map("invId" -> invId.toString))
+//
+//        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: Nil, _, _, _), _, _) =>
+//            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: Nil, Map("invId" -> invId.toString))
 
-        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: Nil, _, _, _), _, _) =>
-            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: Nil, Map("invId" -> invId.toString))
-
-        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: contactKindRe(kind) :: Nil, _, _, _), _, _) =>
-            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactKind" -> kind))
+        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: contactTypeRe(_type) :: Nil, _, _, _), _, _) =>
+            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactType" -> _type))
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "data" :: Nil, _, _, _), _, _) =>
             RewriteResponse("admin" :: "investor" :: "data" :: Nil, Map("invId" -> invId.toString))

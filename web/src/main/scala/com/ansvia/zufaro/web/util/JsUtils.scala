@@ -10,6 +10,7 @@ package com.ansvia.zufaro.web.util
 import xml._
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.S
+import net.liftweb.util.Helpers._
 import xml.Text
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.JValue
@@ -244,7 +245,7 @@ object JsUtils {
     def showError(text:String):JsCmd = {
         new JsCmd {
             def toJsCmd =
-                """dg.Util.showError('%s');""".format(text)
+                """dg.Util.showError(%s);""".format(encJs(text))
         }
     }
 
@@ -256,7 +257,7 @@ object JsUtils {
     def showNotice(text:String):JsCmd = {
         new JsCmd {
             def toJsCmd =
-                """dg.Util.notice('%s');""".format(text)
+                """dg.Util.notice(%s);""".format(encJs(text))
         }
     }
 

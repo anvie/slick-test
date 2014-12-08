@@ -93,10 +93,10 @@ object InvestorManager {
                             (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
                                 investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE, passHash))
                 }else{
-                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                    (Investors.map(s => (s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
                         s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
                         s.status, s.passhash))).update(
-                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                            (investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
                                 investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE, passHash))
                 }
             }else{
@@ -107,10 +107,10 @@ object InvestorManager {
                             (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
                                 investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE))
                 }else{
-                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                    (Investors.map(s => (s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
                         s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
                         s.status))).update(
-                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                            (investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
                                 investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE))
                 }
 
@@ -118,6 +118,40 @@ object InvestorManager {
         }
         getById(newId).get
     }
+
+
+    /**
+     * Update investor contact data.
+     * @param invId id of investor to update.
+     * @param contact new contact. the contact.kind is not used, overrided by `contactType` parameter.
+     * @param contactType the contact type, see: [[com.ansvia.zufaro.model.ContactType]]
+     * @return
+     */
+    def updateContactData(invId:Long, contact:InvestorContact, contactType:Int) = {
+        Zufaro.db.withTransaction { implicit sess =>
+
+            InvestorContacts.filter(_.investorId === invId)
+                .map(s => (s.address, s.village, s.district, s.city, s.province, s.country, s.postalCode, s.email,
+                    s.homePhone, s.mobilePhone, s.bbPin, s.identityBasedOn, s.kind))
+                .update(
+                    contact.address, contact.village, contact.district, contact.city, contact.province, contact.country,
+                    contact.postalCode, contact.email, contact.homePhone, contact.mobilePhone, contact.bbPin,
+                    contact.identityBasedOn, contactType
+                )
+        }
+    }
+
+    def updateID(invId:Long, newId:Long) = {
+        Zufaro.db.withTransaction { implicit sess =>
+
+//            InvestorContacts.filter(_.investorId === invId).map(_.investorId).update(newId)
+//            InvestorOtherContacts.filter(_.investorId === invId).map(_.investorId).update(newId)
+
+            Investors.filter(_.id === invId).map(_.id).update(newId)
+
+        }
+    }
+
 
 
     /**

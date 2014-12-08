@@ -3,15 +3,16 @@ package com.ansvia.zufaro.web.snippet
 
 import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.model.Tables.{Investor, InvestorContact}
-import com.ansvia.zufaro.model.{ContactKind, IdentityType, InvestorRole, MaritalStatus}
-import com.ansvia.zufaro.{PasswordUtil, InvestorManager, SexType}
+import com.ansvia.zufaro.model.{ContactType, IdentityType, InvestorRole, MaritalStatus}
+import com.ansvia.zufaro.web.util.JsUtils
+import com.ansvia.zufaro.{InvestorManager, PasswordUtil, SexType}
 import net.liftweb.common.Full
 import net.liftweb.http._
 import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers._
 import org.joda.time.format.DateTimeFormat
 
-import scala.xml.{NodeSeq, Text}
+import scala.xml.{Text, NodeSeq}
 
 
 /**
@@ -29,8 +30,8 @@ class AdminInvestorDataSnippet {
                 throw new InvalidParameterException("invalid investor id: " + x)
         }
     }
-    private lazy val contactKind = {
-        S.param("contactKind").openOr("ktp")
+    private lazy val contactType = {
+        S.param("contactType").openOr("ktp")
     }
 
     private object nameVar extends RequestVar("")
@@ -60,12 +61,11 @@ class AdminInvestorDataSnippet {
     private object districtVar extends RequestVar("")
     //    private object identityBasedOnVar extends RequestVar("ktp")
     private object bbPinVar extends RequestVar("")
-    private object contactKindVar extends RequestVar("")
+    private object contactTypeVar extends RequestVar("")
 
     private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
     private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
 
-    // @TODO(robin): test fungsional ini secara manual
     def updateDataBasic(in:NodeSeq):NodeSeq = {
 
         val _idType = S.attr("idType").openOr("ktp")
@@ -93,10 +93,6 @@ class AdminInvestorDataSnippet {
                     throw InvalidParameterException("No marital status information")
                 if (motherNameVar.isEmpty)
                     throw InvalidParameterException("No mother name")
-                if (passwordVar.isEmpty)
-                    throw InvalidParameterException("Please enter password")
-                if (verifyPasswordVar.isEmpty)
-                    throw InvalidParameterException("Please verify password")
 
 
                 if (passwordVar.is != verifyPasswordVar.is)
@@ -147,7 +143,7 @@ class AdminInvestorDataSnippet {
                     case "passport" => IdentityType.PASSPORT_BASED
                 }
 
-                val invUpdated = InvestorManager.updateBasicInfo(investor.id, investor, newPassword, idType)
+                val invUpdated = InvestorManager.updateBasicInfo(inv.id, investor, newPassword, idType)
 
                 S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${invUpdated.name} with id ${invUpdated.id}"))
             }
@@ -193,40 +189,23 @@ class AdminInvestorDataSnippet {
             "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
             "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
             //        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),
-            "submit" -> SHtml.submit("Create", doUpdateInternal, "class" -> "btn btn-success")
+            "update" -> SHtml.submit("Update", doUpdateInternal, "class" -> "btn btn-success")
         )
     }
+
 
     // @TODO(robin): test fungsional ini secara manual
     def updateDataContact(in:NodeSeq):NodeSeq = {
 
+        val inv = invO.openOrThrowException("cannot get investor data")
+        val _contactType = S.param("contactType").openOrThrowException("no contactType parameter") match {
+            case "personal" => ContactType.PERSONAL
+            case "emergency" => ContactType.EMERGENCY
+        }
+
         def doUpdateInternal() = {
 
             try {
-                if (nameVar.isEmpty)
-                    throw InvalidParameterException("No name")
-                if (fullNameVar.isEmpty)
-                    throw InvalidParameterException("No full name")
-                if (sexVar.isEmpty)
-                    throw InvalidParameterException("No sex type")
-                if (nationVar.isEmpty)
-                    throw InvalidParameterException("No nation information")
-                if (birthPlaceVar.isEmpty)
-                    throw InvalidParameterException("No birth place information")
-                if (birthDateVar.isEmpty)
-                    throw InvalidParameterException("No birth date information")
-                if (religionVar.isEmpty)
-                    throw InvalidParameterException("No religion information")
-                if (educationVar.isEmpty)
-                    throw InvalidParameterException("No education")
-                if (maritalStatusVar.isEmpty)
-                    throw InvalidParameterException("No marital status information")
-                if (motherNameVar.isEmpty)
-                    throw InvalidParameterException("No mother name")
-                if (passwordVar.isEmpty)
-                    throw InvalidParameterException("Please enter password")
-                if (verifyPasswordVar.isEmpty)
-                    throw InvalidParameterException("Please verify password")
                 if (emailVar.isEmpty)
                     throw InvalidParameterException("Please fill email")
                 if (addressVar.isEmpty)
@@ -271,27 +250,20 @@ class AdminInvestorDataSnippet {
                     case "maried" => MaritalStatus.MARIED
                 }
 
-                //                val identityBasedOn = identityBasedOnVar.is match {
-                //                    case "ktp" => IdentityType.KTP_BASED
-                //                    case "passport" => IdentityType.PASSPORT_BASED
-                //                    case "current-live" => IdentityType.CURRENTLY_LIVE
-                //                }
+
                 val identityBasedOn = IdentityType.KTP_BASED
 
-                //                val contactKind = contactKindVar.is match {
+                //                val contactType = contactTypeVar.is match {
                 //                    case "personal" => ContactKind.PERSONAL
                 //                    case "emergency" => ContactKind.EMERGENCY
                 //                }
 
 
-                val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
-                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
-
                 val contact = InvestorContact(0L, addressVar, villageVar, districtVar, cityVar, provinceVar,
                     countryVar, postalCodeVar, emailVar, homePhoneVar, mobilePhoneVar, bbPinVar,
-                    identityBasedOn, ContactKind.PERSONAL)
+                    identityBasedOn, ContactType.PERSONAL)
 
-                val inv = InvestorManager.create(investor, fullNameVar, contact)
+                InvestorManager.updateContactData(inv.id,contact, _contactType)
 
                 S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${inv.name} with id ${inv.id}"))
             }
@@ -307,7 +279,7 @@ class AdminInvestorDataSnippet {
         val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
         val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
         //        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
-        //        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
+        //        val contactType = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
         sexVar.setIsUnset("male")
 
@@ -344,27 +316,82 @@ class AdminInvestorDataSnippet {
     }
 
 
-    def pageTitle:NodeSeq = {
+    def dataTitle:CssSel = {
         invO.map { inv =>
-            Text("Contacts: " + inv.name)
-        }.getOrElse(NodeSeq.Empty)
+            ".investor-name *" #> inv.fullName &
+            ".investor-id *" #> ("BCF" + inv.id.toString)
+        }.getOrElse("*" #> NodeSeq.Empty)
     }
 
     def detailTitle:CssSel = {
-        "Kind *" #> contactKind
+        "Kind *" #> contactType
     }
 
 
     def dataList:NodeSeq = {
         invO.map { inv =>
             <ul>
-                <li><a href={"/admin/investor/%s/data/contacts/ktp".format(inv.id)}>Sesuai KTP</a></li>
-                <li><a href={"/admin/investor/%s/contacts/tinggal".format(inv.id)}>Tempat tinggal saat ini</a></li>
-                <li><a href={"/admin/investor/%s/contacts/darurat".format(inv.id)}>Darurat</a></li>
+                <!--<li><a href={"/admin/investor/%s/data/contacts/ktp".format(inv.id)}>Sesuai KTP</a></li>-->
+                <li><a href={"/admin/investor/%s/data/contacts/personal".format(inv.id)}>Tempat tinggal saat ini</a></li>
+                <li><a href={"/admin/investor/%s/data/contacts/emergency".format(inv.id)}>Darurat</a></li>
             </ul>
         }.getOrElse(NodeSeq.Empty)
     }
 
+
+    def editID:NodeSeq = {
+        invO.map { inv =>
+            JsUtils.ajaxConfirm(encJs("Apakah Anda yakin untuk merubah ID investor ini?\n" +
+                "perubahan ini bisa berakibat hilangnya referensi data."), Text("change id")){
+
+                val ns = S.runTemplate("admin/investor/data/_chunk_dialog-change-id".split('/').toList)
+                    .openOr(NodeSeq.Empty)
+
+                val ns2 = ("#Dialog [class]" #> s"lift:AdminInvestorDataSnippet.updateID?invId=${inv.id}").apply(ns)
+
+                JsUtils.modalDialog(ns2)
+
+            }
+        }.getOrElse(NodeSeq.Empty)
+    }
+
+
+    private object investorIdVar extends RequestVar("")
+
+    def updateID(in:NodeSeq):NodeSeq = {
+
+        val inv = InvestorManager.getById(S.attr("invId").openOr("0").toLong).getOrElse {
+            throw InvalidParameterException("No invId")
+        }
+
+        def updateIDInternal = () => {
+
+            try {
+                InvestorManager.updateID(inv.id, investorIdVar.is.toLong)
+
+                JsUtils.hideAllModal & JsUtils.redirectTo("/admin/investor/%s/data".format(investorIdVar.is))
+
+            }
+            catch {
+                case e:ZufaroException =>
+                    JsUtils.showError(e.getMessage)
+                case e:Throwable =>
+                    e.printStackTrace()
+                    JsUtils.showError(e.getMessage)
+            }
+        }
+
+        investorIdVar.setIsUnset(inv.id.toString)
+
+        SHtml.ajaxForm(bind("in", in,
+            "investor-id" -> SHtml.text(investorIdVar, investorIdVar(_)),
+            "submit" -> S.formGroup(1000){
+                SHtml.hidden(updateIDInternal) ++
+                    SHtml.submit("Update", updateIDInternal)
+            }
+        ))
+
+    }
 
 
 }

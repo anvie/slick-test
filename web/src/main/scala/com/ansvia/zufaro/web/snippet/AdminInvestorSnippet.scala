@@ -54,7 +54,7 @@ class AdminInvestorSnippet {
     private object districtVar extends RequestVar("")
 //    private object identityBasedOnVar extends RequestVar("ktp")
     private object bbPinVar extends RequestVar("")
-    private object contactKindVar extends RequestVar("")
+    private object contactTypeVar extends RequestVar("")
 
     private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
     private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
@@ -139,7 +139,7 @@ class AdminInvestorSnippet {
 //                }
                 val identityBasedOn = IdentityType.KTP_BASED
 
-//                val contactKind = contactKindVar.is match {
+//                val contactType = contactTypeVar.is match {
 //                    case "personal" => ContactKind.PERSONAL
 //                    case "emergency" => ContactKind.EMERGENCY
 //                }
@@ -150,7 +150,7 @@ class AdminInvestorSnippet {
 
                 val contact = InvestorContact(0L, addressVar, villageVar, districtVar, cityVar, provinceVar,
                         countryVar, postalCodeVar, emailVar, homePhoneVar, mobilePhoneVar, bbPinVar,
-                        identityBasedOn, ContactKind.PERSONAL)
+                        identityBasedOn, ContactType.PERSONAL)
 
                 val inv = InvestorManager.create(investor, fullNameVar, contact)
 
@@ -168,7 +168,7 @@ class AdminInvestorSnippet {
         val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
         val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
 //        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
-//        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
+//        val contactType = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
         sexVar.setIsUnset("male")
 
@@ -242,7 +242,7 @@ class AdminInvestorSnippet {
 
         val contact = {
             <td>
-                {invContact.city} - <a href={"/admin/investor/%s/contacts".format(inv.id)}>show detail</a>
+                {invContact.city} - <a href={"/admin/investor/%s/data".format(inv.id)}>show detail</a>
             </td>
         }
 

@@ -4,7 +4,7 @@ package com.ansvia.zufaro.model
  * Author: robin (r@nosql.asia)
  *
  */
-object ContactKind {
+object ContactType {
 
     val PERSONAL = 1
     val EMERGENCY = 2

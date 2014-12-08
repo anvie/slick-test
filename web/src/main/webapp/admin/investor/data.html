@@ -1,5 +1,8 @@
-<!DOCTYPE html>
-<html>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://
+www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/" xmlns:in="http://liftweb.net/">
+
 <head>
     <title></title>
 </head>
@@ -12,18 +15,21 @@
         </style>
     </head_embed>
 
-    <h1>Business</h1>
+    <h1>Investor</h1>
 
     <hr />
 
-    <div class="lift:AdminInvestorDataSnippet.pageTitle">Account: Robin</div>
+    <div class="lift:AdminInvestorDataSnippet.dataTitle">
+        <div>ID: <strong class="investor-id">BCF1001</strong></div>
+        <div>Nama: <strong class="investor-name">Zufaro</strong></div>
+    </div>
 
     <div>
 
         <hr />
         <h3>Data personal</h3>
 
-        <lift:embed what="data/_chunk_personal_data"></lift:embed>
+        <lift:embed what="admin/investor/data/_chunk_personal-data"></lift:embed>
 
 
         <hr />

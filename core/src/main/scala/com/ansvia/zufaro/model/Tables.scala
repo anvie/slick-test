@@ -478,7 +478,7 @@ trait Tables {
     /** Foreign key referencing Business (database name invest_business_id_fkey) */
     lazy val businessFk = foreignKey("invest_business_id_fkey", businessId, Businesses)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
     /** Foreign key referencing Investor (database name invest_investor_id_fkey) */
-    lazy val investorFk = foreignKey("invest_investor_id_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    lazy val investorFk = foreignKey("invest_investor_id_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table Invest */
   lazy val Invests = new TableQuery(tag => new InvestRow(tag))
@@ -573,6 +573,9 @@ trait Tables {
     val invId: Column[Long] = column[Long]("INV_ID")
     /** Database column AMOUNT DBType(float8) */
     val amount: Column[Double] = column[Double]("AMOUNT")
+    
+    /** Foreign key referencing Investor (database name investor_balance_INV_ID_fkey) */
+    lazy val investorFk = foreignKey("investor_balance_INV_ID_fkey", invId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table InvestorBalance */
   lazy val InvestorBalances = new TableQuery(tag => new InvestorBalanceRow(tag))
@@ -698,7 +701,7 @@ trait Tables {
     val businessLine: Column[String] = column[String]("business_line", O.Length(2147483647,varying=true))
     
     /** Foreign key referencing Investor (database name investor_job_INVESTOR_ID_fkey) */
-    lazy val investorFk = foreignKey("investor_job_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    lazy val investorFk = foreignKey("investor_job_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table InvestorJob */
   lazy val InvestorJobs = new TableQuery(tag => new InvestorJobRow(tag))
@@ -730,7 +733,7 @@ trait Tables {
     val validUntil: Column[Option[java.sql.Date]] = column[Option[java.sql.Date]]("VALID_UNTIL", O.Default(None))
     
     /** Foreign key referencing Investor (database name investor_legal_identity_INVESTOR_ID_fkey) */
-    lazy val investorFk = foreignKey("investor_legal_identity_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    lazy val investorFk = foreignKey("investor_legal_identity_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table InvestorLegalIdentity */
   lazy val InvestorLegalIdentitys = new TableQuery(tag => new InvestorLegalIdentityRow(tag))
@@ -759,7 +762,7 @@ trait Tables {
     val identity: Column[String] = column[String]("IDENTITY", O.Length(2147483647,varying=true))
     
     /** Foreign key referencing Investor (database name investor_other_contact_INVESTOR_ID_fkey) */
-    lazy val investorFk = foreignKey("investor_other_contact_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    lazy val investorFk = foreignKey("investor_other_contact_INVESTOR_ID_fkey", investorId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table InvestorOtherContact */
   lazy val InvestorOtherContacts = new TableQuery(tag => new InvestorOtherContactRow(tag))
@@ -809,7 +812,7 @@ trait Tables {
     val acceptedByUserId: Column[Long] = column[Long]("accepted_by_user_id", O.Default(1L))
     
     /** Foreign key referencing Investor (database name investor_stock_investor_owner_id_fkey) */
-    lazy val investorFk = foreignKey("investor_stock_investor_owner_id_fkey", investorOwnerId, Investors)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
+    lazy val investorFk = foreignKey("investor_stock_investor_owner_id_fkey", investorOwnerId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
     /** Foreign key referencing User (database name investor_stock_accepted_by_user_id_fkey) */
     lazy val userFk2 = foreignKey("investor_stock_accepted_by_user_id_fkey", acceptedByUserId, Users)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.SetDefault)
     /** Foreign key referencing User (database name investor_stock_processed_by_user_id_fkey) */
@@ -852,6 +855,9 @@ trait Tables {
     val initiator: Column[Option[String]] = column[Option[String]]("INITIATOR", O.Length(100,varying=true), O.Default(Some("")))
     /** Database column TS DBType(timestamp) */
     val ts: Column[java.sql.Timestamp] = column[java.sql.Timestamp]("TS")
+    
+    /** Foreign key referencing Investor (database name mutation_INV_ID_fkey) */
+    lazy val investorFk = foreignKey("mutation_INV_ID_fkey", invId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table Mutation */
   lazy val Mutations = new TableQuery(tag => new MutationRow(tag))
@@ -951,6 +957,9 @@ trait Tables {
     val invId: Column[Long] = column[Long]("INV_ID")
     /** Database column BUS_ID DBType(int8) */
     val busId: Column[Long] = column[Long]("BUS_ID")
+    
+    /** Foreign key referencing Investor (database name project_watcher_INV_ID_fkey) */
+    lazy val investorFk = foreignKey("project_watcher_INV_ID_fkey", invId, Investors)(r => r.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
   }
   /** Collection-like TableQuery object for table ProjectWatcher */
   lazy val ProjectWatchers = new TableQuery(tag => new ProjectWatcherRow(tag))

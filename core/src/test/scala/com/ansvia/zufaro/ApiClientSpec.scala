@@ -1,7 +1,6 @@
 package com.ansvia.zufaro
 
 import com.ansvia.zufaro.model.UserRole
-import scala.slick.driver.PostgresDriver.simple._
 
 /**
  * Author: robin
@@ -10,8 +9,8 @@ import scala.slick.driver.PostgresDriver.simple._
  *
  */
 class ApiClientSpec extends ZufaroTest {
-    import model.Tables._
-    import ApiClientHelpers._
+    import com.ansvia.zufaro.ApiClientHelpers._
+    import com.ansvia.zufaro.model.Tables._
 
     "ApiClientManager" should {
         "can create" in {
@@ -22,7 +21,7 @@ class ApiClientSpec extends ZufaroTest {
             val desc = genRandomString
             val client = ApiClientManager.create(name, desc, 0L, UserRole.ADMIN, access)
 
-            client must beAnInstanceOf[ApiClientRow]
+            client must beAnInstanceOf[ApiClient]
             client.name must_== name
             client.desc must_== desc
             val rvAccesses = client.getAccesses.toSeq
@@ -50,7 +49,7 @@ class ApiClientSpec extends ZufaroTest {
             val desc = genRandomString
             val client = ApiClientManager.create(name, desc, 0L, UserRole.ADMIN, access)
 
-            import BusinessHelpers._
+            import com.ansvia.zufaro.BusinessHelpers._
             bus.isGranted(client, "add-profit") must beTrue
             bus.isGranted(client, "edit-info") must beTrue
             bus.isGranted(client, "drop") must beFalse
@@ -62,7 +61,7 @@ class ApiClientSpec extends ZufaroTest {
             val desc = genRandomString
             val client = ApiClientManager.create(name, desc, 0L, UserRole.ADMIN, access)
 
-            import BusinessHelpers._
+            import com.ansvia.zufaro.BusinessHelpers._
             bus.isGranted(client, "add-profit") must beTrue
             bus.isGranted(client, "edit-info") must beTrue
             bus.isGranted(client, "drop") must beTrue

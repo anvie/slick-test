@@ -43,7 +43,8 @@ object Dependencies {
             ExclusionRule("com.typesafe.play")
         )
         Seq(
-            "postgresql" % "postgresql" % "9.1-901-1.jdbc4" % "compile",
+//            "postgresql" % "postgresql" % "9.1-901-1.jdbc4" % "compile",
+            "org.postgresql" % "postgresql" % "9.3-1102-jdbc41",
             "com.github.tminglei" %% "slick-pg" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*),
             "com.github.tminglei" %% "slick-pg" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*),
             "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.5.2" % "compile" excludeAll(pgExcludes: _*)

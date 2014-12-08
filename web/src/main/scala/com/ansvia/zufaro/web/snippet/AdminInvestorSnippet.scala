@@ -2,8 +2,6 @@ package com.ansvia.zufaro.web.snippet
 
 /**
  * Author: robin
- * Date: 8/16/14
- * Time: 12:26 PM
  *
  */
 

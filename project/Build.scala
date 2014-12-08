@@ -27,7 +27,7 @@ object Build extends Build {
           .settings(moduleSettings: _*)
           .settings(libraryDependencies ++=
           compile(ansviaCommons, ansviaIdGen, slick, h2db/*, "com.ansvia.zufaro" % "zufaro-macro" % "0.0.1-alpha"*/,
-                    apacheCodec) ++
+                    apacheCodec) ++ slickPostgresDeps ++
                 test(specs2) ++
                 runtime(logback)
     )

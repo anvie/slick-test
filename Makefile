@@ -35,8 +35,9 @@ deploy:
 restart:
 	ssh robin@$(ZUFARO_SERVER) 'sudo chown -R robin:robin /home/robin/zufaro-web && sudo svc -du /etc/service/zufaro-web'
 
-reset:
-	ssh robin@$(ZUFARO_SERVER) 'sudo rm -rf jetty_instance/data/*'
+# untuk reset data di remote server
+#reset:
+#	ssh robin@$(ZUFARO_SERVER) 'sudo rm -rf jetty_instance/data/*'
 
 
 ifndef DB_NAME
@@ -62,6 +63,9 @@ reset-db:
 #	if [ "$$fill_dummy" = "y" ]; then \
 #		make dummy-data; \
 #	fi
+
+reset-test-db:
+	DB_NAME=zufaro_test make reset-db
 
 gen-models:
 	@@echo "generating database tables into scala sources..."

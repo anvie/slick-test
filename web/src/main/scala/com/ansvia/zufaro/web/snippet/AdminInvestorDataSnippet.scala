@@ -22,6 +22,8 @@ import scala.xml.{Text, NodeSeq}
 
 class AdminInvestorDataSnippet {
 
+    import com.ansvia.zufaro.InvestorHelpers._
+
     private lazy val invO = {
         S.param("invId").flatMap {
             case AsLong(id) =>
@@ -197,7 +199,9 @@ class AdminInvestorDataSnippet {
     // @TODO(robin): test fungsional ini secara manual
     def updateDataContact(in:NodeSeq):NodeSeq = {
 
+
         val inv = invO.openOrThrowException("cannot get investor data")
+        val contact = inv.getContact
         val _contactType = S.param("contactType").openOrThrowException("no contactType parameter") match {
             case "personal" => ContactType.PERSONAL
             case "emergency" => ContactType.EMERGENCY
@@ -274,31 +278,18 @@ class AdminInvestorDataSnippet {
 
         }
 
-
-        val sexTypes = Seq(("male", "MALE"), ("female", "FEMALE"))
-        val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
-        val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
-        //        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
-        //        val contactType = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
-
-        sexVar.setIsUnset("male")
+        emailVar.setIsUnset(contact.email)
+        addressVar.setIsUnset(contact.address)
+        cityVar.setIsUnset(contact.city)
+        provinceVar.setIsUnset(contact.province)
+        postalCodeVar.setIsUnset(contact.postalCode)
+        homePhoneVar.setIsUnset(contact.homePhone)
+        mobilePhoneVar.setIsUnset(contact.mobilePhone)
+        bbPinVar.setIsUnset(contact.bbPin)
+        villageVar.setIsUnset(contact.village)
+        districtVar.setIsUnset(contact.district)
 
         bind("in", in,
-            "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
-            "full-name" -> SHtml.text(fullNameVar, fullNameVar(_), "class" -> "form-control", "id" -> "FullName"),
-            "sex" -> SHtml.select(sexTypes, Full(sexVar.is), sexVar(_), "class" -> "form-control", "id" -> "Sex"),
-            "nation" -> SHtml.text(nationVar, nationVar(_), "class" -> "form-control", "id" -> "Nation"),
-            "birth-place" -> SHtml.text(birthPlaceVar, birthPlaceVar(_), "class" -> "form-control", "id" -> "BirthPlace"),
-            "birth-date" -> SHtml.text(birthDateVar, birthDateVar(_), "class" -> "form-control", "id" -> "BirthDate"),
-            "religion" -> SHtml.text(religionVar, religionVar(_), "class" -> "form-control", "id" -> "Religion"),
-            "education" -> SHtml.text(educationVar, educationVar(_), "class" -> "form-control", "id" -> "Education"),
-            "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
-            "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
-            "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
-            "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
-            "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
-            "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
-            "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
             "email" -> SHtml.text(emailVar, emailVar(_), "class" -> "form-control", "id" -> "Email"),
             "address" -> SHtml.textarea(addressVar, addressVar(_), "class" -> "form-control", "id" -> "Address"),
             "city" -> SHtml.text(cityVar, cityVar(_), "class" -> "form-control", "id" -> "City"),
@@ -311,7 +302,7 @@ class AdminInvestorDataSnippet {
             "village" -> SHtml.text(villageVar, villageVar(_), "class" -> "form-control", "id" -> "Village"),
             "district" -> SHtml.text(districtVar, districtVar(_), "class" -> "form-control", "id" -> "District"),
             //        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),
-            "submit" -> SHtml.submit("Create", doUpdateInternal, "class" -> "btn btn-success")
+            "update" -> SHtml.submit("Update", doUpdateInternal, "class" -> "btn btn-success")
         )
     }
 
@@ -324,7 +315,7 @@ class AdminInvestorDataSnippet {
     }
 
     def detailTitle:CssSel = {
-        "Kind *" #> contactType
+        "#Kind *" #> contactType.toUpperCase
     }
 
 

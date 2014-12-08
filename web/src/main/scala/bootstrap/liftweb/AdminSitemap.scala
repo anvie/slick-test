@@ -40,9 +40,7 @@ object AdminSitemap {
         menu("admin/investor/deposit", "Investor Deposit", Hidden) ::
         menu("admin/investor/business", "Investor Business", Hidden) ::
         menu("admin/investor/data", "Investor Data", Hidden) ::
-        menu("admin/investor/data/contacts/ktp", "Investor Contacts KTP", Hidden) ::
-        menu("admin/investor/data/contacts/tinggal", "Investor Contacts tinggal", Hidden) ::
-        menu("admin/investor/data/contacts/darurat", "Investor Contacts darurat", Hidden) ::
+        menu("admin/investor/data/contacts/detail", "Investor Data Contacts Detail", Hidden) ::
         /* ------------------ Admin ----------------- */
         menu("admin/admin", "Admin", AdminOnly) ::
         menu("admin/operator", "Operator", AdminOnly) ::
@@ -78,7 +76,7 @@ object AdminSitemap {
 //        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: Nil, _, _, _), _, _) =>
 //            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: Nil, Map("invId" -> invId.toString))
 
-        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: contactTypeRe(_type) :: Nil, _, _, _), _, _) =>
+        case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "data" :: "contacts" :: contactTypeRe(_type) :: Nil, _, _, _), _, _) =>
             RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactType" -> _type))
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "data" :: Nil, _, _, _), _, _) =>

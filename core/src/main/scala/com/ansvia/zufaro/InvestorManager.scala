@@ -2,7 +2,7 @@ package com.ansvia.zufaro
 
 import com.ansvia.zufaro.exception.{AlreadyInvestedException, InsufficientBalanceException, InvalidParameterException}
 import com.ansvia.zufaro.model.Tables._
-import com.ansvia.zufaro.model.{Initiator, MutationKind, NoInitiator}
+import com.ansvia.zufaro.model.{IdentityType, Initiator, MutationKind, NoInitiator}
 
 import scala.slick.driver.PostgresDriver.backend
 import scala.slick.driver.PostgresDriver.simple._
@@ -77,7 +77,7 @@ object InvestorManager {
     }
 
     // @TODO(robin): test this
-    def updateBasicInfo(invId:Long, investor:Investor, password:Option[String]=None) = {
+    def updateBasicInfo(invId:Long, investor:Investor, password:Option[String]=None, identityBasedOn:Int=IdentityType.KTP_BASED) = {
         val newId = if (investor.id > 0L && investor.id != invId)
             investor.id
         else

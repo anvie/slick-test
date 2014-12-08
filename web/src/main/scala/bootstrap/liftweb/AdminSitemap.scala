@@ -39,10 +39,10 @@ object AdminSitemap {
         menu("admin/investor/add", "Investor Add", Hidden) ::
         menu("admin/investor/deposit", "Investor Deposit", Hidden) ::
         menu("admin/investor/business", "Investor Business", Hidden) ::
-        menu("admin/investor/contacts", "Investor Contacts", Hidden) ::
-        menu("admin/investor/contacts/ktp", "Investor Contacts KTP", Hidden) ::
-        menu("admin/investor/contacts/tinggal", "Investor Contacts tinggal", Hidden) ::
-        menu("admin/investor/contacts/darurat", "Investor Contacts darurat", Hidden) ::
+        menu("admin/investor/data", "Investor Data", Hidden) ::
+        menu("admin/investor/data/contacts/ktp", "Investor Contacts KTP", Hidden) ::
+        menu("admin/investor/data/contacts/tinggal", "Investor Contacts tinggal", Hidden) ::
+        menu("admin/investor/data/contacts/darurat", "Investor Contacts darurat", Hidden) ::
         /* ------------------ Admin ----------------- */
         menu("admin/admin", "Admin", AdminOnly) ::
         menu("admin/operator", "Operator", AdminOnly) ::
@@ -77,10 +77,10 @@ object AdminSitemap {
             RewriteResponse("admin" :: "investor" :: "business" :: Nil, Map("invId" -> invId.toString))
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: Nil, _, _, _), _, _) =>
-            RewriteResponse("admin" :: "investor" :: "contacts" :: Nil, Map("invId" -> invId.toString))
+            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: Nil, Map("invId" -> invId.toString))
 
         case RewriteRequest(ParsePath("admin" :: "investor" :: AsLong(invId) :: "contacts" :: contactKindRe(kind) :: Nil, _, _, _), _, _) =>
-            RewriteResponse("admin" :: "investor" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactKind" -> kind))
+            RewriteResponse("admin" :: "investor" :: "data" :: "contacts" :: "detail" :: Nil, Map("invId" -> invId.toString, "contactKind" -> kind))
 
     }
     lazy val rewrite:LiftRules.RewritePF =

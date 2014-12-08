@@ -68,6 +68,8 @@ class AdminInvestorContactSnippet {
     // @TODO(robin): test fungsional ini secara manual
     def updateDataBasic(in:NodeSeq):NodeSeq = {
 
+        val _contactKind = contactKind
+
         def doUpdateInternal() = {
 
             try {
@@ -128,7 +130,7 @@ class AdminInvestorContactSnippet {
                     case "maried" => MaritalStatus.MARIED
                 }
 
-                val identityBasedOn = IdentityType.KTP_BASED
+//                val identityBasedOn = IdentityType.KTP_BASED
 
                 val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
                     religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
@@ -140,7 +142,11 @@ class AdminInvestorContactSnippet {
                 else
                     None
 
-                val invUpdated = InvestorManager.updateBasicInfo(investor.id, investor, newPassword)
+                val idType = _contactKind match {
+                    case "ktp" => IdentityType.
+                }
+
+                val invUpdated = InvestorManager.updateBasicInfo(investor.id, investor, newPassword, idType)
 
                 S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${invUpdated.name} with id ${invUpdated.id}"))
             }
@@ -159,6 +165,7 @@ class AdminInvestorContactSnippet {
         //        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
         sexVar.setIsUnset("male")
+        contactKindVar.setIsUnset(_contactKind)
 
         bind("in", in,
             "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
@@ -350,10 +357,10 @@ class AdminInvestorContactSnippet {
     }
 
 
-    def contactList:NodeSeq = {
+    def dataList:NodeSeq = {
         invO.map { inv =>
             <ul>
-                <li><a href={"/admin/investor/%s/contacts/ktp".format(inv.id)}>Sesuai KTP</a></li>
+                <li><a href={"/admin/investor/%s/data/contacts/ktp".format(inv.id)}>Sesuai KTP</a></li>
                 <li><a href={"/admin/investor/%s/contacts/tinggal".format(inv.id)}>Tempat tinggal saat ini</a></li>
                 <li><a href={"/admin/investor/%s/contacts/darurat".format(inv.id)}>Darurat</a></li>
             </ul>

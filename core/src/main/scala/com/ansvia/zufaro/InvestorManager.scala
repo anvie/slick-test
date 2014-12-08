@@ -76,6 +76,50 @@ object InvestorManager {
         getById(userId).get
     }
 
+    // @TODO(robin): test this
+    def updateBasicInfo(invId:Long, investor:Investor, password:Option[String]=None) = {
+        val newId = if (investor.id > 0L && investor.id != invId)
+            investor.id
+        else
+            invId   
+
+        lazy val passHash = PasswordUtil.hash(password.get)
+        Zufaro.db.withTransaction { implicit session =>
+            if (password.isDefined){
+                if (invId != newId){
+                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                        s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
+                        s.status, s.passhash))).update(
+                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                                investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE, passHash))
+                }else{
+                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                        s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
+                        s.status, s.passhash))).update(
+                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                                investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE, passHash))
+                }
+            }else{
+                if (invId != newId){
+                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                        s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
+                        s.status))).update(
+                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                                investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE))
+                }else{
+                    (Investors.map(s => (s.id, s.name, s.fullName, s.role, s.sex, s.nation, s.birthPlace, s.birthDate,
+                        s.religion, s.education, s.titleFront, s.titleBack, s.maritalStatus, s.motherName,
+                        s.status))).update(
+                            (newId, investor.name, investor.fullName, investor.role, investor.sex, investor.nation, investor.birthPlace, investor.birthDate, investor.religion, investor.education,
+                                investor.titleFront, investor.titleBack, investor.maritalStatus, investor.motherName, status.ACTIVE))
+                }
+
+            }
+        }
+        getById(newId).get
+    }
+
+
     /**
      * Get investor by id.
      * @param id investor id.

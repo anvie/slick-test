@@ -59,7 +59,6 @@ class AdminInvestorSnippet {
     private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
     private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
 
-    // @TODO(robin): test fungsional ini secara manual
     def addNew(in:NodeSeq):NodeSeq = {
 
         def doCreateInternal() = {
@@ -243,31 +242,7 @@ class AdminInvestorSnippet {
 
         val contact = {
             <td>
-                {invContact.city} - <a href="javascript://" onclick={s"showAddressDetail('${inv.id}');"}>show detail</a>
-                <div id={s"AddressDetail-${inv.id}"} class="hidden">
-                    {
-                    <strong>Address:</strong><br />
-                    <p>{invContact.address}</p>
-                    <p>City: {invContact.city}<br />
-                    Province: {invContact.province}<br />
-                    Country: {invContact.country}<br />
-                    Postal code: {invContact.postalCode}<br />
-                    </p>
-                    <hr />
-                    <p><strong>Phone:</strong><br />
-                        <ul>
-                            <li>home: {invContact.homePhone}</li>
-                            <li>mobile: {invContact.mobilePhone}</li>
-                        </ul>
-                    </p>
-                    <p><strong>BB PIN: {invContact.bbPin}</strong>
-                    </p>
-                    <hr />
-                    <p><strong>Email: </strong><br />
-                        {invContact.email}
-                    </p>
-                    }
-                </div>
+                {invContact.city} - <a href={"/admin/investor/%s/contacts".format(inv.id)}>show detail</a>
             </td>
         }
 

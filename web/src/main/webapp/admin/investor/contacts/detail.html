@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body class="lift:content_id=Main">
+
+<div id="Main" data-lift="Surround?with=admin;at=content">
+
+    <head_embed>
+        <style type="text/css">
+        </style>
+    </head_embed>
+
+    <h1 class="lift:AdminInvestorContactSnippet.detailTitle">Contact <span id="Kind"></span></h1>
+
+    <hr />
+
+    <div style="width: 500px;">
+        <div class="lift:AdminInvestorContactSnippet.updateDataBasic?form=POST">
+
+            <div>
+                <label for="FullName">Name lengkap:</label>
+                <div><in:full-name></in:full-name></div>
+            </div>
+            <div>
+                <label for="Name">Name panggilan:</label>
+                <div><in:name></in:name></div>
+            </div>
+            <div>
+                <label for="Sex">Gender:</label>
+                <div><in:sex></in:sex></div>
+            </div>
+            <div>
+                <label for="Role">Role:</label>
+                <div><in:role></in:role></div>
+            </div>
+            <div>
+                <label for="Password">Password:</label>
+                <div><in:password></in:password></div>
+            </div>
+            <div>
+                <label for="PasswordVerification">Password verification:</label>
+                <div><in:verify-password></in:verify-password></div>
+            </div>
+
+            <div>
+                <label for="Nation">Nation:</label>
+                <div><in:nation></in:nation></div>
+            </div>
+            <div>
+                <label for="BirthPlace">Birth:</label>
+                <div>
+                    Place: <in:birth-place></in:birth-place>
+                    Date: <in:birth-date></in:birth-date>
+                </div>
+            </div>
+            <div>
+                <label for="Religion">Religion:</label>
+                <div>
+                    <in:religion></in:religion>
+                </div>
+            </div>
+            <div>
+                <label for="Education">Education:</label>
+                <div>
+                    <in:education></in:education>
+                </div>
+            </div>
+
+            <div>
+                <label for="Title">Title:</label>
+                <div>
+                    front: <in:title-front></in:title-front>
+                    back: <in:title-back></in:title-back>
+                </div>
+            </div>
+
+            <div>
+                <label for="MaritalStatus">Marital status:</label>
+                <div><in:marital-status></in:marital-status></div>
+            </div>
+
+            <div>
+                <label for="MotherName">Mother name:</label>
+                <div>
+                    <in:mother-name></in:mother-name>
+                </div>
+            </div>
+
+            <div>
+                <label for="Email">Email:</label>
+                <div><in:email></in:email></div>
+            </div>
+            <div>
+                <label for="Address">Address:</label>
+                <div><in:address></in:address></div>
+            </div>
+            <div>
+                <label for="City">City:</label>
+                <div><in:city></in:city></div>
+            </div>
+            <div>
+                <label for="Village">Village:</label>
+                <div><in:village></in:village></div>
+            </div>
+            <div>
+                <label for="District">District:</label>
+                <div><in:district></in:district></div>
+            </div>
+            <div>
+                <label for="Province">Province:</label>
+                <div><in:province></in:province></div>
+            </div>
+            <div>
+                <label for="Country">Country:</label>
+                <div><in:country></in:country></div>
+            </div>
+            <div>
+                <label for="PostalCode">Postal Code:</label>
+                <div><in:postal-code></in:postal-code></div>
+            </div>
+            <div>
+                <label for="HomePhone">Home phone:</label>
+                <div><in:home-phone></in:home-phone></div>
+            </div>
+            <div>
+                <label for="MobilePhone">Mobile phone:</label>
+                <div><in:mobile-phone></in:mobile-phone></div>
+            </div>
+
+            <div>
+                <label for="BBPin">BB Pin:</label>
+                <div><in:bb-pin></in:bb-pin></div>
+            </div>
+
+            <div style="margin-top: 10px;" class="clearfix">
+                <hr />
+                <div class="pull-right">
+                    <a href="javascript://" onclick="history.back();" class="btn btn-default">Cancel</a>
+                    <in:submit></in:submit>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div>
+        <a href="/admin/investor">Back to investor list</a>
+    </div>
+
+</div>
+
+</body>
+</html>

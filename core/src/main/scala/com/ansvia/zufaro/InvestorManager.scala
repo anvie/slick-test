@@ -50,8 +50,8 @@ object InvestorManager {
         assert(investor != null, "investor is null")
         assert(password != null, "password can't be null")
         assert(contact != null, "contact can't be null")
-        assert(investor.id != 0L, "for creation don't accept id here")
-        assert(contact.investorId != 0L, "for creation don't accept investorId here")
+        assert(investor.id == 0L, "for creation don't accept id here")
+        assert(contact.investorId == 0L, "for creation don't accept investorId here")
 
         val passHash = PasswordUtil.hash(password)
         val userId = Zufaro.db.withTransaction { implicit session =>
@@ -65,9 +65,10 @@ object InvestorManager {
             InvestorBalances.map(s => (s.invId, s.amount)) += (userId, 0.0)
 
             InvestorContacts.map(s => (s.address, s.city, s.country, s.district, s.email, s.identityBasedOn,
-                s.investorId, s.kind, s.mobilePhone, s.postalCode, s.province, s.village)) +=
+                s.investorId, s.kind, s.homePhone, s.mobilePhone, s.bbPin, s.postalCode, s.province, s.village)) +=
                 (contact.address, contact.city, contact.country, contact.district, contact.email,
-                    contact.identityBasedOn, userId, contact.kind, contact.mobilePhone, contact.postalCode,
+                    contact.identityBasedOn, userId, contact.kind, contact.homePhone, contact.mobilePhone, contact.bbPin,
+                    contact.postalCode,
                     contact.province, contact.village)
 
             userId

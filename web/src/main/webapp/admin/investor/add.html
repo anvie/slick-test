@@ -13,6 +13,17 @@ www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <head_embed>
         <style type="text/css">
         </style>
+
+        <script type="text/javascript" src="/assets/js/jquery.phoenix.min.js"></script>
+        <script type="text/javascript">
+            //<![CDATA[
+            $(document).ready(function(){
+                $("input,textarea").phoenix({
+                    keyAttributes: ['tagName', 'id']
+                });
+            });
+            //]]>
+        </script>
     </head_embed>
 
     <h1>Add new Investor</h1>
@@ -123,11 +134,11 @@ www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
                 <div><in:postal-code></in:postal-code></div>
             </div>
             <div>
-                <label for="Phone1">Mobile phone:</label>
+                <label for="HomePhone">Home phone:</label>
                 <div><in:home-phone></in:home-phone></div>
             </div>
             <div>
-                <label for="Phone2">Mobile phone (alt):</label>
+                <label for="MobilePhone">Mobile phone:</label>
                 <div><in:mobile-phone></in:mobile-phone></div>
             </div>
 

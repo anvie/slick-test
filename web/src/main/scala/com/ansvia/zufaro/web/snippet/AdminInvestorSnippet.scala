@@ -168,19 +168,20 @@ class AdminInvestorSnippet {
         val sexTypes = Seq(("male", "MALE"), ("female", "FEMALE"))
         val roles = Seq(("owner", "OWNER"), ("operator", "OPERATOR"), ("supervisor", "SUPERVISOR"))
         val maritalTypes = Seq(("single", "SINGLE"), ("maried", "MARIED"))
-        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
+//        val identityBasedOnTypes = Seq(("ktp", "KTP"), ("passport", "PASSPORT"), ("current-live","CURRENT LIVE"))
 //        val contactKind = Seq(("personal", "PERSONAL"), ("emergency", "EMERGENCY"))
 
+        sexVar.setIsUnset("male")
 
         bind("in", in,
         "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
         "full-name" -> SHtml.text(fullNameVar, fullNameVar(_), "class" -> "form-control", "id" -> "FullName"),
-        "sex" -> SHtml.select(sexTypes, Full(fullNameVar.is), fullNameVar(_), "class" -> "form-control", "id" -> "Sex"),
+        "sex" -> SHtml.select(sexTypes, Full(sexVar.is), sexVar(_), "class" -> "form-control", "id" -> "Sex"),
         "nation" -> SHtml.text(nationVar, nationVar(_), "class" -> "form-control", "id" -> "Nation"),
         "birth-place" -> SHtml.text(birthPlaceVar, birthPlaceVar(_), "class" -> "form-control", "id" -> "BirthPlace"),
         "birth-date" -> SHtml.text(birthDateVar, birthDateVar(_), "class" -> "form-control", "id" -> "BirthDate"),
         "religion" -> SHtml.text(religionVar, religionVar(_), "class" -> "form-control", "id" -> "Religion"),
-        "education" -> SHtml.text(educationVar, educationVar(_), "class" -> "form-control", "id" -> "BirthDate"),
+        "education" -> SHtml.text(educationVar, educationVar(_), "class" -> "form-control", "id" -> "Education"),
         "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
         "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
         "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
@@ -194,8 +195,8 @@ class AdminInvestorSnippet {
         "province" -> SHtml.text(provinceVar, provinceVar(_), "class" -> "form-control", "id" -> "Province"),
         "country" -> SHtml.text(countryVar, countryVar(_), "class" -> "form-control", "id" -> "Country"),
         "postal-code" -> SHtml.text(postalCodeVar, postalCodeVar(_), "class" -> "form-control", "id" -> "PostalCode"),
-        "home-phone" -> SHtml.text(homePhoneVar, homePhoneVar(_), "class" -> "form-control", "id" -> "Phone1"),
-        "mobile-phone" -> SHtml.text(mobilePhoneVar, mobilePhoneVar(_), "class" -> "form-control", "id" -> "Phone2"),
+        "home-phone" -> SHtml.text(homePhoneVar, homePhoneVar(_), "class" -> "form-control", "id" -> "MobilePhone"),
+        "mobile-phone" -> SHtml.text(mobilePhoneVar, mobilePhoneVar(_), "class" -> "form-control", "id" -> "HomePhone"),
         "bb-pin" -> SHtml.text(bbPinVar, bbPinVar(_), "class" -> "form-control", "id" -> "BBPin"),
         "village" -> SHtml.text(villageVar, villageVar(_), "class" -> "form-control", "id" -> "Village"),
         "district" -> SHtml.text(districtVar, districtVar(_), "class" -> "form-control", "id" -> "District"),

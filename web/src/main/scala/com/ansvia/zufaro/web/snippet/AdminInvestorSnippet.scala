@@ -38,7 +38,7 @@ class AdminInvestorSnippet {
     private object titleFrontVar extends RequestVar("")
     private object titleBackVar extends RequestVar("")
     private object maritalStatusVar extends RequestVar("")
-    private object motherNameVar extends RequestVar("")
+    private object maidenNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
     private object roleVar extends RequestVar("")
@@ -54,7 +54,7 @@ class AdminInvestorSnippet {
     private object districtVar extends RequestVar("")
 //    private object identityBasedOnVar extends RequestVar("ktp")
     private object bbPinVar extends RequestVar("")
-    private object contactTypeVar extends RequestVar("")
+//    private object contactTypeVar extends RequestVar("")
 
     private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
     private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
@@ -82,8 +82,8 @@ class AdminInvestorSnippet {
                     throw InvalidParameterException("No education")
                 if (maritalStatusVar.isEmpty)
                     throw InvalidParameterException("No marital status information")
-                if (motherNameVar.isEmpty)
-                    throw InvalidParameterException("No mother name")
+                if (maidenNameVar.isEmpty)
+                    throw InvalidParameterException("No maiden name")
                 if (passwordVar.isEmpty)
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
@@ -139,14 +139,9 @@ class AdminInvestorSnippet {
 //                }
                 val identityBasedOn = IdentityType.KTP_BASED
 
-//                val contactType = contactTypeVar.is match {
-//                    case "personal" => ContactKind.PERSONAL
-//                    case "emergency" => ContactKind.EMERGENCY
-//                }
-
 
                 val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
-                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
+                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, maidenNameVar, "")
 
                 val contact = InvestorContact(0L, addressVar, villageVar, districtVar, cityVar, provinceVar,
                         countryVar, postalCodeVar, emailVar, homePhoneVar, mobilePhoneVar, bbPinVar,
@@ -184,7 +179,7 @@ class AdminInvestorSnippet {
         "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
         "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
         "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
-        "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
+        "maiden-name" -> SHtml.text(maidenNameVar, maidenNameVar(_), "class" -> "form-control", "id" -> "MaidenName"),
         "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
         "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
         "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),

@@ -319,11 +319,11 @@ class AdminInvestorSnippet {
         }
 
         SHtml.ajaxForm(bind("in",in,
-            "password" -> SHtml.password(passwordVar, passwordVar(_)),
-            "password-verify" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_)),
+            "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control"),
+            "password-verify" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control"),
             "submit" -> S.formGroup(1000){
                 SHtml.hidden(updateInternal) ++
-                SHtml.submit("Update", updateInternal)
+                SHtml.submit("Update", updateInternal, "class" -> "btn btn-success")
             }
         ))
     }

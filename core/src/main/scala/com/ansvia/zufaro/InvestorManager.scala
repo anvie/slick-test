@@ -182,7 +182,7 @@ object InvestorManager {
      */
     def getByName(name:String) = {
         Zufaro.db.withSession { implicit session =>
-            Investors.filter(_.name === name).firstOption
+            Investors.filter(_.name.toLowerCase === name.toLowerCase).firstOption
         }
     }
 

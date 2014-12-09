@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://
+www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<div xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/" xmlns:in="http://liftweb.net/">
+
+    <hr />
+
+    <div style="width: 500px;">
+        <div class="lift:AdminInvestorDataSnippet.updateDataBasic?form=POST;idType=ktp">
+
+            <div class="lift:AdminInvestorDataSnippet.dataTitle" style="margin-bottom: 20px;">
+                <div><strong>ID</strong>: <strong class="investor-id">BCF1001</strong></div>
+                <div><a href="javascript://" class="lift:AdminInvestorDataSnippet.editID">change id</a></div>
+            </div>
+
+            <div>
+                <label>Name lengkap:</label>
+                <div><in:full-name></in:full-name></div>
+            </div>
+            <div>
+                <label>Name panggilan:</label>
+                <div><in:name></in:name></div>
+            </div>
+            <div>
+                <label>Gender:</label>
+                <div><in:sex></in:sex></div>
+            </div>
+            <div>
+                <label>Role:</label>
+                <div><in:role></in:role></div>
+            </div>
+
+            <div>
+                <label>Nation:</label>
+                <div><in:nation></in:nation></div>
+            </div>
+            <div>
+                <label>Birth:</label>
+                <div>
+                    Place: <in:birth-place></in:birth-place>
+                    Date: <in:birth-date></in:birth-date>
+                </div>
+            </div>
+            <div>
+                <label>Religion:</label>
+                <div>
+                    <in:religion></in:religion>
+                </div>
+            </div>
+            <div>
+                <label>Education:</label>
+                <div>
+                    <in:education></in:education>
+                </div>
+            </div>
+
+            <div>
+                <label>Title:</label>
+                <div>
+                    front: <in:title-front></in:title-front>
+                    back: <in:title-back></in:title-back>
+                </div>
+            </div>
+
+            <div>
+                <label>Marital status:</label>
+                <div><in:marital-status></in:marital-status></div>
+            </div>
+
+            <div>
+                <label>Mother name:</label>
+                <div>
+                    <in:mother-name></in:mother-name>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px;" class="clearfix">
+                <hr />
+                <div class="pull-right">
+                    <in:update></in:update>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div>
+        <a href="/admin/investor">Back to investor list</a>
+    </div>
+
+</div>

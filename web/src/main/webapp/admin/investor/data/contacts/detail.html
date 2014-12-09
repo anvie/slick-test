@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://
+www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/" xmlns:in="http://liftweb.net/">
+<head>
+    <title></title>
+</head>
+<body class="lift:content_id=Main">
+
+<div id="Main" data-lift="Surround?with=admin;at=content">
+
+    <head_embed>
+        <style type="text/css">
+        </style>
+    </head_embed>
+
+    <h1 class="lift:AdminInvestorDataSnippet.detailTitle">Contact <span id="Kind"></span></h1>
+
+    <hr />
+
+    <div  style="width: 500px;">
+        <div id="ToBeForm" class="lift:AdminInvestorDataSnippet.updateDataContact?form=POST">
+            <div>
+                <label>Email:</label>
+                <div><in:email></in:email></div>
+            </div>
+            <div>
+                <label>Address:</label>
+                <div><in:address></in:address></div>
+            </div>
+            <div>
+                <label>City:</label>
+                <div><in:city></in:city></div>
+            </div>
+            <div>
+                <label>Village:</label>
+                <div><in:village></in:village></div>
+            </div>
+            <div>
+                <label>District:</label>
+                <div><in:district></in:district></div>
+            </div>
+            <div>
+                <label>Province:</label>
+                <div><in:province></in:province></div>
+            </div>
+            <div>
+                <label>Country:</label>
+                <div><in:country></in:country></div>
+            </div>
+            <div>
+                <label>Postal Code:</label>
+                <div><in:postal-code></in:postal-code></div>
+            </div>
+            <div>
+                <label>Home phone:</label>
+                <div><in:home-phone></in:home-phone></div>
+            </div>
+            <div>
+                <label>Mobile phone:</label>
+                <div><in:mobile-phone></in:mobile-phone></div>
+            </div>
+
+            <div>
+                <label>BB Pin:</label>
+                <div><in:bb-pin></in:bb-pin></div>
+            </div>
+
+            <div style="margin-top: 10px;" class="clearfix">
+                <hr />
+                <div class="pull-right">
+                    <a href="javascript://" onclick="history.back();" class="btn btn-default">Cancel</a>
+                    <in:update></in:update>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div>
+        <a href="/admin/investor">Back to investor list</a>
+    </div>
+
+</div>
+
+</body>
+</html>

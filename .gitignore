@@ -2,9 +2,9 @@
 target/
 *.class
 .tup
-data/
 *.bak
 web/src/main/webapp/assets/js/zufaro.js
 web/src/main/webapp/assets/js/zufaro.min.js
 VERSION
+data/*.db
 

@@ -189,7 +189,7 @@ class AdminInvestorDataSnippet {
             "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
             "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
             "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
-            // @TODO(robin): sesuaikan template-nya karena perubahan ini
+            // @TODO(robin): sesuaikan template-nya karena perubahan iniq
             "maiden-name" -> SHtml.text(maidenNameVar, maidenNameVar(_), "class" -> "form-control", "id" -> "MaidenName"),
             "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
             //        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),

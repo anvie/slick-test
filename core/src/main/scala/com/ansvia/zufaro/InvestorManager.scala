@@ -152,6 +152,16 @@ object InvestorManager {
         }
     }
 
+    def updatePassword(invId:Long, newPassword:String){
+        Zufaro.db.withTransaction { implicit sess =>
+
+            val passHash = PasswordUtil.hash(newPassword)
+            Investors.filter(_.id === invId).map(_.passhash).update(passHash)
+
+        }
+    }
+
+
 
 
     /**

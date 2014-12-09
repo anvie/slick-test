@@ -5,7 +5,7 @@ package com.ansvia.zufaro.web.snippet
  *
  */
 
-import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
+import com.ansvia.zufaro.exception.{NotExistsException, InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model._
 import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
@@ -202,6 +202,10 @@ class AdminInvestorSnippet {
 
     import com.ansvia.zufaro.InvestorManager.status
 
+
+    case class InvestorWithContact(inv:Investor, contact:InvestorContact)
+
+
     private def buildInvestorListItem(invWithContact:InvestorWithContact):Node = {
 
         val inv = invWithContact.inv
@@ -241,6 +245,13 @@ class AdminInvestorSnippet {
             </td>
         }
 
+        val changePassword = {
+            SHtml.a(()=>{
+                val ns = S.runTemplate("admin" :: "investor" :: "dialog" :: "_chunk_dialog-change-password" :: Nil).openOr(NodeSeq.Empty)
+                JsUtils.modalDialog(("#Dialog [class]" #> s"lift:AdminInvestorSnippet.dialogChangePassword?invId=${inv.id}").apply(ns))
+            }, Text("Change password"))
+        }
+
         <tr>
             <td>{inv.id}</td>
             <td>{inv.name}</td>
@@ -262,6 +273,8 @@ class AdminInvestorSnippet {
                         <li><a href={s"/admin/investor/${inv.id}/deposit"}>Account</a></li>
                         <li><a href={s"/admin/investor/${inv.id}/business"}>Investment</a></li>
                         <li class="divider"></li>
+                        <li>{changePassword}</li>
+                        <li class="divider"></li>
                         <li>{deleter}</li>
                     </ul>
                 </div>
@@ -270,13 +283,8 @@ class AdminInvestorSnippet {
         </tr>
     }
 
-    case class InvestorWithContact(inv:Investor, contact:InvestorContact)
-
     def investorList:CssSel = {
-//        val investors = InvestorManager.getList(0, 50)
-
         val investors = Zufaro.db.withSession { implicit sess =>
-//            Investors.filter(_.status === status.ACTIVE).drop(0).take(50).run
             val q = InvestorContacts join Investors.filter(_.status === status.ACTIVE) on (_.investorId === _.id)
             q.run.map(a => InvestorWithContact(a._2, a._1))
         }
@@ -284,10 +292,41 @@ class AdminInvestorSnippet {
         "#List *" #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 
-//    private def invO = {
-//        val id = S.param("invId").openOr("0").toLong
-//        InvestorManager.getById(id)
-//    }
+
+    def dialogChangePassword(in:NodeSeq):NodeSeq = {
+
+        val inv = InvestorManager.getById(S.attr("invId").openOrThrowException("no invId").toLong).getOrElse {
+            throw NotExistsException("No investor account exists")
+        }
+
+        def updateInternal = () => {
+            try {
+
+                if (passwordVar.isEmpty)
+                    throw InvalidParameterException("Please fill the new password")
+                if (verifyPasswordVar.isEmpty)
+                    throw InvalidParameterException("Please repeat your password")
+                if (passwordVar.is != verifyPasswordVar.is)
+                    throw InvalidParameterException("Your password and verification didn't match")
+
+                InvestorManager.updatePassword(inv.id, passwordVar.is)
+
+                JsUtils.hideAllModal & JsUtils.showNotice("Investor password updated successfully")
+            }catch{
+                case e:ZufaroException =>
+                    JsUtils.showError(e.getMessage)
+            }
+        }
+
+        SHtml.ajaxForm(bind("in",in,
+            "password" -> SHtml.password(passwordVar, passwordVar(_)),
+            "password-verify" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_)),
+            "submit" -> S.formGroup(1000){
+                SHtml.hidden(updateInternal) ++
+                SHtml.submit("Update", updateInternal)
+            }
+        ))
+    }
 
 
 }

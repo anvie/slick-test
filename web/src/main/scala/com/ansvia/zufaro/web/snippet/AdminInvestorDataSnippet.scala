@@ -47,7 +47,7 @@ class AdminInvestorDataSnippet {
     private object titleFrontVar extends RequestVar("")
     private object titleBackVar extends RequestVar("")
     private object maritalStatusVar extends RequestVar("")
-    private object motherNameVar extends RequestVar("")
+    private object maidenNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
     private object roleVar extends RequestVar("")
@@ -93,8 +93,8 @@ class AdminInvestorDataSnippet {
                     throw InvalidParameterException("No education")
                 if (maritalStatusVar.isEmpty)
                     throw InvalidParameterException("No marital status information")
-                if (motherNameVar.isEmpty)
-                    throw InvalidParameterException("No mother name")
+                if (maidenNameVar.isEmpty)
+                    throw InvalidParameterException("No maiden name")
 
 
                 if (passwordVar.is != verifyPasswordVar.is)
@@ -131,7 +131,7 @@ class AdminInvestorDataSnippet {
 //                val identityBasedOn = IdentityType.KTP_BASED
 
                 val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
-                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
+                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, maidenNameVar, "")
 
 
                 // apabila password berbeda dengan yang lama maka perlu update juga password-nya
@@ -147,7 +147,8 @@ class AdminInvestorDataSnippet {
 
                 val invUpdated = InvestorManager.updateBasicInfo(inv.id, investor, newPassword, idType)
 
-                S.redirectTo("/admin/investor/active-investor", () => S.notice(s"Investor created ${invUpdated.name} with id ${invUpdated.id}"))
+                S.redirectTo("/admin/investor/active-investor",
+                    () => S.notice(s"Investor created ${invUpdated.name} with id ${invUpdated.id}"))
             }
             catch {
                 case e:ZufaroException =>
@@ -174,7 +175,7 @@ class AdminInvestorDataSnippet {
         titleFrontVar.setIsUnset(inv.titleFront)
         titleBackVar.setIsUnset(inv.titleBack)
         maritalStatusVar.setIsUnset(MaritalStatus.toStr(inv.maritalStatus).toLowerCase)
-        motherNameVar.setIsUnset(inv.motherName)
+        maidenNameVar.setIsUnset(inv.motherName)
 
         bind("in", in,
             "name" -> SHtml.text(nameVar, nameVar(_), "class" -> "form-control", "id" -> "Name"),
@@ -188,7 +189,8 @@ class AdminInvestorDataSnippet {
             "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
             "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
             "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
-            "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
+            // @TODO(robin): sesuaikan template-nya karena perubahan ini
+            "maiden-name" -> SHtml.text(maidenNameVar, maidenNameVar(_), "class" -> "form-control", "id" -> "MaidenName"),
             "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
             //        "identity-based-on" -> SHtml.select(identityBasedOnTypes, Full(identityBasedOnVar.is), identityBasedOnVar(_), "class" -> "form-control", "id" -> "IdentityBasedOn"),
             "update" -> SHtml.submit("Update", doUpdateInternal, "class" -> "btn btn-success")

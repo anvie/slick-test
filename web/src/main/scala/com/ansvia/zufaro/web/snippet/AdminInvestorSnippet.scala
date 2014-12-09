@@ -5,7 +5,7 @@ package com.ansvia.zufaro.web.snippet
  *
  */
 
-import com.ansvia.zufaro.exception.{InvalidParameterException, ZufaroException}
+import com.ansvia.zufaro.exception.{NotExistsException, InvalidParameterException, ZufaroException}
 import com.ansvia.zufaro.model.Tables._
 import com.ansvia.zufaro.model._
 import com.ansvia.zufaro.web.lib.{HTML5HistoryHandler, MtTabInterface}
@@ -38,7 +38,7 @@ class AdminInvestorSnippet {
     private object titleFrontVar extends RequestVar("")
     private object titleBackVar extends RequestVar("")
     private object maritalStatusVar extends RequestVar("")
-    private object motherNameVar extends RequestVar("")
+    private object maidenNameVar extends RequestVar("")
     private object passwordVar extends RequestVar("")
     private object verifyPasswordVar extends RequestVar("")
     private object roleVar extends RequestVar("")
@@ -54,7 +54,7 @@ class AdminInvestorSnippet {
     private object districtVar extends RequestVar("")
 //    private object identityBasedOnVar extends RequestVar("ktp")
     private object bbPinVar extends RequestVar("")
-    private object contactTypeVar extends RequestVar("")
+//    private object contactTypeVar extends RequestVar("")
 
     private lazy val birthDateRegex = """(\d{2})/(\d{2})/(\d{4})""".r
     private val dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy")
@@ -82,8 +82,8 @@ class AdminInvestorSnippet {
                     throw InvalidParameterException("No education")
                 if (maritalStatusVar.isEmpty)
                     throw InvalidParameterException("No marital status information")
-                if (motherNameVar.isEmpty)
-                    throw InvalidParameterException("No mother name")
+                if (maidenNameVar.isEmpty)
+                    throw InvalidParameterException("No maiden name")
                 if (passwordVar.isEmpty)
                     throw InvalidParameterException("Please enter password")
                 if (verifyPasswordVar.isEmpty)
@@ -139,14 +139,9 @@ class AdminInvestorSnippet {
 //                }
                 val identityBasedOn = IdentityType.KTP_BASED
 
-//                val contactType = contactTypeVar.is match {
-//                    case "personal" => ContactKind.PERSONAL
-//                    case "emergency" => ContactKind.EMERGENCY
-//                }
-
 
                 val investor = Investor(0L, nameVar, fullNameVar, role, sex, nationVar, birthPlaceVar, birthDate,
-                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, motherNameVar, "")
+                    religion, educationVar, titleFrontVar, titleBackVar, maritalStatus, maidenNameVar, "")
 
                 val contact = InvestorContact(0L, addressVar, villageVar, districtVar, cityVar, provinceVar,
                         countryVar, postalCodeVar, emailVar, homePhoneVar, mobilePhoneVar, bbPinVar,
@@ -184,7 +179,7 @@ class AdminInvestorSnippet {
         "title-front" -> SHtml.text(titleFrontVar, titleFrontVar(_), "class" -> "form-control", "id" -> "TitleFront"),
         "title-back" -> SHtml.text(titleBackVar, titleBackVar(_), "class" -> "form-control", "id" -> "TitleBack"),
         "marital-status" -> SHtml.select(maritalTypes, Full(maritalStatusVar.is), maritalStatusVar(_), "class" -> "form-control", "id" -> "MaritalStatus"),
-        "mother-name" -> SHtml.text(motherNameVar, motherNameVar(_), "class" -> "form-control", "id" -> "MotherName"),
+        "maiden-name" -> SHtml.text(maidenNameVar, maidenNameVar(_), "class" -> "form-control", "id" -> "MaidenName"),
         "role" -> SHtml.select(roles, Full("owner"), roleVar(_), "class" -> "form-control"),
         "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control", "id" -> "Password"),
         "verify-password" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control", "id" -> "VerifyPassword"),
@@ -206,6 +201,10 @@ class AdminInvestorSnippet {
 
 
     import com.ansvia.zufaro.InvestorManager.status
+
+
+    case class InvestorWithContact(inv:Investor, contact:InvestorContact)
+
 
     private def buildInvestorListItem(invWithContact:InvestorWithContact):Node = {
 
@@ -246,6 +245,13 @@ class AdminInvestorSnippet {
             </td>
         }
 
+        val changePassword = {
+            SHtml.a(()=>{
+                val ns = S.runTemplate("admin" :: "investor" :: "dialog" :: "_chunk_dialog-change-password" :: Nil).openOr(NodeSeq.Empty)
+                JsUtils.modalDialog(("#Dialog [class]" #> s"lift:AdminInvestorSnippet.dialogChangePassword?invId=${inv.id}").apply(ns))
+            }, Text("Change password"))
+        }
+
         <tr>
             <td>{inv.id}</td>
             <td>{inv.name}</td>
@@ -267,6 +273,8 @@ class AdminInvestorSnippet {
                         <li><a href={s"/admin/investor/${inv.id}/deposit"}>Account</a></li>
                         <li><a href={s"/admin/investor/${inv.id}/business"}>Investment</a></li>
                         <li class="divider"></li>
+                        <li>{changePassword}</li>
+                        <li class="divider"></li>
                         <li>{deleter}</li>
                     </ul>
                 </div>
@@ -275,13 +283,8 @@ class AdminInvestorSnippet {
         </tr>
     }
 
-    case class InvestorWithContact(inv:Investor, contact:InvestorContact)
-
     def investorList:CssSel = {
-//        val investors = InvestorManager.getList(0, 50)
-
         val investors = Zufaro.db.withSession { implicit sess =>
-//            Investors.filter(_.status === status.ACTIVE).drop(0).take(50).run
             val q = InvestorContacts join Investors.filter(_.status === status.ACTIVE) on (_.investorId === _.id)
             q.run.map(a => InvestorWithContact(a._2, a._1))
         }
@@ -289,10 +292,41 @@ class AdminInvestorSnippet {
         "#List *" #> NodeSeq.fromSeq(investors.map(buildInvestorListItem))
     }
 
-//    private def invO = {
-//        val id = S.param("invId").openOr("0").toLong
-//        InvestorManager.getById(id)
-//    }
+
+    def dialogChangePassword(in:NodeSeq):NodeSeq = {
+
+        val inv = InvestorManager.getById(S.attr("invId").openOrThrowException("no invId").toLong).getOrElse {
+            throw NotExistsException("No investor account exists")
+        }
+
+        def updateInternal = () => {
+            try {
+
+                if (passwordVar.isEmpty)
+                    throw InvalidParameterException("Please fill the new password")
+                if (verifyPasswordVar.isEmpty)
+                    throw InvalidParameterException("Please repeat your password")
+                if (passwordVar.is != verifyPasswordVar.is)
+                    throw InvalidParameterException("Your password and verification didn't match")
+
+                InvestorManager.updatePassword(inv.id, passwordVar.is)
+
+                JsUtils.hideAllModal & JsUtils.showNotice("Investor password updated successfully")
+            }catch{
+                case e:ZufaroException =>
+                    JsUtils.showError(e.getMessage)
+            }
+        }
+
+        SHtml.ajaxForm(bind("in",in,
+            "password" -> SHtml.password(passwordVar, passwordVar(_), "class" -> "form-control"),
+            "password-verify" -> SHtml.password(verifyPasswordVar, verifyPasswordVar(_), "class" -> "form-control"),
+            "submit" -> S.formGroup(1000){
+                SHtml.hidden(updateInternal) ++
+                SHtml.submit("Update", updateInternal, "class" -> "btn btn-success")
+            }
+        ))
+    }
 
 
 }
